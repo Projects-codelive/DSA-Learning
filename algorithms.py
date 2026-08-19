@@ -98,41 +98,55 @@ def merge_sort_steps(arr):
             build_initial_tree(a[:mid], level + 1, idx * 2)
             build_initial_tree(a[mid:], level + 1, idx * 2 + 1)
 
-    def snapshot(info="", active=None, done=None):
+    def snapshot(info="", active=None, done=None, action="divide", reason="", code_line=1):
         # deep copy of global tree (list of lists)
         tree_copy = [[node[:] for node in level] for level in global_tree_state]
         return {
             "tree": tree_copy,
             "active": active or [],
             "done": done or [],
-            "info": info or ""
+            "info": info or "",
+            "action": action,
+            "message": info or "",
+            "reason": reason or info or "",
+            "code_line": code_line
         }
 
     # Recursive merge sort that updates the global tree and emits snapshots
     def sort_and_record(a, level=0, idx=0):
         # base: single element => already present in global_tree_state
         if len(a) <= 1:
-            # show the leaf as reached (split snapshot)
-            steps.append(snapshot(info=f"Reached leaf: {a}", active=[{"level": level, "idx": idx}]))
-            # mark leaf done (optional) — but we wait until merges to mark real done
+            steps.append(snapshot(
+                info=f"Base case leaf: {a}",
+                active=[{"level": level, "idx": idx}],
+                action="base_case",
+                reason=f"Subarray {a} has length <= 1. A single element is already sorted by definition.",
+                code_line=2
+            ))
             return a[:]
 
+        mid = len(a) // 2
         # Split snapshot (highlight current node and its children)
         steps.append(snapshot(
-            info=f"Splitting node: {a}",
+            info=f"Splitting node {a} at mid index {mid}",
             active=[{"level": level, "idx": idx},
                     {"level": level + 1, "idx": idx * 2},
-                    {"level": level + 1, "idx": idx * 2 + 1}]
+                    {"level": level + 1, "idx": idx * 2 + 1}],
+            action="divide",
+            reason=f"Dividing array of size {len(a)} into Left half {a[:mid]} and Right half {a[mid:]} at midpoint {mid}.",
+            code_line=3
         ))
 
-        mid = len(a) // 2
         left = sort_and_record(a[:mid], level + 1, idx * 2)
         right = sort_and_record(a[mid:], level + 1, idx * 2 + 1)
 
         # Before merging: highlight the two child nodes
         steps.append(snapshot(
-            info=f"About to merge {left} and {right}",
-            active=[{"level": level + 1, "idx": idx * 2}, {"level": level + 1, "idx": idx * 2 + 1}]
+            info=f"Merging sorted halves: {left} and {right}",
+            active=[{"level": level + 1, "idx": idx * 2}, {"level": level + 1, "idx": idx * 2 + 1}],
+            action="merge_compare",
+            reason=f"Both subproblems {left} and {right} are sorted. Comparing elements with two pointers to merge in linear O(n) time.",
+            code_line=7
         ))
 
         # perform merge
@@ -158,21 +172,35 @@ def merge_sort_steps(arr):
                 {"level": level + 1, "idx": idx * 2},
                 {"level": level + 1, "idx": idx * 2 + 1},
                 {"level": level, "idx": idx}
-            ]
+            ],
+            action="merge_done",
+            reason=f"Successfully combined into sorted array {merged}. Preserves stability since equal keys favor the left half.",
+            code_line=8
         ))
         return merged
 
     # Initialize tree placeholders by splitting completely
-    build_initial_tree(arr[:])  # fills global_tree_state with all nodes and leaves
+    build_initial_tree(arr[:])
 
     # First snapshot: show full split tree
-    steps.append(snapshot(info="Initial full split structure (divide phase)"))
+    steps.append(snapshot(
+        info="Initial array loaded into recursion tree",
+        action="init",
+        reason=f"Starting Merge Sort on input array of size {len(arr)}. We will divide recursively down to individual elements.",
+        code_line=1
+    ))
 
-    # Start recursion (this will append split & merge snapshots)
+    # Start recursion
     sort_and_record(arr[:], level=0, idx=0)
 
     # Final snapshot: fully sorted at root
-    steps.append(snapshot(info="Merge Sort complete", done=[{"level": 0, "idx": 0}]))
+    steps.append(snapshot(
+        info="Merge Sort complete! Array fully sorted.",
+        done=[{"level": 0, "idx": 0}],
+        action="done",
+        reason=f"Complete! All sub-arrays have been merged back to the root node in guaranteed O(n log n) time.",
+        code_line=1
+    ))
 
     return steps
 

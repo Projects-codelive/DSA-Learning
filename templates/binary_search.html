@@ -1,265 +1,540 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Binary Search Visualizer</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-body {
-    background-color: #1f2937;
-    color: #d1d5db;
-    font-family: 'Poppins', sans-serif;
-    margin: 0;
-    padding: 0;
-}
-.visualizer-container {
-    max-width: 60rem;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: #1f2937;
-    border-radius: 0.75rem;
-    border: 1px solid #374151;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Search Interactive Lab — DSA Studio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e2d4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0891b2; }
 
-/* H1 Style */
-.visualizer-container h1 {
-    font-size: 10 rem;  /* Increased from 3rem */
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #a78bfa;
-    font-family: Georgia, 'Times New Roman', Times, serif;
-}
-/* Theory Section */
-.theory {
-    margin-bottom: 2rem;
-    background-color: #374151;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    line-height: 1.5;
-}
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
 
-/* Array Boxes */
-.array-container {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    overflow-x: auto;
-    margin-bottom: 1rem;
-}
-.array-item {
-    min-width: 3rem;
-    width: 5rem;
-    height: 5rem;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1.5rem;
-    border-radius: 0.5rem;
-    transition: transform 0.5s, background-color 0.5s;
-    background-color: #a78bfa;
-    color: #3730a3;
-}
-.array-item.checking {
-    background-color: #fcd34d;
-    transform: scale(1.15);
-    box-shadow: 0 0 12px #fcd34d;
-}
-.array-item.found {
-    background-color: #34d399;
-    color: white;
-    transform: scale(1.15);
-}
+        .glass-card {
+            background: rgba(17, 29, 53, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
 
-/* Pointers Below Array */
-.pointer-container {
-    position: relative;
-    display: flex;
-    justify-content: flex-start; /* We'll move pointers using JS */
-    height: 2rem;
-    margin-top: 1rem; /* space below array */
-}
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-.pointer {
-    position: absolute;
-    font-weight: bold;
-    font-size: 1.25rem;
-    transition: transform 0.5s;
-    display: none;
-}
-.low-pointer { color: #34d399; }
-.mid-pointer { color: #fcd34d; }
-.high-pointer { color: #ef4444; }
+        .array-node {
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
 
-/* Status */
-.status-message {
-    font-size: 1.2rem;
-    text-align: center;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    background-color: #374151;
-    border: 1px solid #4b5563;
-    margin-top: 1rem;
-}
+        .node-mid {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.4)) !important;
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5) !important;
+            transform: translateY(-8px) scale(1.08);
+        }
 
-/* Input Section */
-.button {
-    background-color: #a855f7;
-    color: white;
-    font-weight: 600;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    width: 100%;
-    margin-top: 0.5rem;
-    transition: 0.2s;
-}
-.button:hover { background-color: #9333ea; }
-.input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-.input-group input {
-    padding: 0.5rem;
-    border-radius: 0.375rem;
-    background: #374151;
-    color: #d1d5db;
-    border: 1px solid #4b5563;
-    font-size: 1rem;
-}
-</style>
+        .node-found {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.5)) !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.7) !important;
+            transform: translateY(-12px) scale(1.12);
+        }
+
+        .node-eliminated {
+            opacity: 0.25;
+            filter: grayscale(80%);
+            transform: scale(0.92);
+        }
+
+        .code-line {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .code-line.active {
+            background: rgba(34, 211, 238, 0.15);
+            border-left: 3px solid #22d3ee;
+            color: #38bdf8;
+            font-weight: 600;
+        }
+    </style>
 </head>
-<body>
-<div class="visualizer-container">
-    <h1>Binary Search Visualizer</h1>
 
-    <div class="theory">
-        <p>Binary Search is fast (O(log n)) but requires the array to be <strong>sorted</strong>. Input will be sorted automatically before execution.</p>
-        <ol class="mt-2 list-decimal list-inside">
-            <li>Set low = 0 and high = last index.</li>
-            <li>Calculate mid = (low + high) / 2.</li>
-            <li>If A[mid] is target → Done.</li>
-            <li>If A[mid] &lt; target → set low = mid + 1.</li>
-            <li>If A[mid] &gt; target → set high = mid - 1.</li>
-            <li>Repeat until found or low crosses high.</li>
-        </ol>
-    </div>
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-cyan-500 selection:text-white">
 
-    <div class="input-group">
-        <label>Array (comma-separated):</label>
-        <input type="text" id="arrayInput" value="10, 5, 1, 12, 16, 20">
-        <label>Target Value:</label>
-        <input type="number" id="targetInput" value="12">
-        <button id="startButton" class="button">Start Binary Search</button>
-    </div>
+    <!-- Ambient Glowing Orbs -->
+    <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none z-0"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none z-0"></div>
 
-    <div id="visualization" class="visualization-area">
-    <div id="arrayContainer" class="array-container"></div>
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-slate-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-all">
+                        <div class="w-full h-full bg-[#0d1527] rounded-[10px] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white">DSA Studio</span>
+                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Lab Mode</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">Interactive Visualizer</span>
+                    </div>
+                </a>
 
-    <!-- Pointers BELOW array -->
-    <div id="pointerContainer" class="pointer-container">
-        <div id="lowPointer" class="pointer low-pointer">low</div>
-        <div id="midPointer" class="pointer mid-pointer">mid</div>
-        <div id="highPointer" class="pointer high-pointer">high</div>
-    </div>
+                <div class="flex items-center gap-3">
+                    <a href="/#explore-page" class="text-xs font-semibold px-4 py-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors">
+                        ← All Algorithms
+                    </a>
+                    <a href="/quiz" class="text-xs font-semibold px-4 py-2 rounded-xl text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-md shadow-purple-500/20 hover:opacity-95 transition-all">
+                        🎯 Take Quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <div id="statusMessage" class="status-message">Awaiting search...</div>
-</div>
+    <!-- Main Visualizer Area -->
+    <main class="relative z-10 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
+        <!-- Top Title & Overview -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">🔍 Searching Algorithm</span>
+                    <span class="text-xs font-mono text-slate-400">Time: <strong class="text-cyan-300 font-bold">O(log n)</strong> | Space: <strong class="text-emerald-300 font-bold">O(1)</strong></span>
+                </div>
+                <h1 class="font-outfit text-3xl sm:text-4xl font-extrabold text-white mt-1">
+                    Binary Search <span class="text-gradient">Divide & Conquer Lab</span>
+                </h1>
+            </div>
 
-<script>
-function parseArray(input) { 
-    return input.split(',').map(x => Number(x.trim())).filter(x => !isNaN(x)); 
-}
+            <!-- Preset / Samples -->
+            <div class="flex items-center gap-2">
+                <button onclick="setSampleData([2, 5, 8, 12, 16, 23, 38, 45, 56, 72], 23)" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
+                    Find 23
+                </button>
+                <button onclick="setSampleData([4, 9, 15, 21, 33, 47, 59, 68, 80], 59)" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
+                    Find 59
+                </button>
+                <button onclick="setSampleData([1, 3, 7, 11, 19, 25, 30], 10)" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-rose-400 hover:border-rose-500/40 transition-all">
+                    Not Present (Find 10)
+                </button>
+            </div>
+        </div>
 
-function renderArray(arr) {
-    const container = document.getElementById('arrayContainer');
-    container.innerHTML = '';
-    arr.forEach((val, i) => {
-        const div = document.createElement('div');
-        div.className = 'array-item';
-        div.id = 'item-' + i;
-        div.textContent = val;
-        container.appendChild(div);
-    });
-}
+        <!-- Input & Controls Bar -->
+        <div class="glass-panel rounded-3xl p-6 border border-slate-800 shadow-xl space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+                <div class="sm:col-span-8">
+                    <label class="text-xs font-mono uppercase text-slate-400 mb-1 block">Sorted Input Array (Auto-sorted if needed):</label>
+                    <input type="text" id="arrayInput" value="2, 5, 8, 12, 16, 23, 38, 45, 56, 72"
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="text-xs font-mono uppercase text-slate-400 mb-1 block">Target Value:</label>
+                    <input type="number" id="targetInput" value="23"
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-cyan-400 font-mono font-bold text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                </div>
+                <div class="sm:col-span-2">
+                    <button onclick="startBinarySearch()" id="runButton"
+                        class="w-full px-6 py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center gap-2">
+                        <span>🎯 Search</span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-function movePointer(pointerId, index) {
-    const pointer = document.getElementById(pointerId);
-    const arrayContainer = document.getElementById('arrayContainer');
-    const items = arrayContainer.children;
+        <!-- MAIN VISUALIZATION STAGE -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Stage (Animation Canvas & Explanation) -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- Live Array Canvas -->
+                <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-700/80 shadow-2xl relative overflow-hidden space-y-6">
+                    
+                    <!-- Top Stage Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-2">
+                            <span id="action-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                                READY
+                            </span>
+                            <span id="target-badge" class="text-xs font-mono text-slate-400">Target: <strong class="text-cyan-400">23</strong></span>
+                        </div>
+                        <div class="text-xs font-mono text-slate-400">
+                            <span id="stepCounter" class="text-cyan-400 font-bold">Step 0 / 0</span>
+                        </div>
+                    </div>
 
-    if (!pointer || index < 0 || index >= items.length) {
-        pointer.style.display = 'none';
-        return;
-    }
+                    <!-- Visual Nodes Array Display -->
+                    <div class="min-h-[220px] flex flex-col justify-end items-center py-6 bg-slate-950/70 rounded-2xl border border-slate-800/80 px-2 sm:px-4">
+                        
+                        <!-- Pointers row (Low, Mid, High indicators) -->
+                        <div id="pointers-container" class="w-full flex justify-center gap-2.5 sm:gap-3 mb-2 h-7 text-xs font-mono font-bold">
+                            <!-- Injected pointers -->
+                        </div>
 
-    const item = items[index];
-    const itemRect = item.getBoundingClientRect();
-    const containerRect = arrayContainer.getBoundingClientRect();
-    
-    // Position pointer horizontally aligned with array item
-    const left = itemRect.left - containerRect.left + itemRect.width / 2;
-    pointer.style.transform = `translateX(${left}px)`;
-    pointer.style.display = 'block';
-}
+                        <!-- Array Cards / Blocks -->
+                        <div id="arrayContainer" class="w-full flex justify-center items-end gap-2.5 sm:gap-3 pb-2 overflow-x-auto">
+                            <!-- Injected array blocks -->
+                        </div>
 
+                        <!-- Indices row -->
+                        <div id="indices-container" class="w-full flex justify-center gap-2.5 sm:gap-3 mt-2 text-[11px] font-mono text-slate-500">
+                            <!-- Injected indices -->
+                        </div>
+                    </div>
 
-async function visualizeSteps(steps, arr) {
-    const status = document.getElementById('statusMessage');
-    renderArray(arr);
-    for (const step of steps) {
-        movePointer('lowPointer', step.low);
-        movePointer('midPointer', step.mid);
-        movePointer('highPointer', step.high);
+                    <!-- Step Explanation Breakdown -->
+                    <div id="step-explanation-card" class="rounded-2xl p-5 bg-slate-950/80 border border-slate-800 space-y-3">
+                        <div class="flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase">
+                            <span>🧠 Divide & Conquer Math Breakdown:</span>
+                        </div>
+                        
+                        <!-- Main Statement -->
+                        <div id="step-headline" class="text-base sm:text-lg font-outfit font-bold text-white leading-snug">
+                            Click "Search" to start the logarithmic reduction.
+                        </div>
 
-        document.querySelectorAll('.array-item').forEach(it => it.classList.remove('checking','found'));
-        if(step.mid!==undefined && step.mid!==-1){
-            document.getElementById('item-'+step.mid).classList.add('checking');
+                        <!-- Detailed Math & Logic -->
+                        <div id="step-logic-details" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed">
+                            Awaiting start...
+                        </div>
+
+                        <!-- Legend Bar -->
+                        <div class="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-400 border-t border-slate-850">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-md bg-emerald-500/80 border border-emerald-400"></span>
+                                <span>[ Low ] Pointer</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-md bg-amber-500/80 border border-amber-400"></span>
+                                <span>[ Mid ] Comparison Element</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-md bg-rose-500/80 border border-rose-400"></span>
+                                <span>[ High ] Pointer</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playback Controls -->
+                    <div class="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <button onclick="prevStep()" id="prevButton" disabled
+                                class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-850 border border-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-all">
+                                ← Prev
+                            </button>
+                            <button onclick="nextStep()" id="nextButton" disabled
+                                class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md shadow-cyan-600/30 disabled:opacity-40 disabled:pointer-events-none transition-all">
+                                Next Step →
+                            </button>
+                        </div>
+
+                        <button onclick="toggleAutoPlay()" id="playPauseBtn"
+                            class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2">
+                            <span id="playIcon">▶</span>
+                            <span id="playText">Auto Play</span>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Right Stage (Live Code Execution & Complexity) -->
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- Live Code Execution Tracker -->
+                <div class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono font-bold text-cyan-400 uppercase">💻 Live Code Execution</span>
+                        <span class="text-[11px] font-mono text-slate-500">Python 3</span>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-2xl font-mono text-xs text-slate-300 space-y-1.5 border border-slate-800/80 overflow-x-auto">
+                        <div id="code-line-1" class="code-line px-2 py-1 rounded">low, high = 0, len(arr) - 1</div>
+                        <div id="code-line-2" class="code-line px-2 py-1 rounded">while low &lt;= high:</div>
+                        <div id="code-line-3" class="code-line px-2 py-1 rounded pl-4">mid = (low + high) // 2</div>
+                        <div id="code-line-4" class="code-line px-2 py-1 rounded pl-4">if arr[mid] == target:</div>
+                        <div id="code-line-5" class="code-line px-2 py-1 rounded pl-8">return mid # Found!</div>
+                        <div id="code-line-6" class="code-line px-2 py-1 rounded pl-4">elif arr[mid] &lt; target:</div>
+                        <div id="code-line-7" class="code-line px-2 py-1 rounded pl-8">low = mid + 1 # Eliminate left</div>
+                        <div id="code-line-8" class="code-line px-2 py-1 rounded pl-4">else:</div>
+                        <div id="code-line-9" class="code-line px-2 py-1 rounded pl-8">high = mid - 1 # Eliminate right</div>
+                        <div id="code-line-10" class="code-line px-2 py-1 rounded">return -1 # Not found</div>
+                    </div>
+                </div>
+
+                <!-- Theory Highlights -->
+                <div class="glass-card rounded-3xl p-6 border border-slate-800 space-y-3">
+                    <h3 class="font-outfit font-bold text-white text-base">Why O(log n) is Ultra-Fast:</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        At each comparison, half of the entire search space is permanently discarded. 
+                        In an array of <strong>1,000,000 elements</strong>, Binary Search needs at most <strong>20 comparisons</strong> to find any target!
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Interactive Logic Script -->
+    <script>
+        let steps = [];
+        let currentStepIndex = -1;
+        let autoPlayTimer = null;
+        let playbackDelay = 800;
+
+        function setSampleData(arr, target) {
+            document.getElementById('arrayInput').value = arr.join(', ');
+            document.getElementById('targetInput').value = target;
+            startBinarySearch();
         }
 
-        if(step.action==='compare'){ 
-            status.textContent=`Comparing ${step.value} with target ${step.target}`; 
-        }
-        else if(step.action==='found'){ 
-            status.textContent=`Found ${step.target} at index ${step.mid}`; 
-            if(step.mid!==-1) document.getElementById('item-'+step.mid).classList.add('found');
-            break; 
-        }
-        else if(step.action==='not_found'){ 
-            status.textContent=`Target ${step.target} not found.`; 
-            break; 
+        async function fetchSteps(arr, target) {
+            try {
+                const res = await fetch('/run-algo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ algo: 'binary', arr: arr, target: target })
+                });
+                const data = await res.json();
+                return data.steps || [];
+            } catch (e) {
+                console.error(e);
+                return [];
+            }
         }
 
-        await new Promise(r=>setTimeout(r,1000));
-    }
-}
+        async function startBinarySearch() {
+            stopAutoPlay();
+            const raw = document.getElementById('arrayInput').value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+            const target = parseInt(document.getElementById('targetInput').value);
 
-document.getElementById('startButton').onclick = async function() {
-    const arr = parseArray(document.getElementById('arrayInput').value);
-    const target = Number(document.getElementById('targetInput').value);
-    renderArray(arr); 
-    document.getElementById('statusMessage').textContent='Fetching steps...';
-    try{
-        const resp = await fetch('/run-algo',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({algo:'binary', arr:arr, target:target})
+            if (raw.length === 0 || isNaN(target)) return;
+
+            document.getElementById('target-badge').innerHTML = `Target: <strong class="text-cyan-400 font-bold">${target}</strong>`;
+
+            steps = await fetchSteps(raw, target);
+            if (steps.length > 0) {
+                currentStepIndex = 0;
+                renderActiveStep();
+            }
+        }
+
+        function highlightCodeLine(lineNum) {
+            for (let i = 1; i <= 10; i++) {
+                const el = document.getElementById(`code-line-${i}`);
+                if (el) el.classList.remove('active');
+            }
+            if (lineNum) {
+                const activeEl = document.getElementById(`code-line-${lineNum}`);
+                if (activeEl) activeEl.classList.add('active');
+            }
+        }
+
+        function renderActiveStep() {
+            if (steps.length === 0 || currentStepIndex < 0) return;
+
+            const step = steps[currentStepIndex];
+            const arr = step.array;
+            const low = step.low;
+            const high = step.high;
+            const mid = step.mid;
+            const action = step.action;
+            const target = step.target;
+
+            const arrayContainer = document.getElementById('arrayContainer');
+            const pointersContainer = document.getElementById('pointers-container');
+            const indicesContainer = document.getElementById('indices-container');
+
+            arrayContainer.innerHTML = '';
+            pointersContainer.innerHTML = '';
+            indicesContainer.innerHTML = '';
+
+            const maxVal = Math.max(...arr, 50);
+
+            arr.forEach((val, idx) => {
+                const isMid = (idx === mid && action !== 'not_found');
+                const isFound = (action === 'found' && idx === mid);
+                const isEliminated = (idx < low || idx > high);
+
+                // Node
+                const node = document.createElement('div');
+                node.className = 'array-node flex flex-col items-center justify-end rounded-2xl border-2 p-2 shadow-lg';
+                node.style.width = '54px';
+                const heightPx = Math.max(65, Math.min(150, (val / maxVal) * 140));
+                node.style.height = `${heightPx}px`;
+
+                if (isFound) {
+                    node.className += ' node-found';
+                } else if (isMid) {
+                    node.className += ' node-mid';
+                } else if (isEliminated) {
+                    node.className += ' node-eliminated bg-slate-950 border-slate-900 text-slate-600';
+                } else {
+                    node.className += ' bg-slate-900 border-slate-700 text-white';
+                }
+
+                node.innerHTML = `<span class="font-outfit font-extrabold text-lg text-white mb-1">${val}</span>`;
+                arrayContainer.appendChild(node);
+
+                // Pointers
+                const ptr = document.createElement('div');
+                ptr.style.width = '54px';
+                ptr.className = 'text-center text-[10px] font-mono font-bold';
+
+                let badges = [];
+                if (idx === low) badges.push('<span class="text-emerald-400">L</span>');
+                if (idx === mid && action !== 'not_found') badges.push('<span class="text-amber-400">M</span>');
+                if (idx === high) badges.push('<span class="text-rose-400">H</span>');
+
+                ptr.innerHTML = badges.length ? `▼ ${badges.join('/')}` : '';
+                pointersContainer.appendChild(ptr);
+
+                // Index
+                const idxLabel = document.createElement('div');
+                idxLabel.style.width = '54px';
+                idxLabel.className = 'text-center';
+                idxLabel.innerText = `[${idx}]`;
+                indicesContainer.appendChild(idxLabel);
+            });
+
+            // Explanation & Math logic
+            const actionBadge = document.getElementById('action-badge');
+            const headline = document.getElementById('step-headline');
+            const logicDetails = document.getElementById('step-logic-details');
+
+            if (action === 'found') {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+                actionBadge.innerText = '🎯 TARGET FOUND';
+                headline.innerText = `Target value ${target} successfully located at index [${mid}]!`;
+                logicDetails.innerHTML = `
+                    <strong>Match Confirmed:</strong> <code>arr[${mid}] == ${target}</code><br>
+                    Binary Search terminates immediately with a successful match in ${currentStepIndex + 1} steps.
+                `;
+                highlightCodeLine(5);
+                stopAutoPlay();
+            } else if (action === 'not_found') {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30';
+                actionBadge.innerText = '❌ NOT FOUND';
+                headline.innerText = `Target ${target} does not exist in the array.`;
+                logicDetails.innerHTML = `
+                    <strong>Condition:</strong> <code>low (${low}) &gt; high (${high})</code> search space exhausted.<br>
+                    The target value is not present in the given dataset.
+                `;
+                highlightCodeLine(10);
+                stopAutoPlay();
+            } else {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30';
+                actionBadge.innerText = '🔍 COMPUTING MID';
+                const midVal = arr[mid];
+                headline.innerText = `Inspecting middle element arr[${mid}] = ${midVal}`;
+                
+                if (midVal < target) {
+                    logicDetails.innerHTML = `
+                        <strong>Math:</strong> <code>mid = (${low} + ${high}) // 2 = ${mid}</code> (Value: ${midVal})<br>
+                        <strong>Comparison:</strong> <code>${midVal} &lt; ${target}</code> → Target is larger!<br>
+                        <strong>Elimination:</strong> All elements from index 0 to ${mid} are discarded. Next search range: <code>low = ${mid + 1}</code>.
+                    `;
+                    highlightCodeLine(7);
+                } else {
+                    logicDetails.innerHTML = `
+                        <strong>Math:</strong> <code>mid = (${low} + ${high}) // 2 = ${mid}</code> (Value: ${midVal})<br>
+                        <strong>Comparison:</strong> <code>${midVal} &gt; ${target}</code> → Target is smaller!<br>
+                        <strong>Elimination:</strong> All elements from index ${mid} to ${high} are discarded. Next search range: <code>high = ${mid - 1}</code>.
+                    `;
+                    highlightCodeLine(9);
+                }
+            }
+
+            document.getElementById('stepCounter').innerText = `Step ${currentStepIndex + 1} of ${steps.length}`;
+            document.getElementById('prevButton').disabled = (currentStepIndex <= 0);
+            document.getElementById('nextButton').disabled = (currentStepIndex >= steps.length - 1);
+        }
+
+        function nextStep() {
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                renderActiveStep();
+            } else {
+                stopAutoPlay();
+            }
+        }
+
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderActiveStep();
+            }
+        }
+
+        function toggleAutoPlay() {
+            if (autoPlayTimer) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+
+        function startAutoPlay() {
+            if (currentStepIndex >= steps.length - 1) currentStepIndex = 0;
+            document.getElementById('playIcon').innerText = '⏸';
+            document.getElementById('playText').innerText = 'Pause';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-md shadow-rose-600/30 transition-all flex items-center gap-2';
+            autoPlayTimer = setInterval(nextStep, playbackDelay);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+            }
+            document.getElementById('playIcon').innerText = '▶';
+            document.getElementById('playText').innerText = 'Auto Play';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startBinarySearch();
         });
-        const data = await resp.json();
-        if(data.error) document.getElementById('statusMessage').textContent=`Error: ${data.error}`;
-        else await visualizeSteps(data.steps, arr);
-    } catch(e){
-        document.getElementById('statusMessage').textContent=`Connection error: ${e.message}`;
-    }
-};
-
-window.onload = ()=>renderArray(parseArray(document.getElementById('arrayInput').value));
-</script>
+    </script>
 </body>
+
 </html>

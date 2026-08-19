@@ -1,222 +1,395 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
-    <title>Stack Visualization - Luna Theme</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack (LIFO) Interactive Lab — DSA Studio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        body {
-            background-color: #1f1f2e;
-            font-family: 'Poppins', sans-serif;
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e2d4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0891b2; }
+
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .stack-visual {
+        .glass-card {
+            background: rgba(17, 29, 53, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Stack Bucket container */
+        .stack-bucket {
+            border-left: 4px solid #8b5cf6;
+            border-right: 4px solid #8b5cf6;
+            border-bottom: 4px solid #8b5cf6;
+            border-radius: 0 0 1.25rem 1.25rem;
+            min-height: 280px;
+            width: 220px;
             display: flex;
             flex-direction: column-reverse;
-            border-left: 3px solid #7f5af0;
-            border-right: 3px solid #7f5af0;
-            border-bottom: 3px solid #7f5af0;
-            transition: opacity 0.5s ease-out;
-            background: rgba(63, 63, 70, 0.2);
-            border-radius: 6px;
+            padding: 8px;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);
             position: relative;
-            padding-top: 5px;
         }
 
-        .stack-element {
+        .stack-item {
             width: 100%;
-            transition: transform 0.3s ease, background 0.3s ease;
+            height: 44px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.5));
+            border: 2px solid #8b5cf6;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #ede9fe;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: pushIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        .stack-element:hover {
-            transform: scale(1.05);
-            background: #9f7aea;
+        .stack-item.top-item {
+            border-color: #22d3ee;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.35), rgba(59, 130, 246, 0.5));
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
         }
 
-        .top-indicator {
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8rem;
-            color: #facc15;
-            font-weight: bold;
+        @keyframes pushIn {
+            from { transform: translateY(-40px) scale(0.8); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .code-line {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .code-line.active {
+            background: rgba(34, 211, 238, 0.15);
+            border-left: 3px solid #22d3ee;
+            color: #38bdf8;
+            font-weight: 600;
         }
     </style>
 </head>
 
-<body class="bg-gray-900 p-8 text-gray-100">
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-cyan-500 selection:text-white">
 
-    <h1 class="text-4xl font-bold text-center text-purple-400 mb-8">Stack Visualization 💻</h1>
+    <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none z-0"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none z-0"></div>
 
-    <div class="flex flex-col gap-6">
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-slate-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-all">
+                        <div class="w-full h-full bg-[#0d1527] rounded-[10px] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white">DSA Studio</span>
+                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">LIFO Lab</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">Interactive Visualizer</span>
+                    </div>
+                </a>
 
-        <!-- Theory (Full Width on top, bigger font) -->
-        <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
-            <h2 class="text-2xl md:text-3xl font-bold mb-4 text-purple-400">Stack Theory 📚</h2>
-            <p class="text-gray-200 text-base mb-2">
-                A <strong>Stack</strong> is a linear data structure following <strong>LIFO</strong> (Last In, First
-                Out).
-                The last element added is the first removed.
-            </p>
-            <p class="text-gray-200 text-base mb-2">Common operations include:</p>
-            <ul class="list-disc list-inside text-gray-300 text-base mb-2">
-                <li><strong>Push:</strong> Add element on top.</li>
-                <li><strong>Pop:</strong> Remove element from top.</li>
-                <li><strong>Peek / Top:</strong> View top element without removing.</li>
-                <li><strong>isEmpty:</strong> Check if stack is empty.</li>
-            </ul>
-            <p class="text-gray-200 text-base">Stacks are used in function calls, undo actions, expression evaluation,
-                and DFS traversal.</p>
+                <div class="flex items-center gap-3">
+                    <a href="/#explore-page" class="text-xs font-semibold px-4 py-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors">
+                        ← All Algorithms
+                    </a>
+                    <a href="/quiz" class="text-xs font-semibold px-4 py-2 rounded-xl text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-md shadow-purple-500/20 hover:opacity-95 transition-all">
+                        🎯 Take Quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">📦 Linear Data Structure</span>
+                    <span class="text-xs font-mono text-slate-400">Rule: <strong class="text-amber-300 font-bold">LIFO (Last-In First-Out)</strong> | Operations: <strong class="text-emerald-300 font-bold">O(1)</strong></span>
+                </div>
+                <h1 class="font-outfit text-3xl sm:text-4xl font-extrabold text-white mt-1">
+                    Stack Data Structure <span class="text-gradient">LIFO Lab</span>
+                </h1>
+            </div>
         </div>
 
-        <!-- Input + Visualization side by side -->
-        <div class="flex flex-col md:flex-row gap-6">
-
-            <!-- Left Side: Input Panel with Load & Simulate buttons -->
-            <div class="flex flex-col w-full md:w-1/2 gap-4">
-                <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
-                    <h2 class="text-xl font-semibold mb-4 text-purple-400">Define Operations</h2>
-                    <textarea id="opsInput" rows="10"
-                        class="w-full p-3 bg-gray-900 border border-purple-500 rounded-lg text-gray-100 focus:ring-purple-500 focus:border-purple-500"
-                        placeholder="Enter operations line by line (e.g., push 10, pop)">push 10
-push 20
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Controls & Operation Script -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+                    <h2 class="font-outfit font-bold text-lg text-white">Define Stack Operations</h2>
+                    <p class="text-xs text-slate-400">Enter operations line-by-line (e.g. <code>push 10</code>, <code>pop</code>, <code>peek</code>):</p>
+                    
+                    <textarea id="opsInput" rows="7"
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl p-4 text-white font-mono text-sm focus:outline-none focus:border-cyan-400">push 10
+push 25
+push 40
 pop
-push 30
-pop
+push 60
+peek
 pop</textarea>
 
-                    <!-- Load Button -->
-                    <button id="loadOpsBtn"
-                        class="w-full mt-4 py-2 px-4 rounded-lg font-bold bg-purple-500 hover:bg-purple-600 text-white transition-all">
-                        Load & Fetch Steps
+                    <button onclick="loadAndRunStack()" id="loadBtn"
+                        class="w-full py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-amber-500 via-purple-600 to-cyan-500 hover:opacity-95 shadow-lg shadow-purple-500/25 transition-all">
+                        ⚡ Load & Run Operations
                     </button>
+                </div>
 
-                    <!-- Simulate Next Step Button -->
-                    <button id="nextStepBtn"
-                        class="w-full mt-4 py-3 px-4 rounded-lg font-bold bg-teal-500 hover:bg-teal-600 text-gray-900 disabled:bg-gray-600 transition-all">
-                        Simulate Next Step (Step <span id="currentStepCount">0</span>/<span
-                            id="totalStepsCount">0</span>)
-                    </button>
-
-                    <div class="mt-4 p-3 bg-gray-800 border-l-4 border-purple-400 text-purple-300 text-sm rounded">
-                        **Last Action:** <span id="currentOpDisplay" class="font-medium">N/A</span>
-                    </div>
+                <!-- Theory summary -->
+                <div class="glass-card rounded-3xl p-6 border border-slate-800 space-y-3">
+                    <h3 class="font-outfit font-bold text-white text-base">Key Stack Applications:</h3>
+                    <ul class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+                        <li>Function Call Stack & Recursion tracking</li>
+                        <li>Undo / Redo buffers in text editors</li>
+                        <li>Balanced parenthesis & syntax parsing</li>
+                        <li>DFS (Depth-First Search) graph traversal</li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- Right Side: Visualization Panel -->
-            <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-full md:w-1/2 flex flex-col border border-gray-700">
-                <h2 class="text-xl font-semibold mb-4 text-purple-400">Operation Steps History</h2>
-                <div id="history-container"
-                    class="flex gap-8 p-4 overflow-x-auto items-end h-full min-h-[250px] rounded-lg">
+            <!-- Right Stage & Visual Bucket -->
+            <div class="lg:col-span-8 space-y-6">
+                <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-700/80 shadow-2xl space-y-6">
+                    
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-2">
+                            <span id="action-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                                READY
+                            </span>
+                            <span id="stack-size-badge" class="text-xs font-mono text-slate-400">Stack Size: 0</span>
+                        </div>
+                        <div class="text-xs font-mono text-slate-400">
+                            <span id="stepCounter" class="text-cyan-400 font-bold">Step 0 / 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual Stack Container -->
+                    <div class="flex justify-center items-center py-6 bg-slate-950/70 rounded-2xl border border-slate-800/80">
+                        <div class="flex flex-col items-center">
+                            <div class="text-xs font-mono font-bold text-cyan-400 mb-2">▼ TOP OF STACK</div>
+                            <div id="stackBucket" class="stack-bucket">
+                                <!-- Injected stack items -->
+                            </div>
+                            <div class="text-[11px] font-mono text-slate-500 mt-2">BOTTOM (CLOSED END)</div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Explanation Breakdown -->
+                    <div id="step-explanation-card" class="rounded-2xl p-5 bg-slate-950/80 border border-slate-800 space-y-3">
+                        <div class="flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase">
+                            <span>🧠 Stack Operation Breakdown:</span>
+                        </div>
+                        <div id="step-headline" class="text-base sm:text-lg font-outfit font-bold text-white leading-snug">
+                            Click "Load & Run Operations" to begin visualization.
+                        </div>
+                        <div id="step-logic-details" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed">
+                            Awaiting operations...
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <button onclick="prevStep()" id="prevButton" disabled
+                                class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-850 border border-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-all">
+                                ← Prev
+                            </button>
+                            <button onclick="nextStep()" id="nextButton" disabled
+                                class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md shadow-cyan-600/30 disabled:opacity-40 disabled:pointer-events-none transition-all">
+                                Next Step →
+                            </button>
+                        </div>
+                        <button onclick="toggleAutoPlay()" id="playPauseBtn"
+                            class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2">
+                            <span id="playIcon">▶</span>
+                            <span id="playText">Auto Play</span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
         </div>
-    </div>
+
+    </main>
 
     <script>
-        const API_URL = '/run-algo';
-        const historyContainer = document.getElementById('history-container');
-        const opsInput = document.getElementById('opsInput');
-        const loadOpsBtn = document.getElementById('loadOpsBtn');
-        const nextStepBtn = document.getElementById('nextStepBtn');
-        const currentOpDisplay = document.getElementById('currentOpDisplay');
-        const currentStepCount = document.getElementById('currentStepCount');
-        const totalStepsCount = document.getElementById('totalStepsCount');
+        let steps = [];
+        let currentStepIndex = -1;
+        let autoPlayTimer = null;
+        let playbackDelay = 900;
 
-        let allSteps = [];
-        let currentStepIndex = 0;
-
-        function renderStep(step) {
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'stack-step flex flex-col items-center min-w-[100px] pb-4';
-
-            const stackVisual = document.createElement('div');
-            stackVisual.className = 'stack-visual w-[70px] h-40 opacity-0';
-
-            // Add Top Indicator
-            if (step.stack && step.stack.length > 0) {
-                const topIndicator = document.createElement('div');
-                topIndicator.className = 'top-indicator';
-                topIndicator.textContent = 'TOP';
-                stackVisual.appendChild(topIndicator);
-            }
-
-            if (step.stack) {
-                step.stack.forEach(val => {
-                    const element = document.createElement('div');
-                    element.className = 'stack-element h-10 bg-purple-600 border border-purple-400 text-white flex items-center justify-center font-semibold text-lg';
-                    element.textContent = val;
-                    stackVisual.appendChild(element);
+        async function fetchStackSteps(ops) {
+            try {
+                const res = await fetch('/run-algo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ algo: 'stack', ops: ops })
                 });
+                const data = await res.json();
+                return data.steps || [];
+            } catch (e) {
+                console.error(e);
+                return [];
             }
-
-            const label = document.createElement('div');
-            label.className = 'step-label mt-4 font-bold uppercase text-purple-300 text-sm';
-            if (step.action === 'push') {
-                label.textContent = `PUSH ${step.value}`;
-            } else if (step.action === 'pop') {
-                label.textContent = `POP ${step.value}`;
-            } else {
-                label.textContent = step.action.toUpperCase();
-            }
-
-            stepDiv.appendChild(stackVisual);
-            stepDiv.appendChild(label);
-            historyContainer.appendChild(stepDiv);
-
-            setTimeout(() => stackVisual.classList.remove('opacity-0'), 10);
-            historyContainer.scrollLeft = historyContainer.scrollWidth;
-            currentOpDisplay.textContent = label.textContent;
         }
 
-        async function loadOperations() {
-            historyContainer.innerHTML = '';
-            const rawOps = opsInput.value.trim().split('\n').filter(line => line.trim() !== '');
+        async function loadAndRunStack() {
+            stopAutoPlay();
+            const lines = document.getElementById('opsInput').value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length === 0) return;
 
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ algo: "stack", ops: rawOps })
+            steps = await fetchStackSteps(lines);
+            if (steps.length > 0) {
+                currentStepIndex = 0;
+                renderActiveStep();
+            }
+        }
+
+        function renderActiveStep() {
+            if (steps.length === 0 || currentStepIndex < 0) return;
+
+            const step = steps[currentStepIndex];
+            const stack = step.stack || [];
+            const action = step.action || '';
+            const val = step.value !== undefined ? step.value : '';
+            const msg = step.message || '';
+
+            const bucket = document.getElementById('stackBucket');
+            bucket.innerHTML = '';
+
+            stack.forEach((item, idx) => {
+                const el = document.createElement('div');
+                const isTop = (idx === stack.length - 1);
+                el.className = `stack-item ${isTop ? 'top-item' : ''}`;
+                el.innerText = item;
+                bucket.appendChild(el);
             });
 
-            const result = await response.json();
-            allSteps = result.steps || [];
+            document.getElementById('stack-size-badge').innerText = `Stack Size: ${stack.length}`;
 
-            currentStepIndex = 0;
-            if (allSteps.length > 0) {
-                renderStep(allSteps[0]);
-                currentStepIndex = 1;
-            }
+            // Explanation
+            const actionBadge = document.getElementById('action-badge');
+            const headline = document.getElementById('step-headline');
+            const logicDetails = document.getElementById('step-logic-details');
 
-            nextStepBtn.disabled = allSteps.length <= 1;
-            updateControls();
-        }
+            headline.innerText = msg;
 
-        function handleNextStep() {
-            if (currentStepIndex < allSteps.length) {
-                renderStep(allSteps[currentStepIndex]);
-                currentStepIndex++;
-                updateControls();
-            }
-        }
-
-        function updateControls() {
-            currentStepCount.textContent = currentStepIndex;
-            totalStepsCount.textContent = allSteps.length;
-            if (currentStepIndex === allSteps.length) {
-                nextStepBtn.disabled = true;
-                nextStepBtn.textContent = "Simulation Finished! Reset to Run Again.";
+            if (action === 'push') {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+                actionBadge.innerText = `🟢 PUSH ${val}`;
+                logicDetails.innerHTML = `<strong>Push Operation:</strong> Inserted <code>${val}</code> onto the top of the stack. Incremented top pointer. Time: <strong>O(1)</strong>.`;
+            } else if (action === 'pop') {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30';
+                actionBadge.innerText = `🔴 POP ${val}`;
+                logicDetails.innerHTML = `<strong>Pop Operation:</strong> Removed the most recent element (<code>${val}</code>) from the top (LIFO rule). Time: <strong>O(1)</strong>.`;
+            } else if (action === 'peek') {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30';
+                actionBadge.innerText = `🔍 PEEK ${val}`;
+                logicDetails.innerHTML = `<strong>Peek Operation:</strong> Inspected the top element (<code>${val}</code>) without removing it (non-destructive read).`;
             } else {
-                nextStepBtn.textContent = `Simulate Step ${currentStepIndex} of ${allSteps.length}`;
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30';
+                actionBadge.innerText = `⚡ ${action.toUpperCase()}`;
+                logicDetails.innerText = msg;
+            }
+
+            document.getElementById('stepCounter').innerText = `Step ${currentStepIndex + 1} of ${steps.length}`;
+            document.getElementById('prevButton').disabled = (currentStepIndex <= 0);
+            document.getElementById('nextButton').disabled = (currentStepIndex >= steps.length - 1);
+        }
+
+        function nextStep() {
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                renderActiveStep();
+            } else {
+                stopAutoPlay();
             }
         }
 
-        loadOpsBtn.addEventListener('click', loadOperations);
-        nextStepBtn.addEventListener('click', handleNextStep);
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderActiveStep();
+            }
+        }
+
+        function toggleAutoPlay() {
+            if (autoPlayTimer) stopAutoPlay();
+            else startAutoPlay();
+        }
+
+        function startAutoPlay() {
+            if (currentStepIndex >= steps.length - 1) currentStepIndex = 0;
+            document.getElementById('playIcon').innerText = '⏸';
+            document.getElementById('playText').innerText = 'Pause';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-md shadow-rose-600/30 transition-all flex items-center gap-2';
+            autoPlayTimer = setInterval(nextStep, playbackDelay);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+            }
+            document.getElementById('playIcon').innerText = '▶';
+            document.getElementById('playText').innerText = 'Auto Play';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAndRunStack();
+        });
     </script>
 </body>
 

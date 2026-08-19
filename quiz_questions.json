@@ -7,7 +7,13 @@
         "LIFO",
         "Random"
       ],
-      "answer": "LIFO"
+      "answer": "LIFO",
+      "explanation": "A Stack is a linear data structure that follows the LIFO (Last In, First Out) principle, meaning the last element added to the stack is the first one to be removed.",
+      "option_reasons": {
+        "FIFO": "Incorrect. FIFO (First In First Out) is followed by Queues, where the earliest inserted element gets processed first.",
+        "LIFO": "Correct! LIFO ensures that insertion (push) and deletion (pop) take place at the same end, called the 'top' of the stack.",
+        "Random": "Incorrect. Stacks do not allow random access; only the top element can be directly accessed or removed."
+      }
     },
     {
       "question": "Which operation removes the top of the stack?",
@@ -16,7 +22,13 @@
         "pop",
         "enqueue"
       ],
-      "answer": "pop"
+      "answer": "pop",
+      "explanation": "The 'pop' operation removes and typically returns the most recently added element from the top of the stack.",
+      "option_reasons": {
+        "push": "Incorrect. 'Push' inserts a new element onto the top of the stack.",
+        "pop": "Correct! 'Pop' removes the element currently residing at the top of the stack in O(1) time.",
+        "enqueue": "Incorrect. 'Enqueue' is a Queue operation used to add an item to the rear of the queue."
+      }
     },
     {
       "question": "Stack is mainly used for?",
@@ -25,7 +37,13 @@
         "Sorting",
         "Searching"
       ],
-      "answer": "Backtracking"
+      "answer": "Backtracking",
+      "explanation": "Stacks store previous states in reverse chronological order, making them the standard choice for backtracking algorithms (like maze pathfinding, undo operations, and DFS).",
+      "option_reasons": {
+        "Backtracking": "Correct! When a path fails or an undo is triggered, popping from the stack returns the system to the immediately preceding state.",
+        "Sorting": "Incorrect. While specialized sorting algorithms can use stacks, stacks alone are not primarily designed for general sorting.",
+        "Searching": "Incorrect. Standard searching techniques like binary search require random access (arrays), not LIFO access."
+      }
     },
     {
       "question": "Which data structure supports recursion?",
@@ -34,7 +52,13 @@
         "Stack",
         "Array"
       ],
-      "answer": "Stack"
+      "answer": "Stack",
+      "explanation": "Programming language runtimes use the Call Stack (a stack structure) to track active function calls, local variables, and return addresses during recursive execution.",
+      "option_reasons": {
+        "Queue": "Incorrect. Queues process in FIFO order, which would execute the oldest call rather than unwinding the most recent nested recursive call.",
+        "Stack": "Correct! The call stack pushes each recursive call frame and pops it as the base case returns.",
+        "Array": "Incorrect. Arrays are general sequential memory containers without automatic LIFO call tracking behavior."
+      }
     },
     {
       "question": "Stack overflow occurs when?",
@@ -43,7 +67,13 @@
         "Stack full",
         "Stack half full"
       ],
-      "answer": "Stack full"
+      "answer": "Stack full",
+      "explanation": "Stack Overflow is an error condition that occurs when a push operation is attempted on a stack that has already reached its maximum allocated capacity.",
+      "option_reasons": {
+        "Stack empty": "Incorrect. Attempting to pop from an empty stack causes 'Stack Underflow', not overflow.",
+        "Stack full": "Correct! When memory/capacity limit is reached and more elements are pushed, the stack overflows.",
+        "Stack half full": "Incorrect. A half-full stack has plenty of remaining capacity for new elements."
+      }
     },
     {
       "question": "Which operation adds an element to the stack?",
@@ -52,7 +82,13 @@
         "pop",
         "enqueue"
       ],
-      "answer": "push"
+      "answer": "push",
+      "explanation": "The 'push' operation inserts a new item onto the top of the stack, updating the top pointer.",
+      "option_reasons": {
+        "push": "Correct! 'Push' places an item on top of the existing stack elements in O(1) constant time.",
+        "pop": "Incorrect. 'Pop' removes the top element from the stack.",
+        "enqueue": "Incorrect. 'Enqueue' inserts an item at the back of a Queue."
+      }
     },
     {
       "question": "Which of these is not a stack operation?",
@@ -61,7 +97,13 @@
         "peek",
         "dequeue"
       ],
-      "answer": "dequeue"
+      "answer": "dequeue",
+      "explanation": "Dequeue is an operation exclusive to Queues, where the item at the front of the queue is removed.",
+      "option_reasons": {
+        "push": "Incorrect choice (it IS a stack operation). Push inserts an item to the top of the stack.",
+        "peek": "Incorrect choice (it IS a stack operation). Peek inspects the top element without removing it.",
+        "dequeue": "Correct! Dequeue belongs to Queue data structures (removing from front) and is not a Stack operation."
+      }
     },
     {
       "question": "The top element of the stack can be viewed by?",
@@ -70,7 +112,13 @@
         "push",
         "pop"
       ],
-      "answer": "peek"
+      "answer": "peek",
+      "explanation": "The 'peek' (or 'top') operation inspects and returns the value of the top element without modifying or removing it from the stack.",
+      "option_reasons": {
+        "peek": "Correct! Peek lets you inspect what is on top of the stack without removing it (non-destructive read).",
+        "push": "Incorrect. Push inserts an element onto the stack.",
+        "pop": "Incorrect. Pop removes and deletes the element from the top."
+      }
     },
     {
       "question": "Stack can be implemented using?",
@@ -79,7 +127,13 @@
         "Linked List",
         "Both Array and Linked List"
       ],
-      "answer": "Both Array and Linked List"
+      "answer": "Both Array and Linked List",
+      "explanation": "Stacks can be implemented using static/dynamic Arrays (tracking top index) or singly Linked Lists (inserting/deleting at head for O(1) time).",
+      "option_reasons": {
+        "Array": "Partially true, but incomplete because Linked Lists are equally capable of implementing stacks.",
+        "Linked List": "Partially true, but incomplete because Arrays can also implement stacks.",
+        "Both Array and Linked List": "Correct! Both arrays and linked lists provide simple, efficient O(1) push and pop implementations."
+      }
     },
     {
       "question": "Applications of stack include?",
@@ -88,7 +142,13 @@
         "Undo mechanism in editors",
         "Both"
       ],
-      "answer": "Both"
+      "answer": "Both",
+      "explanation": "Stacks are widely used in compilers for parsing/evaluating postfix expressions and in text editors to implement multi-level Undo/Redo buffers.",
+      "option_reasons": {
+        "Expression evaluation": "True, but incomplete since Undo mechanisms also rely on stacks.",
+        "Undo mechanism in editors": "True, but incomplete since arithmetic expression parsing also relies on stacks.",
+        "Both": "Correct! Both expression evaluation (infix to postfix) and undo/redo history are classic stack applications."
+      }
     }
   ],
   "queue": [
@@ -99,7 +159,13 @@
         "FIFO",
         "Random"
       ],
-      "answer": "FIFO"
+      "answer": "FIFO",
+      "explanation": "A Queue follows the FIFO (First In, First Out) principle, ensuring the first element inserted is always the first one to be processed and removed.",
+      "option_reasons": {
+        "LIFO": "Incorrect. LIFO (Last In First Out) is the principle behind Stacks, not Queues.",
+        "FIFO": "Correct! FIFO guarantees fair ordering where earliest requests are served first (like a real-world checkout queue).",
+        "Random": "Incorrect. Standard queues process items in strict chronological arrival order."
+      }
     },
     {
       "question": "Which operation adds to the back of a queue?",
@@ -108,7 +174,13 @@
         "enqueue",
         "dequeue"
       ],
-      "answer": "enqueue"
+      "answer": "enqueue",
+      "explanation": "Enqueue (or Push/Offer) appends a new element to the 'rear' (tail) of the queue.",
+      "option_reasons": {
+        "pop": "Incorrect. Pop is a Stack operation that removes the top element.",
+        "enqueue": "Correct! Enqueue inserts a new element at the rear of the queue in O(1) time.",
+        "dequeue": "Incorrect. Dequeue removes an element from the front of the queue."
+      }
     },
     {
       "question": "Which operation removes from the front of a queue?",
@@ -117,7 +189,13 @@
         "enqueue",
         "dequeue"
       ],
-      "answer": "dequeue"
+      "answer": "dequeue",
+      "explanation": "Dequeue (or Poll) removes and returns the element at the 'front' (head) of the queue.",
+      "option_reasons": {
+        "pop": "Incorrect. Pop removes from the top of a Stack.",
+        "enqueue": "Incorrect. Enqueue adds an element to the rear of a Queue.",
+        "dequeue": "Correct! Dequeue retrieves and removes the oldest element located at the queue's front in O(1) time."
+      }
     },
     {
       "question": "Circular queue helps reduce?",
@@ -126,7 +204,13 @@
         "Time complexity",
         "Memory leaks"
       ],
-      "answer": "Space wastage"
+      "answer": "Space wastage",
+      "explanation": "In a linear array queue, dequeuing leaves unused empty slots at the front that cannot be reused without shifting. A Circular Queue wraps around using modulo arithmetic, preventing space wastage.",
+      "option_reasons": {
+        "Space wastage": "Correct! Circular queues reuse empty slots at the start of the array when the rear reaches the end.",
+        "Time complexity": "Incorrect. Standard queues already achieve O(1) enqueue and dequeue; circular queues optimize memory utilization, not asymptotic time.",
+        "Memory leaks": "Incorrect. Memory management/leaks are controlled by the garbage collector or allocator, not queue topology."
+      }
     },
     {
       "question": "Queue is used for?",
@@ -135,7 +219,13 @@
         "Sorting",
         "Searching"
       ],
-      "answer": "Buffer handling"
+      "answer": "Buffer handling",
+      "explanation": "Queues act as buffers (e.g. IO buffers, print queues, network packet buffers) when data is produced faster than it can be consumed.",
+      "option_reasons": {
+        "Buffer handling": "Correct! Queues smoothly buffer asynchronous data streams between producers and consumers in FIFO order.",
+        "Sorting": "Incorrect. Sorting typically uses divide-and-conquer or comparison trees, not standard queues alone.",
+        "Searching": "Incorrect. Direct item searching is inefficient in queues because elements in the middle cannot be indexed directly."
+      }
     },
     {
       "question": "Priority queue arranges elements based on?",
@@ -144,7 +234,13 @@
         "Priority",
         "Random"
       ],
-      "answer": "Priority"
+      "answer": "Priority",
+      "explanation": "In a Priority Queue, each element has an associated priority value. The element with the highest (or lowest) priority is always dequeued first, regardless of arrival time.",
+      "option_reasons": {
+        "FIFO": "Incorrect. Standard queues use FIFO, but priority queues prioritize urgency/weight over arrival sequence.",
+        "Priority": "Correct! Priority queues use heaps to ensure the highest-priority item is served first in O(log n) time.",
+        "Random": "Incorrect. Processing is strictly determined by priority keys, not random selection."
+      }
     },
     {
       "question": "Dequeue operation in a double-ended queue can be performed from?",
@@ -153,7 +249,13 @@
         "Rear only",
         "Both Front and Rear"
       ],
-      "answer": "Both Front and Rear"
+      "answer": "Both Front and Rear",
+      "explanation": "A Double-Ended Queue (Deque) allows insertion and deletion at both the front and rear ends.",
+      "option_reasons": {
+        "Front only": "Incorrect. Standard queues remove only from the front, but Deques can remove from both ends.",
+        "Rear only": "Incorrect. Deque allows removal from both front and rear.",
+        "Both Front and Rear": "Correct! Deque is a generalized queue supporting push/pop at both front and back in O(1) time."
+      }
     },
     {
       "question": "Which of these is not a type of queue?",
@@ -162,7 +264,13 @@
         "Priority queue",
         "Sorted stack"
       ],
-      "answer": "Sorted stack"
+      "answer": "Sorted stack",
+      "explanation": "A 'Sorted stack' is a stack variant, not a queue type. Standard queue variants include Simple Queue, Circular Queue, Priority Queue, and Deque.",
+      "option_reasons": {
+        "Circular queue": "Incorrect choice (it IS a queue type). It connects the last position back to the first position.",
+        "Priority queue": "Incorrect choice (it IS a queue type). It serves elements based on priority.",
+        "Sorted stack": "Correct! A sorted stack operates under LIFO stack rules, not FIFO queue rules."
+      }
     },
     {
       "question": "In a normal queue, insertion happens at?",
@@ -171,7 +279,13 @@
         "Rear",
         "Anywhere"
       ],
-      "answer": "Rear"
+      "answer": "Rear",
+      "explanation": "In a standard FIFO queue, new elements are always appended to the 'rear' (also called 'tail' or 'back').",
+      "option_reasons": {
+        "Front": "Incorrect. Front is where deletions (dequeues) take place in a normal queue.",
+        "Rear": "Correct! New elements enter the queue from the rear end.",
+        "Anywhere": "Incorrect. Random-position insertion violates standard queue rules."
+      }
     },
     {
       "question": "In a normal queue, deletion happens at?",
@@ -180,7 +294,13 @@
         "Rear",
         "Anywhere"
       ],
-      "answer": "Front"
+      "answer": "Front",
+      "explanation": "In a standard FIFO queue, elements are always removed from the 'front' (head) end, ensuring the earliest arrival leaves first.",
+      "option_reasons": {
+        "Front": "Correct! The item at the front has waited the longest and is removed first (FIFO).",
+        "Rear": "Incorrect. The rear is reserved for enqueuing new items.",
+        "Anywhere": "Incorrect. Arbitrary-index deletion is not allowed in basic queues."
+      }
     }
   ],
   "linear": [
@@ -191,7 +311,13 @@
         "Dividing the list into halves",
         "Using hash functions"
       ],
-      "answer": "Checking each element sequentially"
+      "answer": "Checking each element sequentially",
+      "explanation": "Linear Search (or Sequential Search) starts at the beginning of the array and compares the target with every element one by one until a match is found or the end is reached.",
+      "option_reasons": {
+        "Checking each element sequentially": "Correct! It visits index 0, 1, 2... n-1 in order without requiring pre-sorted data.",
+        "Dividing the list into halves": "Incorrect. Halving the search space is how Binary Search operates.",
+        "Using hash functions": "Incorrect. Hash functions are used in Hash Tables for O(1) key lookups."
+      }
     },
     {
       "question": "Best case of linear search occurs when?",
@@ -200,7 +326,13 @@
         "Element is at the end",
         "Element is not present"
       ],
-      "answer": "Element is at the beginning"
+      "answer": "Element is at the beginning",
+      "explanation": "The best case occurs when the target is located at index 0 (the very first position), requiring exactly 1 comparison: O(1).",
+      "option_reasons": {
+        "Element is at the beginning": "Correct! The algorithm matches the target on the first comparison, completing in O(1) time.",
+        "Element is at the end": "Incorrect. If at the end, the algorithm must scan all n elements (worst case O(n)).",
+        "Element is not present": "Incorrect. If absent, the algorithm must check all n elements to confirm (worst case O(n))."
+      }
     },
     {
       "question": "Worst case of linear search occurs when?",
@@ -209,7 +341,13 @@
         "Element is at the end",
         "Element is somewhere in the middle"
       ],
-      "answer": "Element is at the end"
+      "answer": "Element is at the end",
+      "explanation": "The worst case occurs when the target is at the last index or not present at all, forcing the algorithm to check all 'n' elements: O(n).",
+      "option_reasons": {
+        "Element is at the beginning": "Incorrect. That is the best case (1 comparison).",
+        "Element is at the end": "Correct! The search must inspect every single element before finally matching at the last position: O(n).",
+        "Element is somewhere in the middle": "Incorrect. That represents the average case (n/2 comparisons)."
+      }
     },
     {
       "question": "Time complexity of linear search in average case is?",
@@ -218,7 +356,13 @@
         "O(n)",
         "O(log n)"
       ],
-      "answer": "O(n)"
+      "answer": "O(n)",
+      "explanation": "On average, the target is located around index n/2. In asymptotic Big-O notation, constants are dropped, giving O(n).",
+      "option_reasons": {
+        "O(1)": "Incorrect. O(1) is only achievable in the best case (first element).",
+        "O(n)": "Correct! Linear search has an average and worst case time complexity of O(n).",
+        "O(log n)": "Incorrect. O(log n) is the time complexity of Binary Search on sorted arrays."
+      }
     },
     {
       "question": "Linear search can be applied to?",
@@ -227,7 +371,13 @@
         "Unsorted list only",
         "Both sorted and unsorted lists"
       ],
-      "answer": "Both sorted and unsorted lists"
+      "answer": "Both sorted and unsorted lists",
+      "explanation": "Linear search does not assume or require any particular ordering of elements; it works universally on both sorted and unsorted collections.",
+      "option_reasons": {
+        "Sorted list only": "Incorrect. Linear search does not require data to be sorted.",
+        "Unsorted list only": "Incorrect. It works fine on sorted lists as well (even though binary search would be faster).",
+        "Both sorted and unsorted lists": "Correct! It makes no assumptions about data order, scanning sequentially on any list."
+      }
     },
     {
       "question": "Linear search is also called?",
@@ -236,7 +386,13 @@
         "Binary search",
         "Hash search"
       ],
-      "answer": "Sequential search"
+      "answer": "Sequential search",
+      "explanation": "Linear search is commonly called 'Sequential search' because it inspects every item in sequence from start to finish.",
+      "option_reasons": {
+        "Sequential search": "Correct! It traverses items sequentially one after another.",
+        "Binary search": "Incorrect. Binary search uses divide-and-conquer on sorted datasets.",
+        "Hash search": "Incorrect. Hash search uses direct hashing keys."
+      }
     },
     {
       "question": "Linear search is preferred when?",
@@ -245,7 +401,13 @@
         "List is huge",
         "List is sorted"
       ],
-      "answer": "List is small"
+      "answer": "List is small",
+      "explanation": "For small datasets (or unsorted lists searched only once), linear search is simple to implement and avoids the overhead of sorting or complex data structures.",
+      "option_reasons": {
+        "List is small": "Correct! For small lists (e.g. n < 50), linear search is fast, simple, and has minimal memory overhead.",
+        "List is huge": "Incorrect. For large lists, O(n) becomes too slow; binary search or hash tables are preferred.",
+        "List is sorted": "Incorrect. When a list is sorted, Binary Search (O(log n)) is vastly superior to linear search."
+      }
     },
     {
       "question": "If element is not present, linear search will check?",
@@ -254,7 +416,13 @@
         "Only half elements",
         "None"
       ],
-      "answer": "All elements"
+      "answer": "All elements",
+      "explanation": "Because elements are in no guaranteed order, the algorithm cannot conclude an element is absent until every single element has been examined.",
+      "option_reasons": {
+        "All elements": "Correct! All 'n' elements must be verified before concluding the target is missing.",
+        "Only half elements": "Incorrect. Skipping any element could mean missing the target in an unsorted list.",
+        "None": "Incorrect. It must scan through the array."
+      }
     },
     {
       "question": "Linear search works on?",
@@ -263,7 +431,13 @@
         "Linked lists",
         "Both"
       ],
-      "answer": "Both"
+      "answer": "Both",
+      "explanation": "Since linear search only requires moving to the next element sequentially, it works seamlessly on both random-access Arrays and sequential Linked Lists.",
+      "option_reasons": {
+        "Arrays": "Partially true, but Linked Lists also support sequential traversal.",
+        "Linked lists": "Partially true, but Arrays also support sequential traversal.",
+        "Both": "Correct! Both arrays and linked lists support simple sequential item-by-item traversal."
+      }
     },
     {
       "question": "Linear search is inefficient for?",
@@ -272,7 +446,13 @@
         "Large datasets",
         "Both"
       ],
-      "answer": "Large datasets"
+      "answer": "Large datasets",
+      "explanation": "As the dataset grows to millions of elements, O(n) means millions of comparisons, making linear search prohibitively slow compared to O(log n) or O(1) algorithms.",
+      "option_reasons": {
+        "Small datasets": "Incorrect. For small datasets, linear search is fast and lightweight.",
+        "Large datasets": "Correct! Scaling to large datasets results in noticeable performance bottlenecks with O(n) complexity.",
+        "Both": "Incorrect. It is perfectly fine for small arrays."
+      }
     }
   ],
   "binary": [
@@ -283,7 +463,13 @@
         "Sorted",
         "Random"
       ],
-      "answer": "Sorted"
+      "answer": "Sorted",
+      "explanation": "Binary search relies on the sorted order of elements so it can determine whether the target lies in the left half or right half relative to the middle element.",
+      "option_reasons": {
+        "Unsorted": "Incorrect. If data is unsorted, comparing with the middle element gives no information about where the target resides.",
+        "Sorted": "Correct! Elements must be in ascending or descending sorted order for the divide-and-conquer logic to work.",
+        "Random": "Incorrect. Random order prevents eliminating half of the search space."
+      }
     },
     {
       "question": "Which search has O(log n) time complexity?",
@@ -292,7 +478,13 @@
         "Binary search",
         "Sequential search"
       ],
-      "answer": "Binary search"
+      "answer": "Binary search",
+      "explanation": "Binary search divides the remaining search space in half with every comparison, leading to logarithmic O(log n) time complexity.",
+      "option_reasons": {
+        "Linear search": "Incorrect. Linear search has O(n) linear time complexity.",
+        "Binary search": "Correct! Repeatedly halving the search space achieves O(log n) time, finding targets in 1,000,000 items in ~20 steps.",
+        "Sequential search": "Incorrect. Sequential search is another name for Linear search (O(n))."
+      }
     },
     {
       "question": "Best case of binary search occurs when?",
@@ -301,7 +493,13 @@
         "Element is at the start",
         "Element is at the end"
       ],
-      "answer": "Element is at the middle"
+      "answer": "Element is at the middle",
+      "explanation": "In binary search, the first comparison is made with the middle element: `mid = (low + high) // 2`. If target equals `arr[mid]`, it finishes in 1 step: O(1).",
+      "option_reasons": {
+        "Element is at the middle": "Correct! If the target is the middle element of the array, it is found on the very first comparison: O(1).",
+        "Element is at the start": "Incorrect. Reaching the start takes log₂(n) divisions.",
+        "Element is at the end": "Incorrect. Reaching the extreme end takes log₂(n) divisions."
+      }
     },
     {
       "question": "Worst case time complexity of binary search is?",
@@ -310,7 +508,13 @@
         "O(n)",
         "O(log n)"
       ],
-      "answer": "O(log n)"
+      "answer": "O(log n)",
+      "explanation": "In the worst case (target is at an extreme leaf or not in the array), the array of size n can only be divided in half log₂(n) times before reaching size 0.",
+      "option_reasons": {
+        "O(1)": "Incorrect. O(1) is the best case.",
+        "O(n)": "Incorrect. O(n) is linear search complexity.",
+        "O(log n)": "Correct! Even in the worst case, binary search never exceeds O(log n) comparisons."
+      }
     },
     {
       "question": "Binary search cannot be used if?",
@@ -319,7 +523,13 @@
         "Array is unsorted",
         "Array has duplicates"
       ],
-      "answer": "Array is unsorted"
+      "answer": "Array is unsorted",
+      "explanation": "Binary search fundamentally requires a monotonic (sorted) sequence to make decisions at `arr[mid]`. If unsorted, the elimination logic fails completely.",
+      "option_reasons": {
+        "Array is sorted": "Incorrect. A sorted array is exactly what binary search requires.",
+        "Array is unsorted": "Correct! You cannot use binary search on unsorted data without sorting it first.",
+        "Array has duplicates": "Incorrect. Binary search still works with duplicates (finding any matching instance or lower/upper bounds)."
+      }
     },
     {
       "question": "Binary search works on which data structures?",
@@ -328,7 +538,13 @@
         "Linked list only",
         "Array and sorted list"
       ],
-      "answer": "Array and sorted list"
+      "answer": "Array and sorted list",
+      "explanation": "Binary search requires fast random access (O(1) indexing) to calculate and jump to the middle element, which arrays and contiguous memory structures provide.",
+      "option_reasons": {
+        "Array only": "Partially true, but any contiguous random-access indexed structure (e.g. ArrayList, Vector) qualifies.",
+        "Linked list only": "Incorrect. Linked lists require O(n) traversal to find the middle, destroying the O(log n) benefit.",
+        "Array and sorted list": "Correct! Sorted random-access collections support efficient middle-element calculation in O(1) time."
+      }
     },
     {
       "question": "Binary search uses which approach?",
@@ -337,7 +553,13 @@
         "Brute force",
         "Greedy"
       ],
-      "answer": "Divide and conquer"
+      "answer": "Divide and conquer",
+      "explanation": "Binary search is a classic Divide and Conquer algorithm: it divides the problem into subproblems (left and right halves) and conquers by searching the relevant half.",
+      "option_reasons": {
+        "Divide and conquer": "Correct! It divides the search space into halves at every step and eliminates the non-viable half.",
+        "Brute force": "Incorrect. Checking every element one-by-one is the brute force approach (linear search).",
+        "Greedy": "Incorrect. Greedy algorithms make locally optimal choices at each stage of an optimization problem."
+      }
     },
     {
       "question": "Number of comparisons in binary search is maximum when?",
@@ -346,7 +568,13 @@
         "Element is at start or end",
         "Element is not present"
       ],
-      "answer": "Element is not present"
+      "answer": "Element is not present",
+      "explanation": "When an element is absent, the search interval `[low, high]` must shrink all the way down until `low > high`, performing the maximum possible ⌊log₂ n⌋ + 1 comparisons.",
+      "option_reasons": {
+        "Element is at middle": "Incorrect. That takes only 1 comparison (the minimum).",
+        "Element is at start or end": "Takes log₂(n) comparisons, but may terminate slightly before exhausting both interval bounds.",
+        "Element is not present": "Correct! The algorithm must exhaust the search space completely down to size 0 to confirm absence."
+      }
     },
     {
       "question": "Binary search can be implemented using?",
@@ -355,7 +583,13 @@
         "Iteration",
         "Both"
       ],
-      "answer": "Both"
+      "answer": "Both",
+      "explanation": "Binary search can be cleanly implemented iteratively (using a `while low <= high:` loop) or recursively (passing updated `low` and `high` bounds).",
+      "option_reasons": {
+        "Recursion": "Partially true, but it can also be written with an iterative loop.",
+        "Iteration": "Partially true, but it can also be written recursively.",
+        "Both": "Correct! Both recursive and iterative implementations are valid, with iteration having O(1) auxiliary space advantage."
+      }
     },
     {
       "question": "Binary search is more efficient than linear search when?",
@@ -364,7 +598,13 @@
         "Dataset is large and sorted",
         "Dataset is unsorted"
       ],
-      "answer": "Dataset is large and sorted"
+      "answer": "Dataset is large and sorted",
+      "explanation": "For large sorted collections, O(log n) runs in microscopic fractions of a millisecond compared to O(n) linear scans.",
+      "option_reasons": {
+        "Dataset is small": "Incorrect. For tiny arrays (e.g. 5 items), the speed difference is negligible.",
+        "Dataset is large and sorted": "Correct! Searching 1 billion elements takes just ~30 comparisons in binary search vs. 1 billion in linear search.",
+        "Dataset is unsorted": "Incorrect. Binary search cannot run on unsorted data."
+      }
     }
   ],
   "merge": [
@@ -375,7 +615,13 @@
         "Greedy",
         "Dynamic Programming"
       ],
-      "answer": "Divide and Conquer"
+      "answer": "Divide and Conquer",
+      "explanation": "Merge sort divides the unsorted list into n sublists (each of size 1), then repeatedly merges sublists to produce new sorted sublists until one sorted list remains.",
+      "option_reasons": {
+        "Divide and Conquer": "Correct! Divide (split array at middle), Conquer (recursively sort halves), Combine (merge sorted halves).",
+        "Greedy": "Incorrect. It does not make heuristic local choices at each step.",
+        "Dynamic Programming": "Incorrect. Merge sort does not solve overlapping subproblems with memoization/tables."
+      }
     },
     {
       "question": "Best case time complexity of merge sort is?",
@@ -384,7 +630,13 @@
         "O(n log n)",
         "O(n^2)"
       ],
-      "answer": "O(n log n)"
+      "answer": "O(n log n)",
+      "explanation": "Merge sort always splits the array completely and performs the full merge step regardless of initial data arrangement: T(n) = 2T(n/2) + O(n) = O(n log n).",
+      "option_reasons": {
+        "O(n)": "Incorrect. Even on a sorted array, merge sort splits down to single elements and merges them in O(n log n).",
+        "O(n log n)": "Correct! Merge sort has a guaranteed O(n log n) time complexity in Best, Average, and Worst cases.",
+        "O(n^2)": "Incorrect. O(n²) is the worst case of Bubble Sort and unoptimized Quick Sort."
+      }
     },
     {
       "question": "Worst case time complexity of merge sort is?",
@@ -393,7 +645,13 @@
         "O(n log n)",
         "O(n^2)"
       ],
-      "answer": "O(n log n)"
+      "answer": "O(n log n)",
+      "explanation": "Because the tree depth is always log₂(n) and each level requires O(n) merge comparisons, the worst case remains strictly O(n log n).",
+      "option_reasons": {
+        "O(n)": "Incorrect.",
+        "O(n log n)": "Correct! Merge sort guarantees O(n log n) upper bound performance regardless of input data distribution.",
+        "O(n^2)": "Incorrect. Merge sort never degrades to quadratic time."
+      }
     },
     {
       "question": "Merge sort is stable. True or False?",
@@ -401,7 +659,12 @@
         "True",
         "False"
       ],
-      "answer": "True"
+      "answer": "True",
+      "explanation": "Merge sort is a stable sorting algorithm because when two elements have equal keys, the element from the left subarray is chosen first during the merge phase, preserving relative order.",
+      "option_reasons": {
+        "True": "Correct! It preserves the relative order of duplicate elements because `left[i] <= right[j]` favors the earlier element.",
+        "False": "Incorrect. Unstable sorts include Quick Sort and Heap Sort, but Merge Sort is stable."
+      }
     },
     {
       "question": "Merge sort requires extra space?",
@@ -409,7 +672,12 @@
         "Yes",
         "No"
       ],
-      "answer": "Yes"
+      "answer": "Yes",
+      "explanation": "Standard Merge Sort requires O(n) auxiliary space to hold the divided subarrays and combine them during the merge procedure.",
+      "option_reasons": {
+        "Yes": "Correct! It requires O(n) additional temporary memory buffer to merge two sorted subarrays.",
+        "No": "Incorrect. Unlike Quick Sort or Heap Sort which sort in-place, standard Merge Sort is not in-place."
+      }
     },
     {
       "question": "Merge sort works best for?",
@@ -418,7 +686,13 @@
         "Arrays",
         "Both"
       ],
-      "answer": "Both"
+      "answer": "Both",
+      "explanation": "Merge sort works great on arrays and is the preferred sorting algorithm for Linked Lists because sequential pointer manipulation allows merging without O(n) extra space.",
+      "option_reasons": {
+        "Linked lists": "Partially true, it is the top choice for linked lists due to sequential access compatibility.",
+        "Arrays": "Partially true, it provides guaranteed O(n log n) for arrays.",
+        "Both": "Correct! It works efficiently on both data structures (with O(1) extra space on linked lists!)."
+      }
     },
     {
       "question": "Merge operation in merge sort combines?",
@@ -427,7 +701,13 @@
         "Two unsorted arrays",
         "Single array"
       ],
-      "answer": "Two sorted arrays"
+      "answer": "Two sorted arrays",
+      "explanation": "The core merge subroutine takes two already-sorted halves and steps through them with two pointers to build a single combined sorted array in O(n) time.",
+      "option_reasons": {
+        "Two sorted arrays": "Correct! The merge step requires the input halves to be sorted so two pointers can merge them in linear time.",
+        "Two unsorted arrays": "Incorrect. Merging unsorted arrays in linear time is not possible without sorting them first.",
+        "Single array": "Incorrect. It combines two sorted sub-segments into one."
+      }
     },
     {
       "question": "Merge sort is a recursive algorithm. True or False?",
@@ -435,7 +715,12 @@
         "True",
         "False"
       ],
-      "answer": "True"
+      "answer": "True",
+      "explanation": "Standard merge sort recursively calls `mergeSort(left)` and `mergeSort(right)` until reaching the base case of single-element subarrays.",
+      "option_reasons": {
+        "True": "Correct! The natural definition of merge sort is divide-and-conquer recursion.",
+        "False": "Incorrect. Although iterative (bottom-up) merge sort exists, merge sort is fundamentally defined recursively."
+      }
     },
     {
       "question": "Merge sort is efficient for?",
@@ -444,7 +729,13 @@
         "Small datasets",
         "Both"
       ],
-      "answer": "Large datasets"
+      "answer": "Large datasets",
+      "explanation": "For large datasets, O(n log n) scales smoothly where quadratic algorithms (O(n²)) stall. It is also ideal for external sorting (sorting huge files on disk).",
+      "option_reasons": {
+        "Large datasets": "Correct! Its predictable O(n log n) scaling and external-memory friendliness make it ideal for massive datasets.",
+        "Small datasets": "Incorrect. For very small lists (n < 10), insertion sort has lower constant factor overhead.",
+        "Both": "Incorrect."
+      }
     },
     {
       "question": "Merge sort is preferred when?",
@@ -453,7 +744,13 @@
         "Stability is required",
         "Sorting in-place is required"
       ],
-      "answer": "Stability is required"
+      "answer": "Stability is required",
+      "explanation": "When duplicate elements must strictly retain their original input ordering (stability), Merge Sort is chosen over faster in-place sorts like Quick Sort.",
+      "option_reasons": {
+        "Memory is limited": "Incorrect. Merge sort consumes O(n) auxiliary RAM, making it poor when memory is constrained.",
+        "Stability is required": "Correct! Merge sort is stable and guarantees O(n log n) runtime.",
+        "Sorting in-place is required": "Incorrect. Quick Sort or Heap Sort are preferred for in-place requirements."
+      }
     }
   ],
   "quick": [
@@ -464,7 +761,13 @@
         "Dynamic Programming",
         "Greedy"
       ],
-      "answer": "Divide and Conquer"
+      "answer": "Divide and Conquer",
+      "explanation": "Quick Sort chooses a 'pivot' element, partitions the array around the pivot (smaller to left, larger to right), and recursively sorts the sub-partitions.",
+      "option_reasons": {
+        "Divide and Conquer": "Correct! It divides via partitioning around a pivot, recursively sorts both sides, and combines implicitly.",
+        "Dynamic Programming": "Incorrect.",
+        "Greedy": "Incorrect."
+      }
     },
     {
       "question": "Worst case time complexity of quick sort is?",
@@ -473,7 +776,13 @@
         "O(n^2)",
         "O(n)"
       ],
-      "answer": "O(n^2)"
+      "answer": "O(n^2)",
+      "explanation": "When the pivot chosen is always the smallest or largest element (e.g. picking first element in already sorted array), the partition becomes skewed (0 and n-1 items), taking O(n²) time.",
+      "option_reasons": {
+        "O(n log n)": "Incorrect. O(n log n) is Quick Sort's best and average case.",
+        "O(n^2)": "Correct! Extremely unbalanced partitions lead to O(n²) worst-case performance.",
+        "O(n)": "Incorrect."
+      }
     },
     {
       "question": "Best case time complexity of quick sort is?",
@@ -482,7 +791,13 @@
         "O(n log n)",
         "O(n^2)"
       ],
-      "answer": "O(n log n)"
+      "answer": "O(n log n)",
+      "explanation": "The best case occurs when the pivot partition splits the array into two nearly equal halves every time, creating a balanced recursion tree of depth log₂(n).",
+      "option_reasons": {
+        "O(n)": "Incorrect.",
+        "O(n log n)": "Correct! Balanced partitions yield T(n) = 2T(n/2) + O(n) = O(n log n).",
+        "O(n^2)": "Incorrect. That is the worst case."
+      }
     },
     {
       "question": "Quick sort is stable. True or False?",
@@ -490,7 +805,12 @@
         "True",
         "False"
       ],
-      "answer": "False"
+      "answer": "False",
+      "explanation": "Quick Sort is not stable because elements with equal values may be swapped across long distances during the partitioning phase, reversing their relative order.",
+      "option_reasons": {
+        "True": "Incorrect. Standard in-place partitioning can alter the order of equal keys.",
+        "False": "Correct! Quick Sort is an unstable sorting algorithm."
+      }
     },
     {
       "question": "Quick sort works in-place. True or False?",
@@ -498,7 +818,12 @@
         "True",
         "False"
       ],
-      "answer": "True"
+      "answer": "True",
+      "explanation": "Quick Sort rearranges elements directly within the original array memory without creating new full-size arrays, requiring only O(log n) call stack space.",
+      "option_reasons": {
+        "True": "Correct! It swaps elements in-place with O(1) auxiliary data memory (O(log n) recursion stack).",
+        "False": "Incorrect. Quick Sort is famous for its in-place sorting efficiency."
+      }
     },
     {
       "question": "Partitioning in quick sort is based on?",
@@ -507,7 +832,13 @@
         "Middle element",
         "First element"
       ],
-      "answer": "Pivot element"
+      "answer": "Pivot element",
+      "explanation": "The entire partition logic centers on a selected 'pivot' element. All items smaller than the pivot move to its left, and all larger items move to its right.",
+      "option_reasons": {
+        "Pivot element": "Correct! The pivot element acts as the benchmark dividing the dataset into smaller and larger subsets.",
+        "Middle element": "Incorrect. While the middle element CAN be chosen as the pivot, the general concept is the pivot.",
+        "First element": "Incorrect. The first element is just one possible pivot selection strategy."
+      }
     },
     {
       "question": "Quick sort is preferred for?",
@@ -516,7 +847,13 @@
         "Small datasets",
         "Linked lists"
       ],
-      "answer": "Large datasets"
+      "answer": "Large datasets",
+      "explanation": "Quick Sort is generally the fastest general-purpose comparison sort in practice because its inner loop is cache-friendly and works in-place.",
+      "option_reasons": {
+        "Large datasets": "Correct! Due to excellent cache locality and low constant factor overhead, Quick Sort is blazing fast on large in-memory arrays.",
+        "Small datasets": "Incorrect. Insertion sort is typically faster on very small lists.",
+        "Linked lists": "Incorrect. Merge Sort is preferred for Linked Lists because quick sort needs random access."
+      }
     },
     {
       "question": "Recursion in quick sort stops when?",
@@ -525,7 +862,13 @@
         "Array has two elements",
         "Array is sorted"
       ],
-      "answer": "Array is empty or has one element"
+      "answer": "Array is empty or has one element",
+      "explanation": "The base case of Quick Sort is when `low >= high`, meaning the sub-segment has 0 or 1 element, which is by definition already sorted.",
+      "option_reasons": {
+        "Array is empty or has one element": "Correct! An array of size 0 or 1 requires no partitioning or sorting.",
+        "Array has two elements": "Incorrect. An array of size 2 still needs a comparison and possible swap.",
+        "Array is sorted": "Incorrect. Standard quick sort does not scan to check if the array is sorted before partitioning."
+      }
     },
     {
       "question": "Quick sort is inefficient when?",
@@ -534,7 +877,13 @@
         "Array is random",
         "Array has duplicates"
       ],
-      "answer": "Array is sorted"
+      "answer": "Array is sorted",
+      "explanation": "If a naive pivot (like the first or last element) is used on an already sorted array, Quick Sort degrades to its worst-case O(n²) time complexity.",
+      "option_reasons": {
+        "Array is sorted": "Correct! Naive pivot selection on pre-sorted arrays produces worst-case O(n²) skewed trees.",
+        "Array is random": "Incorrect. Random arrays give average-case O(n log n), which is optimal.",
+        "Array has duplicates": "Incorrect. 3-way partitioning handles duplicates in O(n) time."
+      }
     },
     {
       "question": "Quick sort can be implemented using?",
@@ -543,7 +892,13 @@
         "Iteration",
         "Both"
       ],
-      "answer": "Both"
+      "answer": "Both",
+      "explanation": "While commonly written recursively, Quick Sort can be implemented iteratively using an explicit stack to store partition boundaries.",
+      "option_reasons": {
+        "Recursion": "Partially true, but iteration is also possible.",
+        "Iteration": "Partially true, but recursion is also possible.",
+        "Both": "Correct! Both recursive and iterative (using custom stack) versions can be implemented."
+      }
     }
   ],
   "heap": [
@@ -554,7 +909,13 @@
         "Stack",
         "Queue"
       ],
-      "answer": "Heap"
+      "answer": "Heap",
+      "explanation": "Heap sort utilizes a Complete Binary Tree called a Binary Heap (Max-Heap for ascending sort, Min-Heap for descending sort).",
+      "option_reasons": {
+        "Heap": "Correct! A Binary Heap provides O(log n) element extraction and O(n) heap construction.",
+        "Stack": "Incorrect. Stacks are LIFO structures and do not maintain order for sorting.",
+        "Queue": "Incorrect. Standard queues do not sort elements."
+      }
     },
     {
       "question": "Heap sort is in-place. True or False?",
@@ -562,7 +923,12 @@
         "True",
         "False"
       ],
-      "answer": "True"
+      "answer": "True",
+      "explanation": "Heap sort represents the heap directly inside the original array using index formulas (`2i+1`, `2i+2`), requiring only O(1) auxiliary space.",
+      "option_reasons": {
+        "True": "Correct! Heap sort operates directly on the array in-place with O(1) auxiliary memory.",
+        "False": "Incorrect. Unlike Merge Sort, Heap Sort does not require extra array allocation."
+      }
     },
     {
       "question": "Heap sort is stable. True or False?",
@@ -570,7 +936,12 @@
         "True",
         "False"
       ],
-      "answer": "False"
+      "answer": "False",
+      "explanation": "Heap sort is not stable because swapping elements during heapify and root extraction disrupts the relative positions of duplicate keys.",
+      "option_reasons": {
+        "True": "Incorrect.",
+        "False": "Correct! The tree-based swaps in heapify do not preserve the original relative order of equal elements."
+      }
     },
     {
       "question": "Time complexity of heap sort is?",
@@ -579,7 +950,13 @@
         "O(n^2)",
         "O(n)"
       ],
-      "answer": "O(n log n)"
+      "answer": "O(n log n)",
+      "explanation": "Building the heap takes O(n) time, and extracting n elements takes n × O(log n) = O(n log n). This holds in best, average, and worst cases.",
+      "option_reasons": {
+        "O(n log n)": "Correct! Heap sort guarantees O(n log n) in all cases (best, average, and worst).",
+        "O(n^2)": "Incorrect. Unlike Quick Sort, Heap Sort never degrades to O(n²).",
+        "O(n)": "Incorrect."
+      }
     },
     {
       "question": "Heap sort is best suited for?",
@@ -588,7 +965,13 @@
         "Linked lists",
         "Both"
       ],
-      "answer": "Arrays"
+      "answer": "Arrays",
+      "explanation": "Heap sort relies on instant random access to parent/child indices (`2i+1`, `2i+2`), which arrays support in O(1) time.",
+      "option_reasons": {
+        "Arrays": "Correct! Arrays allow direct mathematical index mapping to tree nodes without pointer overhead.",
+        "Linked lists": "Incorrect. Finding parent and child nodes in linked lists requires sequential traversal, making heap sort impractical.",
+        "Both": "Incorrect."
+      }
     },
     {
       "question": "Heap sort works by repeatedly removing?",
@@ -597,7 +980,13 @@
         "Middle element",
         "First element"
       ],
-      "answer": "Maximum or minimum element"
+      "answer": "Maximum or minimum element",
+      "explanation": "In a Max-Heap, the root is always the maximum element. Heap sort swaps the root with the last unsorted element and restores the heap property.",
+      "option_reasons": {
+        "Maximum or minimum element": "Correct! It repeatedly extracts the root (maximum in Max-Heap, minimum in Min-Heap) and places it at the sorted boundary.",
+        "Middle element": "Incorrect.",
+        "First element": "Partially true (the root is at index 0), but the fundamental property is that the root contains the extreme (max/min) element."
+      }
     },
     {
       "question": "Heap sort can be implemented using?",
@@ -606,7 +995,13 @@
         "Min-heap only",
         "Max-heap or Min-heap"
       ],
-      "answer": "Max-heap or Min-heap"
+      "answer": "Max-heap or Min-heap",
+      "explanation": "A Max-Heap is used to sort in ascending order (placing maximums at the end), and a Min-Heap can sort in descending order.",
+      "option_reasons": {
+        "Max-heap only": "Incomplete.",
+        "Min-heap only": "Incomplete.",
+        "Max-heap or Min-heap": "Correct! Max-heap yields ascending sort; min-heap yields descending sort."
+      }
     },
     {
       "question": "Heap sort is preferred when?",
@@ -615,7 +1010,13 @@
         "Speed is priority",
         "Stability is required"
       ],
-      "answer": "Speed is priority"
+      "answer": "Memory is limited",
+      "explanation": "Heap sort provides guaranteed O(n log n) worst-case time with strictly O(1) auxiliary space, making it ideal for systems with strict memory limits.",
+      "option_reasons": {
+        "Memory is limited": "Correct! It provides guaranteed O(n log n) without consuming extra O(n) memory like Merge Sort.",
+        "Speed is priority": "Incorrect. Quick Sort is typically faster in practice due to better cache locality.",
+        "Stability is required": "Incorrect. Heap sort is unstable."
+      }
     },
     {
       "question": "Heapify operation in heap sort builds?",
@@ -624,7 +1025,13 @@
         "Sorted array",
         "Linked list"
       ],
-      "answer": "Heap from array"
+      "answer": "Heap from array",
+      "explanation": "The 'heapify' procedure enforces the heap property on a subtree, and bottom-up heap construction builds a valid heap from an arbitrary array in O(n) time.",
+      "option_reasons": {
+        "Heap from array": "Correct! Heapify structures the array elements into a valid binary heap.",
+        "Sorted array": "Incorrect. A heap is only partially ordered, not fully sorted.",
+        "Linked list": "Incorrect."
+      }
     },
     {
       "question": "Heap sort is efficient for?",
@@ -633,7 +1040,13 @@
         "Small datasets",
         "Both"
       ],
-      "answer": "Large datasets"
+      "answer": "Large datasets",
+      "explanation": "Heap sort scales reliably at O(n log n) for large datasets without the worst-case O(n²) risks of Quick Sort or the O(n) RAM overhead of Merge Sort.",
+      "option_reasons": {
+        "Large datasets": "Correct! It handles large datasets with guaranteed O(n log n) time and O(1) auxiliary memory.",
+        "Small datasets": "Incorrect. For small datasets, insertion sort is simpler and faster.",
+        "Both": "Incorrect."
+      }
     }
   ],
   "bubble": [
@@ -644,7 +1057,13 @@
         "First and last element",
         "Random elements"
       ],
-      "answer": "Adjacent elements"
+      "answer": "Adjacent elements",
+      "explanation": "Bubble sort steps through the array, compares adjacent elements (`arr[j]` and `arr[j+1]`), and swaps them if they are in the wrong order.",
+      "option_reasons": {
+        "Adjacent elements": "Correct! It compares neighbor pairs side-by-side, bubbling the largest item to the end.",
+        "First and last element": "Incorrect. That is not how bubble sort operates.",
+        "Random elements": "Incorrect. Comparisons follow a strict consecutive pair sequence."
+      }
     },
     {
       "question": "Best case time complexity of bubble sort is?",
@@ -653,7 +1072,13 @@
         "O(n log n)",
         "O(n^2)"
       ],
-      "answer": "O(n)"
+      "answer": "O(n)",
+      "explanation": "With an optimized 'swapped' flag, if an already-sorted array is passed, the algorithm makes one pass with 0 swaps and terminates in O(n) time.",
+      "option_reasons": {
+        "O(n)": "Correct! If the array is already sorted, optimized bubble sort completes in a single O(n) pass.",
+        "O(n log n)": "Incorrect. Bubble sort cannot achieve n log n.",
+        "O(n^2)": "Incorrect. O(n²) is the worst and average case."
+      }
     },
     {
       "question": "Worst case time complexity of bubble sort is?",
@@ -662,7 +1087,13 @@
         "O(n log n)",
         "O(n^2)"
       ],
-      "answer": "O(n^2)"
+      "answer": "O(n^2)",
+      "explanation": "In the worst case (reverse sorted array), every element must be compared and swapped in every pass: n(n-1)/2 comparisons = O(n²).",
+      "option_reasons": {
+        "O(n)": "Incorrect. O(n) is the best case.",
+        "O(n log n)": "Incorrect.",
+        "O(n^2)": "Correct! Reverse-sorted data triggers maximum swaps and comparisons: O(n²)."
+      }
     },
     {
       "question": "Bubble sort is stable. True or False?",
@@ -670,7 +1101,12 @@
         "True",
         "False"
       ],
-      "answer": "True"
+      "answer": "True",
+      "explanation": "Bubble sort is stable because it only swaps adjacent elements when `arr[j] > arr[j+1]`. If two elements are equal, no swap occurs, preserving their original order.",
+      "option_reasons": {
+        "True": "Correct! Equal elements are never swapped past each other.",
+        "False": "Incorrect. Bubble sort is a stable sorting algorithm."
+      }
     },
     {
       "question": "Bubble sort is in-place. True or False?",
@@ -678,7 +1114,12 @@
         "True",
         "False"
       ],
-      "answer": "True"
+      "answer": "True",
+      "explanation": "Bubble sort modifies the input array directly using a single temporary variable for swaps, requiring O(1) auxiliary space.",
+      "option_reasons": {
+        "True": "Correct! It sorts within the existing array with O(1) extra memory.",
+        "False": "Incorrect. It does not allocate secondary array memory."
+      }
     },
     {
       "question": "Bubble sort is inefficient for?",
@@ -687,7 +1128,13 @@
         "Large datasets",
         "Sorted datasets"
       ],
-      "answer": "Large datasets"
+      "answer": "Large datasets",
+      "explanation": "Due to its quadratic O(n²) time complexity, sorting 100,000 items requires ~10 billion operations, making it very slow for large datasets.",
+      "option_reasons": {
+        "Small datasets": "Incorrect. For tiny arrays, bubble sort is simple and fast enough.",
+        "Large datasets": "Correct! O(n²) makes bubble sort completely impractical for large datasets.",
+        "Sorted datasets": "Incorrect. Optimized bubble sort runs in O(n) on sorted datasets."
+      }
     },
     {
       "question": "Bubble sort swaps elements when?",
@@ -696,7 +1143,13 @@
         "Left element < Right element",
         "Always"
       ],
-      "answer": "Left element > Right element"
+      "answer": "Left element > Right element",
+      "explanation": "In an ascending sort, a swap occurs when the left element is strictly greater than the right adjacent element (`arr[j] > arr[j+1]`).",
+      "option_reasons": {
+        "Left element > Right element": "Correct! This pushes larger values towards the end of the array.",
+        "Left element < Right element": "Incorrect. That would produce a descending sort or break ordering.",
+        "Always": "Incorrect. It only swaps when out of order."
+      }
     },
     {
       "question": "Number of passes in bubble sort is?",
@@ -705,7 +1158,13 @@
         "n",
         "n/2"
       ],
-      "answer": "n-1"
+      "answer": "n-1",
+      "explanation": "In an array of size n, after n-1 passes, all n-1 largest elements are placed in their final positions, leaving the 1st element automatically sorted.",
+      "option_reasons": {
+        "n-1": "Correct! Exactly n-1 outer loop iterations are needed in the unoptimized worst case.",
+        "n": "Incorrect. An nth pass is redundant.",
+        "n/2": "Incorrect."
+      }
     },
     {
       "question": "Bubble sort is simple to implement. True or False?",
@@ -713,7 +1172,12 @@
         "True",
         "False"
       ],
-      "answer": "True"
+      "answer": "True",
+      "explanation": "Bubble sort is widely taught as the introductory sorting algorithm because it can be implemented in just a few lines of nested loops.",
+      "option_reasons": {
+        "True": "Correct! Its straightforward logic makes it ideal for educational purposes.",
+        "False": "Incorrect."
+      }
     },
     {
       "question": "Optimized bubble sort stops early when?",
@@ -722,7 +1186,13 @@
         "First swap occurs",
         "All elements are equal"
       ],
-      "answer": "No swaps in a pass"
+      "answer": "No swaps in a pass",
+      "explanation": "If an entire pass over the array completes without making any swaps, the array is already sorted, and the algorithm can break immediately.",
+      "option_reasons": {
+        "No swaps in a pass": "Correct! A boolean flag `swapped = false` detects that no elements are out of order and terminates early.",
+        "First swap occurs": "Incorrect. Swaps mean the array is still unsorted.",
+        "All elements are equal": "Incorrect. Equal elements just skip swaps."
+      }
     }
   ],
   "dfs": [
@@ -733,7 +1203,13 @@
         "Depth Fast Search",
         "Direct First Search"
       ],
-      "answer": "Depth First Search"
+      "answer": "Depth First Search",
+      "explanation": "DFS stands for Depth First Search, an algorithm for traversing or searching tree and graph data structures.",
+      "option_reasons": {
+        "Depth First Search": "Correct! It explores as deep as possible along each branch before backtracking.",
+        "Depth Fast Search": "Incorrect.",
+        "Direct First Search": "Incorrect."
+      }
     },
     {
       "question": "DFS uses which data structure?",
@@ -742,7 +1218,13 @@
         "Queue",
         "Heap"
       ],
-      "answer": "Stack"
+      "answer": "Stack",
+      "explanation": "DFS uses a LIFO Stack (either an explicit Stack object or the implicit system Call Stack in recursion) to explore paths deeply before backtracking.",
+      "option_reasons": {
+        "Stack": "Correct! The stack keeps track of vertices along the current exploration path for backtracking.",
+        "Queue": "Incorrect. Queues are used in BFS (Breadth First Search).",
+        "Heap": "Incorrect. Heaps are used in Dijkstra's or Priority Search."
+      }
     },
     {
       "question": "DFS can be implemented recursively. True or False?",
@@ -750,7 +1232,12 @@
         "True",
         "False"
       ],
-      "answer": "True"
+      "answer": "True",
+      "explanation": "DFS is most commonly written as a concise recursive function where the system call stack automatically manages backtracking.",
+      "option_reasons": {
+        "True": "Correct! Recursive DFS is one of the most elegant ways to traverse graphs and trees.",
+        "False": "Incorrect."
+      }
     },
     {
       "question": "DFS explores?",
@@ -759,7 +1246,13 @@
         "Breadth of nodes first",
         "Random nodes"
       ],
-      "answer": "Deeper nodes first"
+      "answer": "Deeper nodes first",
+      "explanation": "DFS dives down a single path from root to leaf/dead-end before backtracking to explore alternate branches.",
+      "option_reasons": {
+        "Deeper nodes first": "Correct! It follows an edge to its deepest unvisited neighbor before retreating.",
+        "Breadth of nodes first": "Incorrect. Exploring neighbor by neighbor level-by-level is BFS.",
+        "Random nodes": "Incorrect. DFS follows deterministic graph edges."
+      }
     },
     {
       "question": "DFS is useful for?",
@@ -768,7 +1261,13 @@
         "Shortest path in unweighted graph",
         "Both"
       ],
-      "answer": "Both"
+      "answer": "Topological sorting",
+      "explanation": "DFS is the standard engine behind Topological Sorting (scheduling directed acyclic graphs) and strongly connected components (Tarjan/Kosaraju).",
+      "option_reasons": {
+        "Topological sorting": "Correct! Reverse post-order DFS traversal produces valid topological orderings.",
+        "Shortest path in unweighted graph": "Incorrect. Shortest path in unweighted graphs is solved by BFS, not DFS.",
+        "Both": "Incorrect."
+      }
     },
     {
       "question": "DFS is not suitable for?",
@@ -777,7 +1276,13 @@
         "Finding shortest path in weighted graph",
         "Cycle detection"
       ],
-      "answer": "Finding shortest path in weighted graph"
+      "answer": "Finding shortest path in weighted graph",
+      "explanation": "DFS does not find shortest paths because it may take an arbitrarily long path before reaching the target. Dijkstra or Bellman-Ford are required for weighted graphs.",
+      "option_reasons": {
+        "Finding connected components": "Incorrect (DFS is great at this).",
+        "Finding shortest path in weighted graph": "Correct! DFS has no shortest-path guarantees; algorithms like Dijkstra or A* are needed.",
+        "Cycle detection": "Incorrect (DFS is standard for cycle detection using back-edges)."
+      }
     },
     {
       "question": "DFS can be used in?",
@@ -786,7 +1291,13 @@
         "Pathfinding in games",
         "Both"
       ],
-      "answer": "Both"
+      "answer": "Both",
+      "explanation": "DFS is widely used in maze generation/solving and game state space exploration (like chess game trees and puzzle solvers).",
+      "option_reasons": {
+        "Maze solving": "Partially true.",
+        "Pathfinding in games": "Partially true.",
+        "Both": "Correct! Both maze solving and decision tree game-play utilize DFS backtracking."
+      }
     },
     {
       "question": "DFS may require which operation when backtracking?",
@@ -795,25 +1306,43 @@
         "Push",
         "Both"
       ],
-      "answer": "Both"
+      "answer": "Both",
+      "explanation": "Advancing forward pushes nodes onto the stack; hitting a dead-end requires popping to backtrack to the previous node with unvisited neighbors.",
+      "option_reasons": {
+        "Pop": "Partially true (popping retreats).",
+        "Push": "Partially true (pushing advances).",
+        "Both": "Correct! Pushing explores deeper and popping backtracks."
+      }
     },
     {
-      "question": "DFS traversal of a tree is?",
+      "question": "What is the time complexity of DFS on a graph with V vertices and E edges?",
       "options": [
-        "Preorder, Inorder, Postorder",
-        "Level order only",
-        "Random"
+        "O(V + E)",
+        "O(V * E)",
+        "O(V^2)"
       ],
-      "answer": "Preorder, Inorder, Postorder"
+      "answer": "O(V + E)",
+      "explanation": "Using an adjacency list, DFS visits every vertex once (V) and checks every incident edge once (E), resulting in O(V + E) linear time.",
+      "option_reasons": {
+        "O(V + E)": "Correct! Each vertex and edge is processed at most once.",
+        "O(V * E)": "Incorrect.",
+        "O(V^2)": "Only when using an adjacency matrix; standard complexity is O(V + E)."
+      }
     },
     {
-      "question": "DFS can get stuck in?",
+      "question": "How does DFS avoid getting stuck in infinite loops in cyclic graphs?",
       "options": [
-        "Infinite loops in cyclic graphs",
-        "Disconnected graphs",
-        "Sorted graphs"
+        "Using a visited set/array",
+        "Limiting depth to 10",
+        "Clearing the stack"
       ],
-      "answer": "Infinite loops in cyclic graphs"
+      "answer": "Using a visited set/array",
+      "explanation": "A `visited` boolean array or hash set marks vertices upon initial discovery, preventing the algorithm from revisiting vertices and getting trapped in cycles.",
+      "option_reasons": {
+        "Using a visited set/array": "Correct! Tracking visited vertices guarantees each node is explored only once.",
+        "Limiting depth to 10": "Incorrect. Hardcoding depth limits breaks graph traversal completeness.",
+        "Clearing the stack": "Incorrect. Clearing the stack loses the backtracking history."
+      }
     }
   ],
   "bfs": [
@@ -821,91 +1350,151 @@
       "question": "BFS stands for?",
       "options": [
         "Breadth First Search",
-        "Breadth Fast Search",
-        "Binary First Search"
+        "Binary First Search",
+        "Best First Search"
       ],
-      "answer": "Breadth First Search"
+      "answer": "Breadth First Search",
+      "explanation": "BFS stands for Breadth First Search, a graph traversal algorithm that explores all neighbor vertices at the present depth before moving to vertices at the next depth level.",
+      "option_reasons": {
+        "Breadth First Search": "Correct! It explores nodes level by level in radiating waves.",
+        "Binary First Search": "Incorrect.",
+        "Best First Search": "Incorrect. Best First Search is an informed heuristic search algorithm."
+      }
     },
     {
       "question": "BFS uses which data structure?",
       "options": [
         "Queue",
         "Stack",
-        "Heap"
+        "Priority Queue"
       ],
-      "answer": "Queue"
+      "answer": "Queue",
+      "explanation": "BFS uses a FIFO Queue to ensure vertices discovered earliest (closest level) are dequeued and expanded first.",
+      "option_reasons": {
+        "Queue": "Correct! A FIFO queue enforces level-by-level breadth exploration.",
+        "Stack": "Incorrect. Stacks are used in DFS.",
+        "Priority Queue": "Incorrect. Priority queues are used in Dijkstra's algorithm."
+      }
     },
     {
-      "question": "BFS explores?",
+      "question": "BFS is guaranteed to find the shortest path in?",
       "options": [
-        "Level by level",
-        "Deeper nodes first",
-        "Random nodes"
+        "Unweighted graphs",
+        "Weighted graphs with negative edges",
+        "All graphs"
       ],
-      "answer": "Level by level"
+      "answer": "Unweighted graphs",
+      "explanation": "Because BFS explores vertices in increasing order of distance (layer by layer), the first time it reaches a target vertex in an unweighted graph, it is guaranteed to be the shortest path.",
+      "option_reasons": {
+        "Unweighted graphs": "Correct! Level-by-level expansion guarantees finding the minimum number of edge hops.",
+        "Weighted graphs with negative edges": "Incorrect. Weighted graphs require Dijkstra or Bellman-Ford.",
+        "All graphs": "Incorrect. Edge weights break the unweighted hop-count assumption."
+      }
     },
     {
-      "question": "BFS is useful for?",
+      "question": "What is the time complexity of BFS on a graph with V vertices and E edges?",
       "options": [
-        "Shortest path in unweighted graph",
+        "O(V + E)",
+        "O(V^2)",
+        "O(E log V)"
+      ],
+      "answer": "O(V + E)",
+      "explanation": "With an adjacency list representation, BFS enqueues every vertex once O(V) and inspects every edge once O(E), yielding O(V + E).",
+      "option_reasons": {
+        "O(V + E)": "Correct! Linear time traversal visiting all reachable nodes and edges.",
+        "O(V^2)": "Only if implemented on an adjacency matrix.",
+        "O(E log V)": "Incorrect (this is Dijkstra's complexity)."
+      }
+    },
+    {
+      "question": "In BFS, which node is visited first?",
+      "options": [
+        "Start/Root node",
+        "Furthest node",
+        "Random node"
+      ],
+      "answer": "Start/Root node",
+      "explanation": "BFS initializes by enqueuing the designated source (start/root) node, making it the very first node processed at level 0.",
+      "option_reasons": {
+        "Start/Root node": "Correct! Traversal begins at the source node and radiates outward.",
+        "Furthest node": "Incorrect. Furthest nodes are visited last.",
+        "Random node": "Incorrect."
+      }
+    },
+    {
+      "question": "Which problem is best solved using BFS?",
+      "options": [
+        "Finding shortest path in a grid maze",
         "Topological sorting",
-        "Both"
+        "Finding strongly connected components"
       ],
-      "answer": "Shortest path in unweighted graph"
+      "answer": "Finding shortest path in a grid maze",
+      "explanation": "A grid maze where each step has equal cost 1 is an unweighted graph, so BFS guarantees finding the exit in the minimum number of steps.",
+      "option_reasons": {
+        "Finding shortest path in a grid maze": "Correct! BFS finds the shortest path in unweighted grids.",
+        "Topological sorting": "Incorrect. Topological sort is primarily built on DFS.",
+        "Finding strongly connected components": "Incorrect. Kosaraju and Tarjan's algorithms use DFS."
+      }
     },
     {
-      "question": "BFS can be used in?",
+      "question": "What happens if you use a Stack instead of a Queue in BFS?",
       "options": [
-        "Finding shortest path",
-        "Network broadcasting",
-        "Both"
+        "It becomes DFS",
+        "It throws an error",
+        "It sorts the graph"
       ],
-      "answer": "Both"
+      "answer": "It becomes DFS",
+      "explanation": "Replacing the FIFO Queue with a LIFO Stack transforms the level-wise expansion into depth-wise exploration, converting BFS into DFS.",
+      "option_reasons": {
+        "It becomes DFS": "Correct! The data structure is the fundamental distinction: Queue gives BFS, Stack gives DFS.",
+        "It throws an error": "Incorrect. The code executes normally, just in depth-first order.",
+        "It sorts the graph": "Incorrect."
+      }
     },
     {
-      "question": "BFS is suitable for?",
+      "question": "BFS is widely used in networking for?",
       "options": [
-        "Graphs with cycles",
-        "Acyclic graphs only",
-        "Neither"
+        "Broadcasting packets & finding peer neighbors",
+        "Compressing files",
+        "Encrypting passwords"
       ],
-      "answer": "Graphs with cycles"
+      "answer": "Broadcasting packets & finding peer neighbors",
+      "explanation": "In peer-to-peer networks and routing protocols, BFS is used to discover nearby neighbor nodes and broadcast messages across shortest hops.",
+      "option_reasons": {
+        "Broadcasting packets & finding peer neighbors": "Correct! Broadcasting and finding nearest nodes (like P2P networks) naturally fit BFS.",
+        "Compressing files": "Incorrect (Huffman coding uses greedy trees).",
+        "Encrypting passwords": "Incorrect (uses cryptographic hash algorithms like SHA/bcrypt)."
+      }
     },
     {
-      "question": "BFS may require which operation when visiting nodes?",
+      "question": "In BFS, all nodes at distance 'k' are visited before any node at distance?",
       "options": [
-        "Enqueue",
-        "Dequeue",
-        "Both"
+        "k + 1",
+        "k - 1",
+        "k / 2"
       ],
-      "answer": "Both"
+      "answer": "k + 1",
+      "explanation": "BFS processes nodes strictly in increasing order of distance from the source: distance 0, then distance 1, then distance 2, etc.",
+      "option_reasons": {
+        "k + 1": "Correct! The FIFO queue guarantees that all level-k nodes are dequeued before any level-(k+1) nodes.",
+        "k - 1": "Incorrect. Nodes at distance k-1 are already visited prior to distance k.",
+        "k / 2": "Incorrect."
+      }
     },
     {
-      "question": "BFS traversal of a tree is?",
+      "question": "How does BFS keep track of visited nodes to prevent cycles?",
       "options": [
-        "Level order",
-        "Preorder",
-        "Postorder"
+        "Visited set/array",
+        "Infinite queue",
+        "Recursion counter"
       ],
-      "answer": "Level order"
-    },
-    {
-      "question": "BFS guarantees?",
-      "options": [
-        "Shortest path in unweighted graph",
-        "Longest path in graph",
-        "Random path"
-      ],
-      "answer": "Shortest path in unweighted graph"
-    },
-    {
-      "question": "BFS cannot be used for?",
-      "options": [
-        "Finding connected components",
-        "Finding topological sort in DAG",
-        "Finding shortest path in weighted graph with negative edges"
-      ],
-      "answer": "Finding shortest path in weighted graph with negative edges"
+      "answer": "Visited set/array",
+      "explanation": "BFS marks a node as visited the moment it is enqueued, ensuring no vertex is enqueued multiple times in cyclic graphs.",
+      "option_reasons": {
+        "Visited set/array": "Correct! A visited boolean lookup table prevents duplicate queueing and infinite loops.",
+        "Infinite queue": "Incorrect. Without a visited set, an infinite queue would cause an Out Of Memory crash.",
+        "Recursion counter": "Incorrect. Standard BFS is iterative, not recursive."
+      }
     }
   ]
 }

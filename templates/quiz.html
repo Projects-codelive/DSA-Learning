@@ -1,172 +1,509 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSA Quiz - DSA Studio</title>
+    <title>DSA Studio — Interactive Quiz & Learning Arena</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            cyan: '#22d3ee',
+                            purple: '#a855f7',
+                            emerald: '#10b981',
+                            rose: '#f43f5e',
+                            amber: '#f59e0b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        /* Ensuring no horizontal scrolling */
-        body { overflow-x: hidden; }
-        
-        .font-poppins { font-family: 'Poppins', sans-serif; }
-        .animate-flip { transform-style: preserve-3d; transition: transform 0.6s; }
-        .is-flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; }
-        
-        /* Removed fixed height from .card-wrapper to allow content to dictate size */
-        .card-wrapper {
-            /* height will be determined by content (min-h-[16rem] set on card faces) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e2d4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0891b2; }
+
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* NEW: Subtle background pattern for quiz cards */
-        .quiz-card-bg {
-            position: relative;
-            overflow: hidden;
+        .glass-card {
+            background: rgba(17, 29, 53, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .quiz-card-bg::before {
-            content: '????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????';
-            position: absolute;
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(34, 211, 238, 0.35);
+            box-shadow: 0 15px 30px -10px rgba(6, 182, 212, 0.15);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #bg-canvas {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            /* Make the question marks very subtle and dark */
-            font-size: 1.5rem;
-            line-height: 1.5rem;
-            color: rgba(255, 255, 255, 0.05); /* Very light, semi-transparent white */
-            pointer-events: none; /* Allows clicks on elements below */
-            word-break: break-all;
-            white-space: pre-wrap;
+            pointer-events: none;
             z-index: 0;
-            opacity: 0.8;
-            transform: rotate(-10deg) scale(2); /* Slight rotation and scale for pattern effect */
-            transform-origin: top left;
+            opacity: 0.5;
+        }
+
+        .option-btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(6px);
+            border-color: rgba(34, 211, 238, 0.5);
+            background-color: rgba(13, 148, 136, 0.12);
+        }
+
+        .explanation-fade {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 
-<!-- Updated body background to a deep, formal dark gray -->
-<body class="bg-gray-900 text-white font-poppins">
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-cyan-500 selection:text-white">
 
-    <!-- Global Message Box (Replaces alert()) -->
-    <div id="global-message" class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] p-4 rounded-lg shadow-2xl bg-yellow-700 text-white font-semibold hidden transition-all duration-300">
-        <!-- Message content here -->
-    </div>
+    <!-- Interactive Canvas Background -->
+    <canvas id="bg-canvas"></canvas>
 
-    <!-- Navigation -->
-    <nav class="bg-gray-900 bg-opacity-85 fixed top-0 w-full shadow-sm z-50 border-b border-cyan-800">
-        <div class="container mx-auto flex flex-wrap items-center justify-between py-3 px-4">
-            <a class="font-bold text-white text-xl flex items-center" href="/">
-                <!-- Using a standard placeholder image URL for robustness -->
-                <img src="https://placehold.co/48x48/1e293b/ffffff?text=DS" alt="Logo" class="h-12 w-12 mr-2 inline-block rounded-lg shadow-md"> DSA Studio
-            </a>
-            <div class="hidden md:flex space-x-6">
-                <!-- UPDATED: Home link now points to the Flask root route / -->
-                <a class="text-white hover:text-cyan-400 transition-colors duration-300" href="/">Home</a>
-                <!-- UPDATED: Explore link now points to the expected Flask route /explore -->
-                <a class="text-white hover:text-cyan-400 transition-colors duration-300" href="/explore">Explore</a>
-                <a class="text-cyan-400 font-bold border-b-2 border-cyan-400 transition-colors duration-300" href="/quiz">Quiz</a>
+    <!-- Ambient Glowing Orbs -->
+    <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none z-0"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] left-[30%] w-[550px] h-[550px] rounded-full bg-blue-600/10 blur-[140px] pointer-events-none z-0"></div>
+
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-slate-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all duration-300 group-hover:scale-105">
+                        <div class="w-full h-full bg-[#0d1527] rounded-[10px] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-cyan-400 group-hover:rotate-12 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white group-hover:text-cyan-400 transition-colors">DSA Studio</span>
+                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">Quiz Lab</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">Concept & Reasoning Arena</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Nav Links -->
+                <div class="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-full border border-slate-800/80 backdrop-blur-md">
+                    <a href="/" class="nav-item px-5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300">
+                        Home
+                    </a>
+                    <a href="/#explore-page" class="nav-item px-5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300">
+                        Explore Algorithms
+                    </a>
+                    <span class="nav-item px-5 py-2 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-md shadow-purple-500/20">
+                        Quiz Arena
+                    </span>
+                </div>
+
+                <!-- Back to Lab Button -->
+                <div class="hidden md:flex items-center gap-3">
+                    <a href="/" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-200 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/50 hover:text-white transition-all flex items-center gap-2">
+                        <span>← Back to Dashboard</span>
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="min-h-screen pt-20">
-        <!-- Hero Section - Updated background to a fun yet formal gradient -->
-        <div class="text-center py-12 md:py-16 bg-gradient-to-r from-gray-900 to-indigo-950 border-b border-cyan-700">
-            <h1 class="text-white text-4xl md:text-6xl font-extrabold tracking-tight">DSA Quiz</h1>
-            <p class="text-gray-300 mt-2 text-xl">Choose a topic to start your quiz!</p>
-        </div>
-
-        <!-- Quiz selection -->
-        <div id="quiz-selection-area" class="container mx-auto px-4 py-12 flex flex-col items-center">
-            <h2 class="mb-8 text-3xl font-bold text-cyan-400">Choose Quiz Algorithm</h2>
-            <select id="quiz-algo"
-                class="form-select w-full md:w-96 p-4 mb-8 bg-gray-800 text-white border border-cyan-700 rounded-xl shadow-lg focus:ring-4 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-200 text-lg">
-                <option value="">--Select Algorithm--</option>
-                <option value="stack">Stack</option>
-                <option value="queue">Queue</option>
-                <!-- <option value="bst">BST</option> -->
-                <option value="bubble">Bubble Sort</option>
-                <option value="merge">Merge Sort</option>
-                <option value="quick">Quick Sort</option>
-                <option value="heap">Heap Sort</option>
-                <option value="linear">Linear Search</option>
-                <option value="binary">Binary Search</option>
-                <option value="dfs">DFS</option>
-                <option value="bfs">BFS</option>
-            </select>
-            <button id="start-quiz-btn"
-                class="px-10 py-4 rounded-full text-white font-extrabold bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-700 hover:to-blue-800 shadow-2xl transition-all duration-300 transform hover:scale-[1.03]">
-                Start Quiz
-            </button>
-        </div>
-
-        <!-- Quiz cards - Updated to use responsive grid for better alignment -->
-        <div id="quiz-container" 
-             class="container mx-auto px-4 py-8 hidden 
-                    grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 
-                    gap-6 pb-24">
-            <!-- Quiz cards will be inserted here -->
-        </div>
-
-        <!-- Submit button -->
-        <button id="submit-quiz-btn"
-            class="hidden fixed bottom-6 right-6 px-8 py-4 rounded-full text-white font-bold bg-cyan-600 hover:bg-cyan-700 transition-colors duration-300 shadow-xl z-50">Submit Quiz</button>
-
-        <!-- Results -->
-        <div id="results-page" class="hidden text-center py-20 bg-gray-900">
-            <div class="container mx-auto px-4">
-                <div id="results-card" class="max-w-md mx-auto bg-blue-900 p-10 rounded-2xl shadow-2xl border border-cyan-600">
-                    <h1 class="text-5xl font-extrabold text-white mb-4">Quiz Results</h1>
-                    <p class="text-xl text-gray-200 mt-3">Your final score is:</p>
-                    <div id="score-display" class="text-8xl font-extrabold text-cyan-400 my-8 animate-bounce">0/0</div>
-                    <button class="px-8 py-3 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-200 transition-colors duration-300 text-lg shadow-md"
-                        onclick="location.reload();">Take another quiz</button>
-                </div>
-            </div>
-        </div>
+    <!-- Global Toast Alert -->
+    <div id="toast-msg" class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3.5 rounded-2xl shadow-2xl glass-panel border border-cyan-500/40 text-white font-medium hidden transition-all duration-300 flex items-center gap-3">
+        <span id="toast-icon">💡</span>
+        <span id="toast-text">Alert message</span>
     </div>
 
+    <!-- MAIN QUIZ AREA -->
+    <main class="relative z-10 pt-28 pb-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- ========================================================= -->
+        <!-- STEP 1: TOPIC SELECTION SCREEN                            -->
+        <!-- ========================================================= -->
+        <div id="topic-select-view" class="space-y-10">
+            
+            <div class="text-center max-w-2xl mx-auto space-y-4">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold uppercase tracking-wider">
+                    🧠 Interactive Learning & Assessment
+                </div>
+                <h1 class="font-outfit text-4xl sm:text-5xl font-extrabold text-white">
+                    DSA Concept <span class="text-gradient">Quiz Arena</span>
+                </h1>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    Test your understanding with in-depth conceptual MCQs. Every question features a <strong>detailed explanation</strong> explaining why the correct choice is right and why the other choices are incorrect.
+                </p>
+            </div>
+
+            <!-- Quiz Settings Bar -->
+            <div class="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2 text-sm text-slate-300 font-medium">
+                    <span>⚙️ Questions per Quiz:</span>
+                    <select id="question-count-select" class="bg-slate-900 border border-slate-700 text-cyan-400 font-mono text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyan-400">
+                        <option value="5" selected>5 Questions (Quick Test)</option>
+                        <option value="10">10 Questions (Complete Topic Test)</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>100 Total Questions Available</span>
+                </div>
+            </div>
+
+            <!-- Topic Cards Grid -->
+            <div>
+                <h2 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400 mb-4">Choose a Topic to Begin:</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="topic-cards-container">
+                    
+                    <!-- Bubble Sort -->
+                    <button onclick="selectTopicAndStart('bubble', 'Bubble Sort', '📊 Sorting')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-purple-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🫧</span>
+                            <span class="text-[11px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/30">O(n²)</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-purple-400 transition-colors">Bubble Sort</h3>
+                        <p class="text-xs text-slate-400 mt-1">Adjacent element comparisons, swaps, and best/worst case proofs.</p>
+                    </button>
+
+                    <!-- Merge Sort -->
+                    <button onclick="selectTopicAndStart('merge', 'Merge Sort', '📊 Sorting')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-purple-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🔀</span>
+                            <span class="text-[11px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/30">O(n log n)</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-purple-400 transition-colors">Merge Sort</h3>
+                        <p class="text-xs text-slate-400 mt-1">Divide and conquer recursion, merge steps, stability, and space cost.</p>
+                    </button>
+
+                    <!-- Quick Sort -->
+                    <button onclick="selectTopicAndStart('quick', 'Quick Sort', '📊 Sorting')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-purple-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">⚡</span>
+                            <span class="text-[11px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/30">O(n log n)</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-purple-400 transition-colors">Quick Sort</h3>
+                        <p class="text-xs text-slate-400 mt-1">Pivot selection, partitioning, recursion tree balance, and worst cases.</p>
+                    </button>
+
+                    <!-- Heap Sort -->
+                    <button onclick="selectTopicAndStart('heap', 'Heap Sort', '📊 Sorting')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-purple-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🌲</span>
+                            <span class="text-[11px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/30">O(n log n)</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-purple-400 transition-colors">Heap Sort</h3>
+                        <p class="text-xs text-slate-400 mt-1">Binary heaps, heapify operations, root extraction, and in-place sorting.</p>
+                    </button>
+
+                    <!-- Linear Search -->
+                    <button onclick="selectTopicAndStart('linear', 'Linear Search', '🔍 Searching')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-cyan-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🔍</span>
+                            <span class="text-[11px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">O(n)</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-cyan-400 transition-colors">Linear Search</h3>
+                        <p class="text-xs text-slate-400 mt-1">Sequential scanning, best vs. worst case, and unsorted array lookups.</p>
+                    </button>
+
+                    <!-- Binary Search -->
+                    <button onclick="selectTopicAndStart('binary', 'Binary Search', '🔍 Searching')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-cyan-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🎯</span>
+                            <span class="text-[11px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">O(log n)</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-cyan-400 transition-colors">Binary Search</h3>
+                        <p class="text-xs text-slate-400 mt-1">Logarithmic search, sorted array prerequisites, mid-point arithmetic.</p>
+                    </button>
+
+                    <!-- Stack -->
+                    <button onclick="selectTopicAndStart('stack', 'Stack (LIFO)', '📦 Data Structures')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-amber-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🥞</span>
+                            <span class="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">LIFO</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-amber-400 transition-colors">Stack</h3>
+                        <p class="text-xs text-slate-400 mt-1">Push, Pop, Peek, call stack recursion, and undo buffer applications.</p>
+                    </button>
+
+                    <!-- Queue -->
+                    <button onclick="selectTopicAndStart('queue', 'Queue (FIFO)', '📦 Data Structures')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-amber-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🎟️</span>
+                            <span class="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">FIFO</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-amber-400 transition-colors">Queue</h3>
+                        <p class="text-xs text-slate-400 mt-1">Enqueue, Dequeue, Circular queues, Priority queues, and IO buffers.</p>
+                    </button>
+
+                    <!-- BFS -->
+                    <button onclick="selectTopicAndStart('bfs', 'Breadth-First Search (BFS)', '📈 Graphs')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-emerald-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🌊</span>
+                            <span class="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">O(V + E)</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-emerald-400 transition-colors">BFS (Graphs)</h3>
+                        <p class="text-xs text-slate-400 mt-1">Queue-driven traversal, level-by-level shortest path in unweighted graphs.</p>
+                    </button>
+
+                    <!-- DFS -->
+                    <button onclick="selectTopicAndStart('dfs', 'Depth-First Search (DFS)', '📈 Graphs')" class="glass-card rounded-2xl p-5 text-left group border border-slate-800 hover:border-emerald-500/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">🧗</span>
+                            <span class="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">O(V + E)</span>
+                        </div>
+                        <h3 class="font-outfit font-bold text-lg text-white group-hover:text-emerald-400 transition-colors">DFS (Graphs)</h3>
+                        <p class="text-xs text-slate-400 mt-1">Stack/recursion traversal, backtracking, topological sort, and cycles.</p>
+                    </button>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- STEP 2: ACTIVE QUIZ VIEW (Interactive Learning Mode)     -->
+        <!-- ========================================================= -->
+        <div id="quiz-active-view" class="hidden space-y-8">
+            
+            <!-- Quiz Active Header & Progress -->
+            <div class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="active-category-badge" class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Category</span>
+                            <h2 id="active-topic-title" class="font-outfit font-bold text-xl text-white">Topic Name</h2>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">Select an answer to reveal detailed educational reasoning.</p>
+                    </div>
+
+                    <!-- Live Score / Question Counter -->
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <div class="text-xs text-slate-400">Current Score</div>
+                            <div id="live-score" class="font-outfit font-extrabold text-xl text-emerald-400">0 pts</div>
+                        </div>
+                        <button onclick="exitQuizToTopics()" class="text-xs text-slate-400 hover:text-rose-400 py-1.5 px-3 rounded-lg bg-slate-900 border border-slate-800 transition-colors">
+                            ✕ Exit Quiz
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs font-mono text-slate-400">
+                        <span id="progress-text">Question 1 of 5</span>
+                        <span id="progress-percentage">20%</span>
+                    </div>
+                    <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                        <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 rounded-full transition-all duration-500" style="width: 20%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-700/80 shadow-2xl space-y-6">
+                
+                <!-- Question Number & Prompt -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <span class="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold" id="q-badge">Question #1</span>
+                    </div>
+                    <h3 id="q-text" class="font-outfit text-2xl sm:text-3xl font-extrabold text-white leading-snug">
+                        Loading question...
+                    </h3>
+                </div>
+
+                <!-- Options List -->
+                <div id="options-container" class="space-y-3 pt-2">
+                    <!-- Dynamic option buttons injected here -->
+                </div>
+
+                <!-- Detailed Educational Explanation Box (Shown after answering) -->
+                <div id="explanation-box" class="hidden explanation-fade mt-6 rounded-2xl p-6 glass-card border border-slate-700/80 space-y-5">
+                    
+                    <!-- Result Status Header -->
+                    <div id="result-status-header" class="flex items-center gap-3 pb-3 border-b border-slate-800">
+                        <div id="result-icon-badge" class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg">
+                            ✓
+                        </div>
+                        <div>
+                            <h4 id="result-status-title" class="font-outfit font-bold text-lg text-white">Correct Answer!</h4>
+                            <p id="result-status-subtitle" class="text-xs text-slate-400">Review the learning explanation below.</p>
+                        </div>
+                    </div>
+
+                    <!-- Core Concept Overview -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2 text-xs font-mono text-cyan-300 font-semibold uppercase">
+                            <span>💡 Core Concept Breakdown:</span>
+                        </div>
+                        <p id="explanation-main-text" class="text-sm text-slate-200 leading-relaxed bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                            Explanation goes here...
+                        </p>
+                    </div>
+
+                    <!-- Option-by-Option Why Right / Why Wrong Breakdown -->
+                    <div class="space-y-2">
+                        <div class="text-xs font-mono text-purple-300 font-semibold uppercase">
+                            <span>🔍 Why each option is Correct or Incorrect:</span>
+                        </div>
+                        <div id="option-reasons-list" class="space-y-2 text-xs">
+                            <!-- Injected breakdown of each option -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="pt-4 flex items-center justify-between border-t border-slate-800">
+                    <button id="btn-prev-question" onclick="goToPreviousQuestion()" class="hidden py-2.5 px-5 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors">
+                        ← Previous
+                    </button>
+                    <div></div>
+                    <button id="btn-next-question" onclick="goToNextQuestion()" class="py-3 px-7 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2">
+                        <span id="next-btn-label">Next Question</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- STEP 3: RESULTS & COMPREHENSIVE LEARNING REVIEW           -->
+        <!-- ========================================================= -->
+        <div id="quiz-results-view" class="hidden space-y-10">
+            
+            <!-- Result Summary Card -->
+            <div class="glass-panel rounded-3xl p-8 sm:p-12 text-center border border-slate-700/80 shadow-2xl space-y-6 relative overflow-hidden">
+                <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
+
+                <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-[2px] shadow-xl shadow-cyan-500/30">
+                    <div class="w-full h-full bg-[#0d1527] rounded-[22px] flex items-center justify-center text-3xl">
+                        🏆
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h2 class="font-outfit text-3xl sm:text-4xl font-extrabold text-white">Quiz Completed!</h2>
+                    <p id="results-feedback-message" class="text-sm text-slate-300 max-w-md mx-auto">
+                        Great job completing the assessment. Review your detailed score breakdown below.
+                    </p>
+                </div>
+
+                <!-- Big Score Display -->
+                <div class="inline-flex items-baseline gap-2 bg-slate-950/80 px-8 py-4 rounded-3xl border border-slate-800">
+                    <span id="final-score-num" class="font-outfit text-5xl sm:text-6xl font-black text-gradient">0</span>
+                    <span id="final-total-num" class="text-2xl text-slate-500 font-bold">/ 5</span>
+                    <span id="final-percentage-badge" class="ml-3 text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">0%</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+                    <button onclick="retakeCurrentQuiz()" class="py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-95 shadow-lg shadow-cyan-500/25 transition-all">
+                        🔄 Retake This Topic
+                    </button>
+                    <button onclick="exitQuizToTopics()" class="py-3 px-6 rounded-xl font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:text-white transition-all">
+                        📚 Choose Another Topic
+                    </button>
+                    <a href="/" class="py-3 px-6 rounded-xl font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 transition-all">
+                        🚀 Launch Algorithm Visualizers
+                    </a>
+                </div>
+            </div>
+
+            <!-- Full Questions & Explanations Review Section -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-outfit text-2xl font-bold text-white">Full Assessment Learning Review</h3>
+                        <p class="text-xs text-slate-400 mt-1">Study the comprehensive explanation and logic behind every question.</p>
+                    </div>
+                    <span class="text-xs font-mono px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                        Study Notes
+                    </span>
+                </div>
+
+                <div id="results-review-list" class="space-y-5">
+                    <!-- Dynamic review cards injected here -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Interactive JavaScript Engine -->
     <script>
-        const quizAlgoSelect = document.getElementById('quiz-algo');
-        const startQuizBtn = document.getElementById('start-quiz-btn');
-        const quizContainerDiv = document.getElementById('quiz-container');
-        const submitBtn = document.getElementById('submit-quiz-btn');
-        const quizSelectionArea = document.getElementById('quiz-selection-area');
-        const resultsPage = document.getElementById('results-page');
-        const globalMessage = document.getElementById('global-message');
+        let currentTopicKey = null;
+        let currentTopicName = '';
+        let currentCategory = '';
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let userResponses = {}; // { questionIndex: selectedOption }
+        let currentScore = 0;
 
-        let quizData = {};
-        let currentQuizTopic = null;
-        const userAnswers = {};
-        const MAX_QUESTIONS = 5; // Define the maximum number of questions per quiz
-
-        /**
-         * Custom message utility to replace alert().
-         */
-        function showMessage(text, isError = false) {
-            globalMessage.textContent = text;
-            globalMessage.classList.remove('hidden', 'bg-red-700', 'bg-yellow-700');
-            
-            if (isError) {
-                globalMessage.classList.add('bg-red-700');
-            } else {
-                globalMessage.classList.add('bg-yellow-700');
-            }
-            
-            setTimeout(() => {
-                globalMessage.classList.add('hidden');
-            }, 3000);
+        // Toast utility
+        function showToast(text, icon = '💡') {
+            const toast = document.getElementById('toast-msg');
+            document.getElementById('toast-text').innerText = text;
+            document.getElementById('toast-icon').innerText = icon;
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 3000);
         }
 
-        /**
-         * Shuffles an array in place (Fisher-Yates algorithm).
-         * @param {Array} array The array to shuffle.
-         * @returns {Array} The shuffled array.
-         */
-        function shuffleArray(array) {
+        // Shuffle utility (Fisher-Yates)
+        function shuffle(arr) {
+            const array = [...arr];
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
@@ -174,157 +511,414 @@
             return array;
         }
 
-        // Start quiz
-        startQuizBtn.addEventListener('click', async () => {
-            const selectedTopic = quizAlgoSelect.value;
-            if (!selectedTopic) {
-                showMessage("Please select an algorithm to start the quiz!");
+        // Step 1: Select Topic and Fetch Questions
+        async function selectTopicAndStart(topicKey, topicName, category) {
+            currentTopicKey = topicKey;
+            currentTopicName = topicName;
+            currentCategory = category;
+            const maxQ = parseInt(document.getElementById('question-count-select').value) || 5;
+
+            try {
+                showToast(`Loading questions for ${topicName}...`, '⏳');
+                const res = await fetch(`/quiz-data?algorithm=${topicKey}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                let allQ = await res.json();
+                if (!allQ || allQ.length === 0) {
+                    showToast('No questions found for this topic.', '⚠️');
+                    return;
+                }
+
+                // Shuffle questions and take chosen count
+                currentQuestions = shuffle(allQ).slice(0, maxQ);
+                currentQuestionIndex = 0;
+                userResponses = {};
+                currentScore = 0;
+
+                // Switch Views
+                document.getElementById('topic-select-view').classList.add('hidden');
+                document.getElementById('quiz-results-view').classList.add('hidden');
+                document.getElementById('quiz-active-view').classList.remove('hidden');
+
+                document.getElementById('active-category-badge').innerText = category;
+                document.getElementById('active-topic-title').innerText = topicName;
+
+                renderCurrentQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to load quiz data. Check backend connection.', '❌');
+            }
+        }
+
+        // Step 2: Render Current Question Card
+        function renderCurrentQuestion() {
+            const q = currentQuestions[currentQuestionIndex];
+            const total = currentQuestions.length;
+
+            // Update Progress
+            const progressPercent = Math.round(((currentQuestionIndex + 1) / total) * 100);
+            document.getElementById('progress-text').innerText = `Question ${currentQuestionIndex + 1} of ${total}`;
+            document.getElementById('progress-percentage').innerText = `${progressPercent}%`;
+            document.getElementById('progress-bar-fill').style.width = `${progressPercent}%`;
+            document.getElementById('q-badge').innerText = `Question #${currentQuestionIndex + 1}`;
+            document.getElementById('q-text').innerText = q.question;
+            document.getElementById('live-score').innerText = `${currentScore} / ${currentQuestionIndex} pts`;
+
+            // Render Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const explanationBox = document.getElementById('explanation-box');
+            const hasAnswered = userResponses[currentQuestionIndex] !== undefined;
+
+            const alphabet = ['A', 'B', 'C', 'D', 'E'];
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-slate-200 text-sm font-medium flex items-center justify-between group';
+                btn.dataset.option = opt;
+
+                const letter = alphabet[idx] || (idx + 1);
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-mono font-bold text-xs text-slate-400 group-hover:text-cyan-300 group-hover:border-cyan-500/50 transition-colors">
+                            ${letter}
+                        </span>
+                        <span class="option-label text-sm sm:text-base text-slate-200">${opt}</span>
+                    </div>
+                    <span class="indicator-icon text-lg hidden"></span>
+                `;
+
+                if (!hasAnswered) {
+                    btn.onclick = () => handleOptionSelection(opt, btn);
+                } else {
+                    btn.disabled = true;
+                    applyOptionStylesAfterAnswer(btn, opt, q.answer, userResponses[currentQuestionIndex]);
+                }
+
+                container.appendChild(btn);
+            });
+
+            // If already answered, show the explanation box
+            if (hasAnswered) {
+                renderExplanationBox(q, userResponses[currentQuestionIndex]);
+            } else {
+                explanationBox.classList.add('hidden');
+            }
+
+            // Update Next / Submit Button
+            const nextBtnLabel = document.getElementById('next-btn-label');
+            if (currentQuestionIndex === total - 1) {
+                nextBtnLabel.innerText = 'Finish & Review Results →';
+            } else {
+                nextBtnLabel.innerText = 'Next Question →';
+            }
+
+            // Previous button visibility
+            const prevBtn = document.getElementById('btn-prev-question');
+            if (currentQuestionIndex > 0) {
+                prevBtn.classList.remove('hidden');
+            } else {
+                prevBtn.classList.add('hidden');
+            }
+        }
+
+        // Apply visual styling to option buttons once answered
+        function applyOptionStylesAfterAnswer(btn, opt, correctAns, userChosen) {
+            const icon = btn.querySelector('.indicator-icon');
+            icon.classList.remove('hidden');
+
+            if (opt === correctAns) {
+                btn.className = 'w-full text-left p-4 rounded-2xl bg-emerald-950/60 border-2 border-emerald-500/80 text-emerald-200 text-sm font-semibold flex items-center justify-between shadow-lg shadow-emerald-950/50';
+                icon.innerText = '✅ Correct';
+                icon.className = 'indicator-icon text-xs font-mono font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-full border border-emerald-500/30';
+            } else if (opt === userChosen) {
+                btn.className = 'w-full text-left p-4 rounded-2xl bg-rose-950/60 border-2 border-rose-500/80 text-rose-200 text-sm font-semibold flex items-center justify-between shadow-lg shadow-rose-950/50';
+                icon.innerText = '❌ Your Choice';
+                icon.className = 'indicator-icon text-xs font-mono font-bold text-rose-400 bg-rose-500/20 px-2.5 py-1 rounded-full border border-rose-500/30';
+            } else {
+                btn.className = 'w-full text-left p-4 rounded-2xl bg-slate-950/60 border border-slate-850 text-slate-500 text-sm font-medium flex items-center justify-between opacity-50';
+                icon.innerText = '';
+            }
+        }
+
+        // Handle user clicking an option
+        function handleOptionSelection(chosenOption, clickedBtn) {
+            const q = currentQuestions[currentQuestionIndex];
+            userResponses[currentQuestionIndex] = chosenOption;
+
+            const isCorrect = (chosenOption === q.answer);
+            if (isCorrect) {
+                currentScore++;
+            }
+            document.getElementById('live-score').innerText = `${currentScore} / ${currentQuestionIndex + 1} pts`;
+
+            // Disable all option buttons and apply colors
+            const allBtns = document.querySelectorAll('#options-container button');
+            allBtns.forEach(btn => {
+                btn.disabled = true;
+                const opt = btn.dataset.option;
+                applyOptionStylesAfterAnswer(btn, opt, q.answer, chosenOption);
+            });
+
+            // Reveal the Educational Explanation
+            renderExplanationBox(q, chosenOption);
+        }
+
+        // Render the Detailed Explanation Box
+        function renderExplanationBox(q, chosenOption) {
+            const explanationBox = document.getElementById('explanation-box');
+            const isCorrect = (chosenOption === q.answer);
+
+            const statusHeader = document.getElementById('result-status-header');
+            const iconBadge = document.getElementById('result-icon-badge');
+            const title = document.getElementById('result-status-title');
+            const subtitle = document.getElementById('result-status-subtitle');
+
+            if (isCorrect) {
+                iconBadge.className = 'w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+                iconBadge.innerText = '✓';
+                title.innerText = 'Excellent! That is Correct.';
+                title.className = 'font-outfit font-bold text-lg text-emerald-400';
+                subtitle.innerText = `You correctly identified: "${q.answer}"`;
+            } else {
+                iconBadge.className = 'w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg bg-rose-500/20 text-rose-400 border border-rose-500/40';
+                iconBadge.innerText = '✕';
+                title.innerText = 'Not quite right.';
+                title.className = 'font-outfit font-bold text-lg text-rose-400';
+                subtitle.innerText = `Correct answer is: "${q.answer}" (You selected: "${chosenOption}")`;
+            }
+
+            // Set main concept explanation
+            document.getElementById('explanation-main-text').innerText = q.explanation || 'Detailed explanation is available below.';
+
+            // Render option-by-option reasons
+            const reasonsList = document.getElementById('option-reasons-list');
+            reasonsList.innerHTML = '';
+
+            const optionReasons = q.option_reasons || {};
+
+            q.options.forEach(opt => {
+                const optReason = optionReasons[opt] || (opt === q.answer ? 'This is the verified correct answer.' : 'This option does not satisfy the criteria.');
+                const isOptionCorrect = (opt === q.answer);
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `p-3 rounded-xl border flex items-start gap-2.5 ${
+                    isOptionCorrect 
+                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200' 
+                    : (opt === chosenOption ? 'bg-rose-950/40 border-rose-500/40 text-rose-200' : 'bg-slate-900/60 border-slate-800 text-slate-300')
+                }`;
+
+                itemDiv.innerHTML = `
+                    <span class="mt-0.5 text-sm">${isOptionCorrect ? '✅' : '❌'}</span>
+                    <div>
+                        <strong class="font-mono text-white">${opt}:</strong>
+                        <span class="text-slate-300 ml-1 leading-relaxed">${optReason}</span>
+                    </div>
+                `;
+                reasonsList.appendChild(itemDiv);
+            });
+
+            explanationBox.classList.remove('hidden');
+        }
+
+        // Navigate Questions
+        function goToNextQuestion() {
+            if (userResponses[currentQuestionIndex] === undefined) {
+                showToast('Please select an answer first to continue!', '⚠️');
                 return;
             }
 
-            try {
-                // Fetching all quiz data from the Flask backend endpoint /quiz-data
-                const response = await fetch(`/quiz-data?algorithm=${selectedTopic}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                let allQuestions = await response.json();
-                
-                if (allQuestions.length === 0) {
-                    showMessage(`No questions found for ${selectedTopic}. Please check your quiz_questions.json file.`);
-                    return;
-                }
-                
-                // 1. Shuffle the entire list of questions
-                shuffleArray(allQuestions);
-                
-                // 2. Select the first MAX_QUESTIONS (5) questions
-                const selectedQuestions = allQuestions.slice(0, MAX_QUESTIONS);
-
-                if (selectedQuestions.length < MAX_QUESTIONS) {
-                    showMessage(`Warning: Only ${selectedQuestions.length} questions available for this topic.`, false);
-                }
-
-                // Store the selected subset of questions
-                quizData[selectedTopic] = selectedQuestions;
-
-                loadQuiz(selectedTopic);
-            } catch (err) {
-                console.error("Quiz data fetch error:", err);
-                // This message suggests a network or server issue
-                showMessage("Failed to load quiz data. Ensure the backend is running and quiz questions exist.", true);
+            if (currentQuestionIndex < currentQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+                window.scrollTo({ top: 150, behavior: 'smooth' });
+            } else {
+                showResultsView();
             }
-        });
-
-        function loadQuiz(topic) {
-            currentQuizTopic = topic;
-            userAnswers[topic] = {};
-
-            const questions = quizData[topic];
-            quizContainerDiv.innerHTML = '';
-            quizSelectionArea.classList.add('hidden');
-            quizContainerDiv.classList.remove('hidden');
-            // 'flex' class removed, replaced by grid classes in HTML
-            submitBtn.classList.remove('hidden');
-
-            questions.forEach((q, index) => {
-                const card = document.createElement('div');
-                // Use w-full for fluid grid sizing. Removed height constraint.
-                card.className = 'w-full relative card-wrapper'; 
-                
-                // Shuffle the options before rendering them
-                const shuffledOptions = shuffleArray([...q.options]);
-
-                card.innerHTML = `
-                    <div class="w-full relative perspective-[1000px] cursor-pointer animate-flip" data-question-index="${index}" onclick="this.classList.toggle('is-flipped')">
-                        <!-- Card Front -->
-                        <!-- ADDED quiz-card-bg class and simplified title -->
-                        <div class="w-full absolute rounded-2xl shadow-lg border border-gray-700 bg-gradient-to-br from-blue-900 to-cyan-500 card-face flex items-center justify-center p-4 min-h-[16rem] quiz-card-bg">
-                            <h5 class="text-3xl font-bold text-center z-10">Question ${index + 1}</h5>
-                        </div>
-                        
-                        <!-- Card Back - ADDED quiz-card-bg class -->
-                        <div class="w-full absolute rounded-2xl shadow-lg border border-gray-700 bg-gradient-to-br from-blue-950 to-blue-800 card-face 
-                            min-h-[16rem] quiz-card-bg"
-                            style="transform: rotateY(180deg); padding:1.5rem;">
-                            <h5 class="text-lg font-semibold mb-4">${q.question}</h5>
-                            <!-- Added max-w-full and text-wrap for options in case they are long -->
-                            <div class="w-full mt-3 flex flex-col items-center space-y-3">
-                                ${shuffledOptions.map(opt => `<button class="w-full text-base py-2 px-4 rounded-full bg-gray-800 text-white border border-gray-700 hover:bg-cyan-700 transition-colors max-w-full text-wrap" data-answer="${opt}" data-index="${index}">${opt}</button>`).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                quizContainerDiv.appendChild(card);
-
-                card.querySelectorAll('button').forEach(btn => {
-                    btn.addEventListener('click', e => {
-                        // REMOVED: e.stopPropagation(); to allow the card flip to happen after processing the answer
-                        
-                        const selectedOption = e.target.dataset.answer;
-                        const questionIndex = e.target.dataset.index;
-                        const cardWrapper = e.target.closest('.card-wrapper');
-                        
-                        // Find the flippable element (the immediate parent with the onclick handler)
-                        const parentCard = e.target.closest('div[data-question-index]');
-                        
-                        // Check if question has already been answered
-                        if (userAnswers[currentQuizTopic][questionIndex] !== undefined) {
-                            // If already answered, just ensure it's flipped to show the result
-                            if (!parentCard.classList.contains('is-flipped')) {
-                                parentCard.classList.add('is-flipped');
-                            }
-                            return; 
-                        }
-
-                        userAnswers[currentQuizTopic][questionIndex] = selectedOption;
-
-                        // Disable all buttons in this question once answered
-                        parentCard.querySelectorAll('button').forEach(b => b.disabled = true);
-
-                        const correctAnswer = quizData[currentQuizTopic][questionIndex].answer;
-                        
-                        // Highlight the selected answer
-                        e.target.classList.remove('bg-gray-800', 'hover:bg-cyan-700');
-                        e.target.classList.add(selectedOption === correctAnswer ? 'bg-green-600' : 'bg-red-600');
-                        
-                        // If wrong, highlight the correct answer
-                        if (selectedOption !== correctAnswer) {
-                            const correctBtn = Array.from(parentCard.querySelectorAll('button')).find(b => b.dataset.answer === correctAnswer);
-                            if (correctBtn) {
-                                correctBtn.classList.remove('bg-gray-800');
-                                correctBtn.classList.add('bg-green-600');
-                            }
-                        }
-                        
-                        // NEW: Programmatically flip the card after the answer is registered and highlighted
-                        if (parentCard && !parentCard.classList.contains('is-flipped')) {
-                            parentCard.classList.add('is-flipped');
-                        }
-                    });
-                });
-            });
         }
 
-        submitBtn.addEventListener('click', () => {
-            const questions = quizData[currentQuizTopic];
-            let score = 0;
-            questions.forEach((q, i) => {
-                if (userAnswers[currentQuizTopic][i] === q.answer) score++;
+        function goToPreviousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+                window.scrollTo({ top: 150, behavior: 'smooth' });
+            }
+        }
+
+        // Step 3: Show Final Results & Comprehensive Review
+        function showResultsView() {
+            document.getElementById('quiz-active-view').classList.add('hidden');
+            document.getElementById('quiz-results-view').classList.remove('hidden');
+
+            const total = currentQuestions.length;
+            const percentage = Math.round((currentScore / total) * 100);
+
+            document.getElementById('final-score-num').innerText = currentScore;
+            document.getElementById('final-total-num').innerText = `/ ${total}`;
+            
+            const badge = document.getElementById('final-percentage-badge');
+            badge.innerText = `${percentage}% Mastery`;
+
+            const feedback = document.getElementById('results-feedback-message');
+            if (percentage === 100) {
+                badge.className = 'ml-3 text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+                feedback.innerText = `🌟 Perfect Score! You demonstrated complete conceptual mastery of ${currentTopicName}.`;
+            } else if (percentage >= 60) {
+                badge.className = 'ml-3 text-xs font-mono font-bold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30';
+                feedback.innerText = `👏 Great work! You passed ${currentTopicName} with strong fundamentals. Review missed concepts below.`;
+            } else {
+                badge.className = 'ml-3 text-xs font-mono font-bold px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/30';
+                feedback.innerText = `💡 Good effort! Review the detailed question-by-question explanations below to strengthen your understanding.`;
+            }
+
+            // Build Review Cards
+            const reviewList = document.getElementById('results-review-list');
+            reviewList.innerHTML = '';
+
+            currentQuestions.forEach((q, idx) => {
+                const userChoice = userResponses[idx];
+                const isCorrect = (userChoice === q.answer);
+
+                const card = document.createElement('div');
+                card.className = `glass-card rounded-2xl p-6 border ${isCorrect ? 'border-emerald-500/40' : 'border-rose-500/40'} space-y-4`;
+
+                let optionsHtml = '';
+                const optionReasons = q.option_reasons || {};
+
+                q.options.forEach(opt => {
+                    const isRightOption = (opt === q.answer);
+                    const isUserPick = (opt === userChoice);
+                    const optReason = optionReasons[opt] || '';
+
+                    optionsHtml += `
+                        <div class="p-3 rounded-xl text-xs flex items-start gap-2.5 ${
+                            isRightOption 
+                            ? 'bg-emerald-950/50 border border-emerald-500/40 text-emerald-200' 
+                            : (isUserPick ? 'bg-rose-950/50 border border-rose-500/40 text-rose-200' : 'bg-slate-900/60 border border-slate-800 text-slate-400')
+                        }">
+                            <span>${isRightOption ? '✅' : (isUserPick ? '❌' : '⚪')}</span>
+                            <div>
+                                <strong class="font-mono text-white">${opt}</strong> ${isUserPick ? '<span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-cyan-300 ml-1">(Your Answer)</span>' : ''}
+                                <p class="text-slate-300 mt-1 leading-relaxed">${optReason}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono font-bold text-slate-400">Question ${idx + 1} of ${total}</span>
+                        <span class="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full ${isCorrect ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'}">
+                            ${isCorrect ? '✓ Correct (+1 pt)' : '✕ Incorrect'}
+                        </span>
+                    </div>
+
+                    <h4 class="font-outfit font-bold text-lg text-white">${q.question}</h4>
+
+                    <div class="space-y-2">
+                        <div class="text-[11px] font-mono uppercase text-cyan-300 font-semibold">Option Breakdown & Reasoning:</div>
+                        <div class="space-y-2">${optionsHtml}</div>
+                    </div>
+
+                    <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                        <strong class="text-cyan-400 font-mono block mb-1">💡 Key Concept Summary:</strong>
+                        ${q.explanation}
+                    </div>
+                `;
+
+                reviewList.appendChild(card);
             });
 
-            document.getElementById('score-display').textContent = `${score}/${questions.length}`;
-            quizContainerDiv.classList.add('hidden');
-            submitBtn.classList.add('hidden');
-            resultsPage.classList.remove('hidden');
-            
-            // Scroll to the top to show results page clearly
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        
-        // --- Mock Data REMOVED: Questions are now fetched from the /quiz-data endpoint ---
+        }
+
+        function retakeCurrentQuiz() {
+            selectTopicAndStart(currentTopicKey, currentTopicName, currentCategory);
+        }
+
+        function exitQuizToTopics() {
+            document.getElementById('quiz-active-view').classList.add('hidden');
+            document.getElementById('quiz-results-view').classList.add('hidden');
+            document.getElementById('topic-select-view').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // CANVAS PARTICLES BACKGROUND
+        // ==========================================
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 2 + 1;
+                this.color = Math.random() > 0.5 ? '#22d3ee' : '#a855f7';
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 40; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(168, 85, 247, ${0.12 * (1 - dist / 120)})`;
+                        ctx.lineWidth = 0.7;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
     </script>
 </body>
+
 </html>

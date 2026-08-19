@@ -1,408 +1,628 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bubble Sort Visualizer</title>
+    <title>Bubble Sort Interactive Lab — DSA Studio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Using a Poppins-like font style and dark theme setup -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        body { 
-            background: #181825; 
-            font-family: 'Poppins', sans-serif; 
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e2d4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0891b2; }
+
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .visualizer-container { 
-            background: #232334; 
-            border-radius: 18px; 
-            padding: 40px; 
-            margin: 0 auto;
-            border: 2px solid #8b5cf6; /* Purple border */
+
+        .glass-card {
+            background: rgba(17, 29, 53, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
         }
-        .array-element {
-            /* Styles adopted from the queue theme but adapted for sort visualization */
-            min-width: 60px; 
-            height: 60px;
-            border-radius: 8px; 
-            font-weight: 600; 
-            font-size: 1.4rem; 
-            color: #ede9fe;
-            box-shadow: 0 0 12px rgba(139, 92, 246, 0.5); /* Soft purple glow */
-            margin: 0 5px; 
-            background: rgba(49, 46, 129, 0.8); /* Dark indigo background */
-            border: 2px solid #6366f1; /* Indigo border */
-            
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            transition: all 0.3s cubic-bezier(.77,0,.18,1);
+
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .highlight-compare {
-            /* Yellow/Amber for comparison */
-            background-color: rgba(251, 191, 36, 0.9); 
-            border: 2px solid #d97706; 
-            transform: scale(1.08) translateY(-5px);
-            box-shadow: 0 0 15px #fcd34d;
-            color: #1a202c;
+
+        /* Array block styling and swap animations */
+        .array-node {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
         }
-        .highlight-swap {
-            /* Red/Pink for swap */
-            background-color: rgba(236, 72, 153, 0.9); 
-            border: 2px solid #db2777;
-            transform: scale(1.15) translateY(-8px);
-            box-shadow: 0 0 20px #f472b6;
+
+        .node-compare {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.4)) !important;
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5), 0 0 10px rgba(245, 158, 11, 0.8) !important;
+            transform: translateY(-8px) scale(1.08);
         }
-        .highlight-sorted {
-            /* Teal/Green for sorted elements */
-            background-color: rgba(52, 211, 153, 0.8);
-            border: 2px solid #047857; 
-            box-shadow: 0 0 12px #34d399;
+
+        .node-swap {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.3), rgba(225, 29, 72, 0.5)) !important;
+            border-color: #f43f5e !important;
+            box-shadow: 0 0 30px rgba(244, 63, 94, 0.6), 0 0 12px rgba(244, 63, 94, 0.9) !important;
+            transform: translateY(-12px) scale(1.12);
+            animation: pulseSwap 0.5s ease-in-out;
         }
-        .control-button {
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+
+        .node-sorted {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.4)) !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4) !important;
         }
-        .control-button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            box-shadow: none;
+
+        @keyframes pulseSwap {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-16px) scale(1.18); }
+            100% { transform: translateY(-12px) scale(1.12); }
         }
-        /* Adding a style for severe errors to make them stand out */
-        .error-message {
-            border: 2px solid #ef4444; /* Red border */
-            background-color: #450a0a; /* Darker red background */
-            color: #fca5a5; /* Light red text */
-            font-weight: 700;
+
+        /* Code highlight */
+        .code-line {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .code-line.active {
+            background: rgba(34, 211, 238, 0.15);
+            border-left: 3px solid #22d3ee;
+            color: #38bdf8;
+            font-weight: 600;
         }
     </style>
 </head>
-<body class="p-8 text-white">
 
-    <div class="max-w-4xl mx-auto visualizer-container shadow-2xl">
-        <h1 class="text-4xl font-bold text-center text-purple-400 mb-4 border-b border-purple-700 pb-4">
-            Bubble Sort Visualization
-        </h1>
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-cyan-500 selection:text-white">
 
-        <!-- Theory Section - UPDATED -->
-        <div class="mb-8 p-6 bg-gray-900 rounded-xl border border-gray-700">
-            <!-- Heading font increased from text-2xl to text-3xl -->
-            <h2 class="text-3xl font-bold text-teal-400 mb-4">What is Bubble Sort?</h2>
-            <!-- Theory font increased from text-sm to text-base -->
-            <p class="text-gray-300 text-base mb-4">
-                **Bubble Sort** is a straightforward comparison-based sorting algorithm. It repeatedly steps through the list, compares adjacent elements, and **swaps** them if they are in the wrong order. This entire process, known as a **pass** or iteration, is repeated until the list is fully sorted, characterized by a pass completing without any swaps. The name comes from how the largest (or smallest) unsorted element "bubbles" up to its correct, final position at the end of each pass.
-            </p>
-            <p class="text-gray-300 text-base mb-4">
-                While easy to implement, Bubble Sort is highly inefficient for large datasets, with a worst-case and average-case time complexity of $O(n^2)$.
-            </p>
+    <!-- Ambient Glowing Orbs -->
+    <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none z-0"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none z-0"></div>
 
-            <h3 class="text-xl font-semibold text-purple-300 mb-2 mt-4">The Step-by-Step Process</h3>
-            <!-- Step font increased from text-sm to text-base -->
-            <ol class="list-decimal list-inside text-gray-300 text-base space-y-2 pl-4">
-                <li>**Comparison:** Starting from the first index, compare the current element with the element immediately following it.</li>
-                <li>**Swapping:** If the current element is greater than the next element, they are **swapped** to place the larger value toward the end of the array.</li>
-                <li>**Pass Completion:** The comparison and swapping continue for every adjacent pair until the end of the unsorted portion of the list is reached (one pass).</li>
-                <li>**Repetition:** The entire pass is repeated, but the last $N$ elements are excluded from comparison since they are already in their correct sorted positions. The algorithm stops when a pass results in zero swaps.</li>
-            </ol>
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-slate-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-all">
+                        <div class="w-full h-full bg-[#0d1527] rounded-[10px] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white">DSA Studio</span>
+                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Lab Mode</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">Interactive Visualizer</span>
+                    </div>
+                </a>
+
+                <div class="flex items-center gap-3">
+                    <a href="/#explore-page" class="text-xs font-semibold px-4 py-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors">
+                        ← All Algorithms
+                    </a>
+                    <a href="/quiz" class="text-xs font-semibold px-4 py-2 rounded-xl text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-md shadow-purple-500/20 hover:opacity-95 transition-all">
+                        🎯 Take Quiz
+                    </a>
+                </div>
+            </div>
         </div>
-        
-        <!-- Input and Control Panel -->
-        <div class="space-y-4 mb-8 p-6 bg-gray-900 rounded-xl border border-purple-700">
-            <label for="arrayInput" class="block text-lg font-medium text-purple-300">
-                Input Array (comma-separated numbers)
-            </label>
-            <input type="text" id="arrayInput" value="34, 3, 42, 47, 1, 7, 15, 36"
-                   class="w-full px-4 py-3 bg-gray-800 border border-purple-600 rounded-lg text-purple-200 placeholder-purple-400 focus:ring-purple-500 focus:border-purple-500">
-            
-            <button onclick="runVisualization()" id="runButton"
-                    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg shadow-xl transition duration-150 ease-in-out">
-                Run Bubble Sort
-            </button>
-        </div>
+    </nav>
 
-        <!-- Visualization Area -->
-        <div id="visualizationArea" class="hidden">
-            <div class="text-purple-300 mb-6 text-xl font-semibold text-center" id="stepInfo"></div>
-            
-            <div class="flex flex-wrap justify-center gap-3 p-6 bg-gray-900 rounded-xl shadow-inner mb-8 border border-gray-700" id="arrayContainer">
-                <!-- Array elements will be rendered here -->
+    <!-- Main Visualizer Area -->
+    <main class="relative z-10 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+        <!-- Top Title & Overview -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">📊 Sorting Algorithm</span>
+                    <span class="text-xs font-mono text-slate-400">Time: <strong class="text-purple-300 font-bold">O(n²)</strong> | Space: <strong class="text-emerald-300 font-bold">O(1)</strong></span>
+                </div>
+                <h1 class="font-outfit text-3xl sm:text-4xl font-extrabold text-white mt-1">
+                    Bubble Sort <span class="text-gradient">Step-by-Step Lab</span>
+                </h1>
             </div>
 
-            <!-- Step Navigation Controls -->
-            <div class="flex justify-between items-center space-x-4">
-                <button onclick="prevStep()" id="prevButton" disabled
-                        class="control-button px-6 py-3 bg-purple-900 hover:bg-purple-800 text-purple-300 font-bold rounded-xl border border-purple-700">
-                    &larr; Previous Step
+            <!-- Preset / Randomize Buttons -->
+            <div class="flex items-center gap-2">
+                <button onclick="setSampleArray([34, 3, 42, 47, 1, 7, 15, 36])" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
+                    Default Sample
                 </button>
+                <button onclick="generateRandomArray(8)" class="text-xs font-semibold px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-purple-400 hover:border-purple-500/40 transition-all flex items-center gap-1.5">
+                    <span>🔀 Randomize (8 items)</span>
+                </button>
+                <button onclick="generateRandomArray(6)" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
+                    Small (6)
+                </button>
+            </div>
+        </div>
+
+        <!-- Input & Controls Bar -->
+        <div class="glass-panel rounded-3xl p-6 border border-slate-800 shadow-xl space-y-4">
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <div class="relative flex-1 w-full">
+                    <label class="text-xs font-mono uppercase text-slate-400 mb-1 block">Custom Input Array (Comma-separated numbers):</label>
+                    <input type="text" id="arrayInput" value="34, 3, 42, 47, 1, 7, 15, 36"
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                </div>
+                <button onclick="startAlgorithm()" id="runButton"
+                    class="w-full sm:w-auto px-8 py-3.5 mt-auto rounded-2xl font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center gap-2">
+                    <span>⚡ Run Algorithm</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- MAIN VISUALIZATION STAGE -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Stage (Animation Canvas & Explanation) -->
+            <div class="lg:col-span-8 space-y-6">
                 
-                <div id="stepCounter" class="text-xl font-bold text-teal-400">
-                    Step 0 / 0
+                <!-- Live Array Canvas -->
+                <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-700/80 shadow-2xl relative overflow-hidden space-y-6">
+                    
+                    <!-- Top Stage Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-2">
+                            <span id="action-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                                <span>READY</span>
+                            </span>
+                            <span id="pass-indicator" class="text-xs font-mono text-slate-400">Pass #1</span>
+                        </div>
+                        <div class="text-xs font-mono text-slate-400">
+                            <span id="stepCounter" class="text-cyan-400 font-bold">Step 0 / 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual Nodes Array Display -->
+                    <div class="min-h-[220px] flex flex-col justify-end items-center py-6 bg-slate-950/70 rounded-2xl border border-slate-800/80 px-2 sm:px-4">
+                        
+                        <!-- Pointers row (i, j indicators) -->
+                        <div id="pointers-container" class="w-full flex justify-center gap-3 sm:gap-4 mb-2 h-6 text-xs font-mono font-bold">
+                            <!-- Injected pointer arrows -->
+                        </div>
+
+                        <!-- Array Cards / Blocks -->
+                        <div id="arrayContainer" class="w-full flex justify-center items-end gap-3 sm:gap-4 pb-2 overflow-x-auto">
+                            <!-- Injected array blocks -->
+                        </div>
+
+                        <!-- Indices row -->
+                        <div id="indices-container" class="w-full flex justify-center gap-3 sm:gap-4 mt-2 text-[11px] font-mono text-slate-500">
+                            <!-- Injected indices -->
+                        </div>
+                    </div>
+
+                    <!-- Interactive Step Explanation Deck -->
+                    <div id="step-explanation-card" class="rounded-2xl p-5 bg-slate-950/80 border border-slate-800 space-y-3">
+                        <div class="flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase">
+                            <span>🧠 Step-by-Step Logic Breakdown:</span>
+                        </div>
+                        
+                        <!-- Main Explanation Statement -->
+                        <div id="step-headline" class="text-base sm:text-lg font-outfit font-bold text-white leading-snug">
+                            Click "Run Algorithm" to begin the step-by-step visual playback.
+                        </div>
+
+                        <!-- Detailed Mathematical Reasoning -->
+                        <div id="step-logic-details" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed">
+                            Awaiting start...
+                        </div>
+
+                        <!-- Legend Bar -->
+                        <div class="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-400 border-t border-slate-850">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-md bg-amber-500/80 border border-amber-400"></span>
+                                <span>Comparing [ j ] vs [ j+1 ]</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-md bg-rose-500/80 border border-rose-400"></span>
+                                <span>Swapping (Out of order)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-md bg-emerald-500/80 border border-emerald-400"></span>
+                                <span>Sorted in final position</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playback Controls Bar -->
+                    <div class="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800">
+                        
+                        <!-- Prev / Next Controls -->
+                        <div class="flex items-center gap-2">
+                            <button onclick="prevStep()" id="prevButton" disabled
+                                class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-850 border border-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-all flex items-center gap-1.5">
+                                <span>← Prev</span>
+                            </button>
+                            <button onclick="nextStep()" id="nextButton" disabled
+                                class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md shadow-cyan-600/30 disabled:opacity-40 disabled:pointer-events-none transition-all flex items-center gap-1.5">
+                                <span>Next Step →</span>
+                            </button>
+                        </div>
+
+                        <!-- Auto-Play Controls -->
+                        <div class="flex items-center gap-3">
+                            <button onclick="toggleAutoPlay()" id="playPauseBtn"
+                                class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2">
+                                <span id="playIcon">▶</span>
+                                <span id="playText">Auto Play</span>
+                            </button>
+                            
+                            <!-- Speed Selector -->
+                            <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-mono">
+                                <button onclick="setSpeed(1200, this)" class="speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white">0.5x</button>
+                                <button onclick="setSpeed(700, this)" class="speed-btn px-2 py-1 rounded-lg text-cyan-400 bg-slate-800 font-bold">1x</button>
+                                <button onclick="setSpeed(350, this)" class="speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white">2x</button>
+                            </div>
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <button onclick="nextStep()" id="nextButton" disabled
-                        class="control-button px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl shadow-md">
-                    Next Step &rarr;
-                </button>
             </div>
+
+            <!-- Right Stage (Live Code Execution Sync & Metrics) -->
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- Live Code Execution Tracker -->
+                <div class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono font-bold text-purple-400 uppercase">💻 Live Code Execution</span>
+                        <span class="text-[11px] font-mono text-slate-500">Python 3</span>
+                    </div>
+
+                    <!-- Code Snippet -->
+                    <div class="bg-slate-950 p-4 rounded-2xl font-mono text-xs text-slate-300 space-y-1.5 border border-slate-800/80 overflow-x-auto">
+                        <div id="code-line-1" class="code-line px-2 py-1 rounded">def bubble_sort(arr):</div>
+                        <div id="code-line-2" class="code-line px-2 py-1 rounded pl-4">n = len(arr)</div>
+                        <div id="code-line-3" class="code-line px-2 py-1 rounded pl-4">for i in range(n):</div>
+                        <div id="code-line-4" class="code-line px-2 py-1 rounded pl-8">for j in range(0, n - i - 1):</div>
+                        <div id="code-line-5" class="code-line px-2 py-1 rounded pl-12"># Compare adjacent</div>
+                        <div id="code-line-6" class="code-line px-2 py-1 rounded pl-12">if arr[j] &gt; arr[j+1]:</div>
+                        <div id="code-line-7" class="code-line px-2 py-1 rounded pl-16"># Swap values</div>
+                        <div id="code-line-8" class="code-line px-2 py-1 rounded pl-16">arr[j], arr[j+1] = arr[j+1], arr[j]</div>
+                        <div id="code-line-9" class="code-line px-2 py-1 rounded pl-4">return arr</div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Metrics & Statistics -->
+                <div class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono font-bold text-cyan-400 uppercase">📊 Real-Time Metrics</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80">
+                            <div class="text-[11px] font-mono text-slate-400">Total Comparisons</div>
+                            <div id="metric-comparisons" class="font-outfit text-2xl font-bold text-amber-400 mt-1">0</div>
+                        </div>
+                        <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80">
+                            <div class="text-[11px] font-mono text-slate-400">Total Swaps</div>
+                            <div id="metric-swaps" class="font-outfit text-2xl font-bold text-rose-400 mt-1">0</div>
+                        </div>
+                        <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80">
+                            <div class="text-[11px] font-mono text-slate-400">Current Pass</div>
+                            <div id="metric-pass" class="font-outfit text-2xl font-bold text-purple-400 mt-1">1</div>
+                        </div>
+                        <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80">
+                            <div class="text-[11px] font-mono text-slate-400">Elements Settled</div>
+                            <div id="metric-settled" class="font-outfit text-2xl font-bold text-emerald-400 mt-1">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theory Quick Summary -->
+                <div class="glass-card rounded-3xl p-6 border border-slate-800 space-y-3">
+                    <h3 class="font-outfit font-bold text-white text-base">Why is it called "Bubble" Sort?</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Like bubbles rising in water, in every pass through the array, the largest remaining unsorted element bubbles up to its final position at the end of the array.
+                    </p>
+                </div>
+
+            </div>
+
         </div>
 
-        <!-- Error/Status Message -->
-        <div id="message" class="mt-6 text-center font-medium p-3 rounded-lg hidden"></div>
+    </main>
 
-    </div>
-
+    <!-- Interactive Visualizer Engine Script -->
     <script>
-        const ARRAY_CONTAINER = document.getElementById('arrayContainer');
-        const STEP_INFO = document.getElementById('stepInfo');
-        const STEP_COUNTER = document.getElementById('stepCounter');
-        const PREV_BUTTON = document.getElementById('prevButton');
-        const NEXT_BUTTON = document.getElementById('nextButton');
-        const MESSAGE = document.getElementById('message');
-        const VISUALIZATION_AREA = document.getElementById('visualizationArea');
-        const RUN_BUTTON = document.getElementById('runButton');
-        const ARRAY_INPUT = document.getElementById('arrayInput');
-        
-        // Global state
         let steps = [];
         let currentStepIndex = -1;
-        const API_URL = '/run-algo'; // Your Flask endpoint
+        let autoPlayTimer = null;
+        let playbackDelay = 700; // ms
+        let comparisonCount = 0;
+        let swapCount = 0;
 
-        // --- Core Functions ---
+        const ARRAY_INPUT = document.getElementById('arrayInput');
+        const ARRAY_CONTAINER = document.getElementById('arrayContainer');
+        const POINTERS_CONTAINER = document.getElementById('pointers-container');
+        const INDICES_CONTAINER = document.getElementById('indices-container');
 
-        /**
-         * Utility to show/hide message box
-         * isError = true will apply the strong error styling (red box).
-         */
-        function showMessage(text, isError = false) {
-            MESSAGE.textContent = text;
-            MESSAGE.className = 'mt-6 text-center font-medium p-3 rounded-lg'; // Reset classes
+        // Set sample array
+        function setSampleArray(arr) {
+            ARRAY_INPUT.value = arr.join(', ');
+            startAlgorithm();
+        }
+
+        function generateRandomArray(size = 8) {
+            const arr = Array.from({ length: size }, () => Math.floor(Math.random() * 85) + 5);
+            ARRAY_INPUT.value = arr.join(', ');
+            startAlgorithm();
+        }
+
+        function setSpeed(ms, btn) {
+            playbackDelay = ms;
+            document.querySelectorAll('.speed-btn').forEach(b => {
+                b.className = 'speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white';
+            });
+            btn.className = 'speed-btn px-2 py-1 rounded-lg text-cyan-400 bg-slate-800 font-bold';
             
-            if (text) {
-                MESSAGE.classList.remove('hidden');
-                if (isError) {
-                    MESSAGE.classList.add('error-message');
-                } else {
-                    MESSAGE.classList.add('text-yellow-400', 'bg-yellow-900/20');
-                }
-            } else {
-                MESSAGE.classList.add('hidden');
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = setInterval(nextStep, playbackDelay);
             }
         }
 
-        /**
-         * Fetches the steps from the Flask backend.
-         */
-        async function fetchSteps(array) {
-            showMessage('Fetching steps from server...', false);
-            RUN_BUTTON.disabled = true;
-
+        // Fetch Steps from Flask Backend
+        async function fetchAlgorithmSteps(arr) {
             try {
-                // Implementing exponential backoff for robustness
-                const maxRetries = 3;
-                let lastError = null;
-                
-                for (let i = 0; i < maxRetries; i++) {
-                    try {
-                        const response = await fetch(API_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                algo: 'bubble', // Matches the endpoint logic in your app.py
-                                arr: array
-                            })
-                        });
+                const res = await fetch('/run-algo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ algo: 'bubble', arr: arr })
+                });
 
-                        const data = await response.json();
-
-                        if (!response.ok || data.error) {
-                            // This is where the server's 500 status or returned error message is caught
-                            const errorMessage = data.error || response.statusText || 'Unknown server error.';
-                            throw new Error(errorMessage);
-                        }
-                        
-                        steps = data.steps;
-                        showMessage(''); // Clear message on success
-                        return true;
-
-                    } catch (error) {
-                        lastError = error;
-                        // Wait (1s, 2s, 4s) before retrying
-                        if (i < maxRetries - 1) {
-                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-                        }
-                    }
-                }
-                throw lastError; // Throw error after max retries
-
-            } catch (error) {
-                console.error("Error running algorithm:", error);
-                // Display a clear error message in the UI
-                const userMessage = `Error: Failed to fetch steps. Check your backend server console for: "${error.message}" and ensure it's running.`;
-                showMessage(userMessage, true);
-                steps = [];
-                return false;
-            } finally {
-                RUN_BUTTON.disabled = false;
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                return data.steps || [];
+            } catch (err) {
+                console.error(err);
+                alert("Could not run algorithm. Ensure server is active.");
+                return [];
             }
         }
-        
-        /**
-         * Renders the current step's array visualization.
-         */
-        function renderStep() {
-            if (steps.length === 0 || currentStepIndex < 0) {
-                // State: Initial load or error state (uninitialized)
-                
-                // Use the input value to render the initial array, without any highlight
-                const rawInput = ARRAY_INPUT.value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                
-                ARRAY_CONTAINER.innerHTML = rawInput.map(value => `
-                    <div class="array-element text-xl p-3">
-                        ${value}
-                    </div>
-                `).join('');
 
-                STEP_INFO.textContent = 'Enter an array and click "Run Bubble Sort" to visualize.';
-                STEP_COUNTER.textContent = 'Step 0 / 0';
-                
-                // Disable navigation buttons
-                PREV_BUTTON.disabled = true;
-                NEXT_BUTTON.disabled = true;
-                NEXT_BUTTON.textContent = 'Next Step →';
-                NEXT_BUTTON.classList.add('bg-teal-500', 'hover:bg-teal-600');
-                NEXT_BUTTON.classList.remove('bg-gray-700', 'text-gray-400');
+        // Start Algorithm Execution
+        async function startAlgorithm() {
+            stopAutoPlay();
+            const raw = ARRAY_INPUT.value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+            if (raw.length === 0) return;
 
-                return;
+            document.getElementById('runButton').disabled = true;
+            steps = await fetchAlgorithmSteps(raw);
+            document.getElementById('runButton').disabled = false;
+
+            if (steps.length > 0) {
+                currentStepIndex = 0;
+                comparisonCount = 0;
+                swapCount = 0;
+                renderActiveStep();
             }
+        }
+
+        // Highlight Active Code Line
+        function highlightCodeLine(lineNum) {
+            for (let i = 1; i <= 9; i++) {
+                const el = document.getElementById(`code-line-${i}`);
+                if (el) el.classList.remove('active');
+            }
+            if (lineNum) {
+                const activeEl = document.getElementById(`code-line-${lineNum}`);
+                if (activeEl) activeEl.classList.add('active');
+            }
+        }
+
+        // Render Current Step
+        function renderActiveStep() {
+            if (steps.length === 0 || currentStepIndex < 0) return;
 
             const step = steps[currentStepIndex];
-            const array = step.array;
+            const arr = step.array;
             const highlight = step.highlight || [];
             const action = step.action;
-            
-            // --- Custom Logic to handle Step 0 (Initial State) ---
-            let infoText = '';
-            let currentHighlight = highlight;
-            
-            if (currentStepIndex === 0) {
-                // If it's the very first step fetched from the server, clear highlights
-                infoText = 'Initial State. Click "Next Step" to begin the comparison process.';
-                currentHighlight = []; // Force no highlighting on Step 0
-            } else if (action === 'compare' && highlight.length === 2) {
-                const [index1, index2] = highlight;
-                const [val1, val2] = [String(array[index1]), String(array[index2])]; 
-                infoText = `**COMPARE**: Checking if ${val1} > ${val2} (indices ${index1}, ${index2}).`;
-            } else if (action === 'swap' && highlight.length === 2) {
-                const [index1, index2] = highlight;
-                const [val1, val2] = [String(array[index1]), String(array[index2])];
-                infoText = `**SWAP**: ${val1} is greater than ${val2}. Swapping values at indices ${index1} and ${index2}.`;
-            } else if (action === 'done') {
-                infoText = 'Sorting complete! Array is fully sorted.';
-            } else if (action === 'start') {
-                // Fallback for an explicit 'start' action from backend, treated like a non-highlighted step
-                infoText = 'Initial State. Click "Next Step" to begin the comparison process.';
-                currentHighlight = [];
-            } else {
-                infoText = `Action: ${action.toUpperCase()}.`;
-            }
-            
-            STEP_INFO.textContent = infoText;
+            const n = arr.length;
 
-            // Render the array elements
-            ARRAY_CONTAINER.innerHTML = array.map((value, index) => {
-                let actionClass = '';
+            // Recalculate metrics up to current step
+            let comps = 0;
+            let swaps = 0;
+            for (let s = 0; s <= currentStepIndex; s++) {
+                if (steps[s].action === 'compare') comps++;
+                if (steps[s].action === 'swap') swaps++;
+            }
+            document.getElementById('metric-comparisons').innerText = comps;
+            document.getElementById('metric-swaps').innerText = swaps;
+
+            const maxVal = Math.max(...arr, 50);
+
+            // Render Array Nodes
+            ARRAY_CONTAINER.innerHTML = '';
+            POINTERS_CONTAINER.innerHTML = '';
+            INDICES_CONTAINER.innerHTML = '';
+
+            const isDone = (action === 'done');
+
+            arr.forEach((val, idx) => {
+                const isComparing = (action === 'compare' && highlight.includes(idx));
+                const isSwapping = (action === 'swap' && highlight.includes(idx));
+
+                // Node Element
+                const node = document.createElement('div');
+                node.className = 'array-node flex flex-col items-center justify-end rounded-2xl border-2 p-2 shadow-lg';
                 
-                if (action !== 'done' && currentHighlight.includes(index)) {
-                    // Only apply compare/swap highlights if not in the 'done' state
-                    if (action === 'compare') {
-                        actionClass = 'highlight-compare';
-                    } else if (action === 'swap') {
-                        actionClass = 'highlight-swap';
-                    }
-                } else if (action === 'done') {
-                    // Apply sorted highlight only in the final step
-                    actionClass = 'highlight-sorted';
+                // Adaptive height based on value
+                const heightPx = Math.max(65, Math.min(170, (val / maxVal) * 160));
+                node.style.height = `${heightPx}px`;
+                node.style.width = `58px`;
+
+                if (isDone) {
+                    node.className += ' node-sorted';
+                } else if (isSwapping) {
+                    node.className += ' node-swap';
+                } else if (isComparing) {
+                    node.className += ' node-compare';
+                } else {
+                    node.className += ' bg-slate-900 border-slate-700 text-white';
                 }
-                
-                return `
-                    <div class="array-element ${actionClass} text-xl p-3">
-                        ${value}
-                    </div>
+
+                node.innerHTML = `
+                    <span class="font-outfit font-extrabold text-lg text-white mb-1">${val}</span>
                 `;
-            }).join('');
+                ARRAY_CONTAINER.appendChild(node);
 
-            // Update controls and counter
-            const totalSteps = steps.length > 0 ? steps.length - 1 : 0; // Assuming step 0 is the start state
-            const displayStep = currentStepIndex;
+                // Pointer Arrow Element
+                const ptr = document.createElement('div');
+                ptr.style.width = '58px';
+                ptr.className = 'text-center';
+                if (isSwapping) {
+                    ptr.innerHTML = `<span class="text-rose-400 font-bold text-xs">▲ Swap</span>`;
+                } else if (isComparing) {
+                    const label = (idx === highlight[0]) ? 'j' : 'j+1';
+                    ptr.innerHTML = `<span class="text-amber-400 font-bold text-xs">▼ [${label}]</span>`;
+                } else {
+                    ptr.innerHTML = ``;
+                }
+                POINTERS_CONTAINER.appendChild(ptr);
 
-            STEP_COUNTER.textContent = `Step ${displayStep} / ${totalSteps}`;
-            PREV_BUTTON.disabled = currentStepIndex <= 0;
-            NEXT_BUTTON.disabled = currentStepIndex >= steps.length - 1;
+                // Index Element
+                const idxLabel = document.createElement('div');
+                idxLabel.style.width = '58px';
+                idxLabel.className = 'text-center';
+                idxLabel.innerText = `[${idx}]`;
+                INDICES_CONTAINER.appendChild(idxLabel);
+            });
 
-            if (currentStepIndex === steps.length - 1 && steps.length > 0) {
-                NEXT_BUTTON.textContent = 'Sorting Complete!';
-                NEXT_BUTTON.classList.remove('bg-teal-500', 'hover:bg-teal-600');
-                NEXT_BUTTON.classList.add('bg-gray-700', 'text-gray-400');
+            // Update Explanations and Code Highlights
+            const actionBadge = document.getElementById('action-badge');
+            const headline = document.getElementById('step-headline');
+            const logicDetails = document.getElementById('step-logic-details');
+
+            if (isDone) {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+                actionBadge.innerHTML = '✨ SORTED COMPLETE';
+                headline.innerText = 'Array is now completely sorted in ascending order!';
+                logicDetails.innerHTML = `All passes completed. Zero remaining inversions exist. Array is now sorted: [${arr.join(', ')}].`;
+                highlightCodeLine(9);
+                stopAutoPlay();
+            } else if (action === 'swap' && highlight.length === 2) {
+                const [i1, i2] = highlight;
+                const v1 = arr[i1];
+                const v2 = arr[i2];
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30';
+                actionBadge.innerHTML = '🔄 SWAPPING';
+                headline.innerText = `Swapping elements: ${v1} ↔ ${v2}`;
+                logicDetails.innerHTML = `
+                    <strong>Condition Met:</strong> <code>${v2} &gt; ${v1}</code> was out of order.<br>
+                    <strong>Action:</strong> Swapping values at index [${i1}] and [${i2}]. The larger element moves toward the right side.
+                `;
+                highlightCodeLine(8);
+            } else if (action === 'compare' && highlight.length === 2) {
+                const [i1, i2] = highlight;
+                const v1 = arr[i1];
+                const v2 = arr[i2];
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30';
+                actionBadge.innerHTML = '🔍 COMPARING';
+                const willSwap = (v1 > v2);
+                headline.innerText = `Comparing [${v1}] at index ${i1} with [${v2}] at index ${i2}`;
+                logicDetails.innerHTML = `
+                    <strong>Check:</strong> Is <code>${v1} &gt; ${v2}</code>? → <strong>${willSwap ? '✅ YES (Will swap next)' : '❌ NO (Already in order, advance pointer)'}</strong><br>
+                    <strong>Rule:</strong> Adjacent elements in bubble sort must satisfy <code>arr[j] &le; arr[j+1]</code>.
+                `;
+                highlightCodeLine(6);
             } else {
-                NEXT_BUTTON.textContent = 'Next Step →';
-                NEXT_BUTTON.classList.add('bg-teal-500', 'hover:bg-teal-600');
-                NEXT_BUTTON.classList.remove('bg-gray-700', 'text-gray-400');
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30';
+                actionBadge.innerHTML = '🚀 INITIAL STATE';
+                headline.innerText = 'Initial array loaded. Press "Next Step" to begin pass 1.';
+                logicDetails.innerText = `Starting with input array of size ${n}.`;
+                highlightCodeLine(3);
             }
+
+            // Step counter & buttons
+            document.getElementById('stepCounter').innerText = `Step ${currentStepIndex + 1} of ${steps.length}`;
+            document.getElementById('prevButton').disabled = (currentStepIndex <= 0);
+            document.getElementById('nextButton').disabled = (currentStepIndex >= steps.length - 1);
         }
 
-        /**
-         * Moves to the next step.
-         */
         function nextStep() {
             if (currentStepIndex < steps.length - 1) {
                 currentStepIndex++;
-                renderStep();
+                renderActiveStep();
+            } else {
+                stopAutoPlay();
             }
         }
 
-        /**
-         * Moves to the previous step.
-         */
         function prevStep() {
             if (currentStepIndex > 0) {
                 currentStepIndex--;
-                renderStep();
+                renderActiveStep();
             }
         }
 
-        /**
-         * Main function to start the visualization.
-         */
-        async function runVisualization() {
-            const inputElement = document.getElementById('arrayInput');
-            const rawInput = inputElement.value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-            
-            // Basic input validation
-            if (rawInput.length === 0) {
-                showMessage('Input array cannot be empty.', true);
-                VISUALIZATION_AREA.classList.add('hidden');
-                return;
-            }
-            
-            VISUALIZATION_AREA.classList.remove('hidden');
-
-            const success = await fetchSteps(rawInput);
-            
-            if (success && steps.length > 0) {
-                // Assuming the first step in the list is the initial state (Step 0)
-                currentStepIndex = 0; 
-                renderStep();
+        function toggleAutoPlay() {
+            if (autoPlayTimer) {
+                stopAutoPlay();
             } else {
-                // If fetch failed, keep the visualization area visible to show the error
-                currentStepIndex = -1; 
-                renderStep(); // Renders the initial un-highlighted array and resets info text
+                startAutoPlay();
             }
         }
-        
-        // Initialize visualization on load: 
-        // Display the initial array based on the input field value without starting the visualization logic.
+
+        function startAutoPlay() {
+            if (currentStepIndex >= steps.length - 1) {
+                currentStepIndex = 0;
+            }
+            document.getElementById('playIcon').innerText = '⏸';
+            document.getElementById('playText').innerText = 'Pause';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-md shadow-rose-600/30 transition-all flex items-center gap-2';
+            autoPlayTimer = setInterval(nextStep, playbackDelay);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+            }
+            document.getElementById('playIcon').innerText = '▶';
+            document.getElementById('playText').innerText = 'Auto Play';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2';
+        }
+
+        // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            renderStep();
+            startAlgorithm();
         });
     </script>
 </body>
+
 </html>

@@ -1,328 +1,982 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSA Studio</title>
+    <title>DSA Studio — Interactive Algorithm Visualizer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfeff',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            glow: '#38bdf8',
+                        },
+                        dark: {
+                            base: '#070b14',
+                            surface: '#0d1527',
+                            card: '#111d35',
+                            border: '#1e2d4d',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                        'glow': 'glow 3s ease-in-out infinite alternate',
+                        'gradient-x': 'gradient-x 8s ease infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-12px)' },
+                        },
+                        glow: {
+                            '0%': { filter: 'drop-shadow(0 0 15px rgba(6, 182, 212, 0.4))' },
+                            '100%': { filter: 'drop-shadow(0 0 30px rgba(168, 85, 247, 0.6))' },
+                        },
+                        'gradient-x': {
+                            '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
+                            '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @keyframes typing {
-            from {
-                width: 0
-            }
-
-            to {
-                width: 100%
-            }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070b14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e2d4d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0891b2;
         }
 
-        @keyframes blink {
-            50% {
-                border-color: transparent
-            }
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .animate-typing {
-            animation: typing 4s steps(30, end) forwards, blink 0.7s infinite;
+        .glass-card {
+            background: rgba(17, 29, 53, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .font-poppins {
-            font-family: 'Poppins', sans-serif;
+        .glass-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(34, 211, 238, 0.35);
+            box-shadow: 0 20px 35px -10px rgba(6, 182, 212, 0.15), 0 0 20px 0 rgba(34, 211, 238, 0.08);
         }
 
-        .bg-dsa-hero {
-            background-image: url('https://imgs.search.brave.com/fwzc0oMz7x7SdNOQQtN8zdqAn73_pZCdlhm7zcsGiQs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAzLzA1LzIzLzM1/LzM2MF9GXzMwNTIz/MzU5MV9VN0R2ZWdU/dGlJb1AyQ1dOVXBS/NXF4ckZ2cXBqcFlX/OS5qcGc');
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        /* Add the rest of your custom CSS here as you originally had */
+        .algo-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .algo-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            transition: 0.5s;
+        }
+
+        .algo-btn:hover::after {
+            left: 100%;
+        }
+
+        /* Particle background canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.55;
+        }
+
+        /* Hero live visualizer bars */
+        .preview-bar {
+            transition: height 0.35s ease, background-color 0.35s ease;
+        }
     </style>
 </head>
 
-<body class="bg-gray-950 text-white font-poppins">
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-cyan-500 selection:text-white">
 
-    <nav
-        class="bg-gray-900 bg-opacity-90 backdrop-blur-sm fixed top-0 w-full shadow-lg z-50 transition-all duration-300">
-        <div class="container mx-auto flex items-center justify-between py-4 px-4">
+    <!-- Interactive Particle Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
 
-            <a class="font-extrabold text-white text-2xl tracking-wider flex items-center" href="#"
-                onclick="showPage('home-page')">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-2 inline-block text-cyan-400" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 3v2m6-2v2m-6 12v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 11h10a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1v-2a1 1 0 011-1z" />
-                </svg>
-                <span class="text-white">DSA Studio</span>
-            </a>
+    <!-- Ambient Glowing Orbs -->
+    <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none z-0"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] left-[30%] w-[550px] h-[550px] rounded-full bg-blue-600/10 blur-[140px] pointer-events-none z-0"></div>
 
-            <div class="hidden md:flex space-x-6 items-center" id="navbarContent">
-                <a class="nav-link text-white text-sm uppercase tracking-wide font-medium hover:text-cyan-400 transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 after:transition-all after:duration-300 hover:after:w-full"
-                    href="#" onclick="showPage('home-page')" data-page="home-page">
-                    Home
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-slate-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo -->
+                <a href="#" onclick="showPage('home-page')" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all duration-300 group-hover:scale-105">
+                        <div class="w-full h-full bg-[#0d1527] rounded-[10px] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-cyan-400 group-hover:rotate-12 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white group-hover:text-cyan-400 transition-colors">DSA Studio</span>
+                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">v2.0</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">Visual Lab Assistant</span>
+                    </div>
                 </a>
-                <a class="nav-link text-white text-sm uppercase tracking-wide font-medium hover:text-cyan-400 transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 after:transition-all after:duration-300 hover:after:w-full"
-                    href="#" onclick="showPage('explore-page')" data-page="explore-page">
-                    Explore
-                </a>
-                <a class="nav-link text-white text-sm uppercase tracking-wide font-medium hover:text-cyan-400 transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-cyan-400 after:transition-all after:duration-300 hover:after:w-full"
-                    href="/quiz" data-page="quiz">
-                    Quiz
-                </a>
+
+                <!-- Desktop Nav Links -->
+                <div class="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-full border border-slate-800/80 backdrop-blur-md">
+                    <button onclick="showPage('home-page')" id="nav-btn-home" class="nav-item px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 text-white bg-gradient-to-r from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/20">
+                        Home
+                    </button>
+                    <button onclick="showPage('explore-page')" id="nav-btn-explore" class="nav-item px-5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300">
+                        Explore Algorithms
+                    </button>
+                    <a href="/quiz" class="nav-item px-5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300 flex items-center gap-1.5">
+                        <span>Quiz Arena</span>
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Right Action Button -->
+                <div class="hidden md:flex items-center gap-3">
+                    <button onclick="showPage('explore-page')" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
+                        <span>🚀 Launch Lab</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white focus:outline-none" onclick="toggleMenu()">
+                    <svg id="menu-icon-open" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg id="menu-icon-close" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
-
-            <button class="md:hidden text-white focus:outline-none" onclick="toggleMenu()">
-                <svg id="menu-icon-open" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <svg id="menu-icon-close" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
         </div>
 
-        <div id="mobile-menu" class="hidden md:hidden bg-gray-900 shadow-xl border-t border-gray-800">
-            <div class="flex flex-col space-y-2 p-4">
-                <a class="mobile-nav-link text-white hover:text-cyan-400 transition-colors duration-300 py-2 border-b border-gray-800"
-                    href="#" onclick="showPage('home-page'); toggleMenu();" data-page="home-page">Home</a>
-                <a class="mobile-nav-link text-white hover:text-cyan-400 transition-colors duration-300 py-2 border-b border-gray-800"
-                    href="#" onclick="showPage('explore-page'); toggleMenu();" data-page="explore-page">Explore</a>
-                <a class="mobile-nav-link text-white hover:text-cyan-400 transition-colors duration-300 py-2 border-b border-gray-800"
-                    href="/quiz" onclick="toggleMenu();" data-page="quiz">Quiz</a>
-            </div>
+        <!-- Mobile Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-b border-slate-800 px-6 py-5 space-y-3">
+            <button onclick="showPage('home-page'); toggleMenu();" class="w-full text-left py-2.5 px-4 rounded-xl font-medium text-slate-200 hover:bg-slate-800/80 transition-colors">🏠 Home</button>
+            <button onclick="showPage('explore-page'); toggleMenu();" class="w-full text-left py-2.5 px-4 rounded-xl font-medium text-slate-200 hover:bg-slate-800/80 transition-colors">✨ Explore Algorithms</button>
+            <a href="/quiz" class="block py-2.5 px-4 rounded-xl font-medium text-slate-200 hover:bg-slate-800/80 transition-colors">🎯 Quiz Arena (100+ MCQs)</a>
+            <button onclick="showPage('explore-page'); toggleMenu();" class="w-full py-3 text-center rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-purple-600 shadow-md">Start Visualizing</button>
         </div>
     </nav>
 
-    <div id="home-page">
-        <section
-            class="bg-dsa-hero bg-center bg-cover h-[70vh] flex items-center justify-center text-center text-white relative mt-14">
-            <div class="absolute inset-0 bg-black bg-opacity-65"></div>
-            <div class="relative z-10">
-                <h1
-                    class="text-4xl md:text-5xl font-bold whitespace-nowrap overflow-hidden border-r-4 border-white animate-typing">
-                    Let's Visualize our DSA</h1>
-                <p class="text-base md:text-lg mt-4 text-gray-300">Interactive animations to understand Data Structures
-                    & Algorithms</p>
-                <a href="explore-page"
-                    class="mt-5 px-8 py-3 rounded-full text-white font-semibold inline-block transition-colors duration-300 bg-gradient-to-r from-cyan-500 to-blue-900 hover:from-cyan-600 hover:to-blue-950"
-                    onclick="showPage('explore-page'); return false;">
-                    🚀 Start Visualization
-                </a>
-            </div>
-        </section>
-        <section class="py-5" id="applications">
-            <div class="container mx-auto px-4">
-                <h2 class="text-center mb-5 text-3xl font-bold text-cyan-400">Real-Life Applications of DSA</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div
-                        class="rounded-2xl border-none transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-blue-900 text-white text-center p-3 h-full">
-                        <img src="https://img.icons8.com/fluency/48/map.png" class="mx-auto block mt-2" alt="Maps">
-                        <h5 class="mt-3 font-semibold">Maps & Navigation</h5>
-                        <p class="text-sm"><strong>Graphs & shortest path algorithms</strong> power Google Maps route
-                            finding.</p>
-                    </div>
-                    <div
-                        class="rounded-2xl border-none transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-blue-800 text-white text-center p-3 h-full">
-                        <img src="https://img.icons8.com/fluency/48/google-logo.png" class="mx-auto block mt-2"
-                            alt="Search">
-                        <h5 class="mt-3 font-semibold">Search Engines</h5>
-                        <p class="text-sm">Efficient <strong>search algorithms</strong> help deliver accurate results
-                            instantly.</p>
-                    </div>
-                    <div
-                        class="rounded-2xl border-none transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-cyan-400 text-black text-center p-3 h-full">
-                        <img src="https://img.icons8.com/fluency/48/facebook-new.png" class="mx-auto block mt-2"
-                            alt="Social">
-                        <h5 class="mt-3 font-semibold">Social Media</h5>
-                        <p class="text-sm"><strong>Graphs</strong> represent friendships, followers & connections in
-                            networks.</p>
-                    </div>
-                    <div
-                        class="rounded-2xl border-none transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-blue-950 text-white text-center p-3 h-full">
-                        <img src="https://img.icons8.com/fluency/48/shopping-cart.png" class="mx-auto block mt-2"
-                            alt="E-Commerce">
-                        <h5 class="mt-3 font-semibold">E-Commerce</h5>
-                        <p class="text-sm">Recommendation engines use <strong>hashing, graphs & sorting</strong> for
-                            products.</p>
-                    </div>
-                    <div
-                        class="rounded-2xl border-none transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-gradient-to-r from-purple-700 to-blue-600 text-white text-center p-3 h-full">
-                        <img src="https://img.icons8.com/color/96/server.png" class="mx-auto" alt="OS">
-                        <h5 class="mt-3 font-semibold">Operating Systems</h5>
-                        <p class="text-sm"><strong>Scheduling algorithms</strong> manage CPU & processes.</p>
-                    </div>
-                    <div
-                        class="rounded-2xl border-none transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-gradient-to-r from-blue-600 to-purple-700 text-white text-center p-3 h-full">
-                        <img src="https://img.icons8.com/color/96/artificial-intelligence.png" class="mx-auto" alt="AI">
-                        <h5 class="mt-3 font-semibold">Artificial Intelligence</h5>
-                        <p class="text-sm"><strong>Search & DP</strong> help in AI planning & ML models.</p>
-                    </div>
-                    <div
-                        class="rounded-2xl border-none transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-gradient-to-r from-pink-500 to-purple-700 text-white text-center p-3 h-full">
-                        <img src="https://img.icons8.com/color/96/database.png" class="mx-auto" alt="Database">
-                        <h5 class="mt-3 font-semibold">Databases</h5>
-                        <p class="text-sm"><strong>Trees & hashing power</strong> indexing & query optimization.</p>
-                    </div>
-                    <div
-                        class="rounded-2xl border-none transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-gradient-to-r from-blue-600 to-pink-500 text-white text-center p-3 h-full">
-                        <img src="https://img.icons8.com/color/96/robot-2.png" class="mx-auto" alt="Robotics">
-                        <h5 class="mt-3 font-semibold">Robotics</h5>
-                        <p class="text-sm"><strong>Pathfinding</strong> guides robots in navigation & obstacles.</p>
-                    </div>
-                </div>
-            </div>
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="relative z-10 pt-24">
 
-            <footer class="text-center py-4 bg-blue-950" id="contact">
-                <div class="container mx-auto px-4">
-                    <p class="mb-3">Connect with us</p>
-                    <a href="https://instagram.com" target="_blank" class="mx-2 inline-block">
-                        <img src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram">
-                    </a>
-                    <a href="https://twitter.com" target="_blank" class="mx-2 inline-block">
-                        <img src="https://img.icons8.com/fluency/48/twitter.png" alt="Twitter">
-                    </a>
-                    <a href="https://linkedin.com" target="_blank" class="mx-2 inline-block">
-                        <img src="https://img.icons8.com/fluency/48/linkedin.png" alt="LinkedIn">
-                    </a>
-                    <hr class="mt-4 mb-2 border-blue-800">
-                    <p class="text-sm mb-0">&copy; 2025 DSA Studio. All rights reserved.</p>
-                </div>
-            </footer>
-    </div>
+        <!-- ========================================================= -->
+        <!-- HOME PAGE SECTION                                         -->
+        <!-- ========================================================= -->
+        <div id="home-page" class="transition-opacity duration-300">
+            
+            <!-- Hero Section -->
+            <section class="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        
+                        <!-- Left Hero Content -->
+                        <div class="lg:col-span-7 text-center lg:text-left space-y-6">
+                            
+                            <!-- Glowing Top Badge -->
+                            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-md">
+                                <span class="flex h-2 w-2 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+                                </span>
+                                <span class="text-xs font-semibold text-cyan-300 uppercase tracking-wider">Next-Gen DSA Interactive Lab</span>
+                            </div>
 
-    <!-- Explore Page -->
-    <div id="explore-page" class="bg-blue-950 pt-20 hidden">
-        <div class="text-center py-12 md:py-16 bg-blue-950">
-            <h1 class="text-white">📚 Explore Data Structures & Algorithms</h1>
-            <p class="text-white">Choose a topic below to start your journey</p>
+                            <!-- Main Headline -->
+                            <h1 class="font-outfit text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+                                Master DSA Through <br class="hidden sm:inline">
+                                <span class="text-gradient animate-gradient-x">Live Visualizations</span>
+                            </h1>
+
+                            <!-- Subtitle -->
+                            <p class="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto lg:mx-0 font-normal leading-relaxed">
+                                Don't just memorize algorithms from static pseudocode. Watch every comparison, swap, recursion split, and node visit happen in real-time with step-by-step playback.
+                            </p>
+
+                            <!-- CTAs -->
+                            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                                <button onclick="showPage('explore-page')" class="px-7 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-3">
+                                    <span>🚀 Start Visualizing</span>
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    </svg>
+                                </button>
+                                <a href="/quiz" class="px-7 py-3.5 rounded-xl font-bold text-slate-200 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/50 hover:text-white transition-all duration-300 flex items-center gap-2 backdrop-blur-md">
+                                    <span>🎯 Take Practice Quiz</span>
+                                </a>
+                            </div>
+
+                            <!-- Quick Stats Banner -->
+                            <div class="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/80 max-w-lg mx-auto lg:mx-0">
+                                <div>
+                                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-cyan-400">10+</div>
+                                    <div class="text-xs text-slate-400 font-medium">Core Algorithms</div>
+                                </div>
+                                <div>
+                                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-purple-400">100+</div>
+                                    <div class="text-xs text-slate-400 font-medium">Quiz Questions</div>
+                                </div>
+                                <div>
+                                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-emerald-400">Real-Time</div>
+                                    <div class="text-xs text-slate-400 font-medium">Step Breakdown</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Hero Live Interactive Demo Widget -->
+                        <div class="lg:col-span-5">
+                            <div class="relative group">
+                                <div class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 opacity-30 group-hover:opacity-50 blur-xl transition-all duration-500"></div>
+                                
+                                <div class="relative rounded-2xl glass-panel p-6 border border-slate-700/60 shadow-2xl space-y-5">
+                                    
+                                    <!-- Widget Header -->
+                                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
+                                            <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                                            <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+                                            <span class="text-xs font-mono text-slate-400 ml-2">live_preview.algo</span>
+                                        </div>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-purple-500/10 text-purple-300 border border-purple-500/30">
+                                            Bubble Sort Demo
+                                        </span>
+                                    </div>
+
+                                    <!-- Interactive Bar Animation Area -->
+                                    <div class="bg-slate-950/90 rounded-xl p-5 border border-slate-800/80 h-52 flex items-end justify-between gap-2" id="hero-bars-container">
+                                        <!-- Animated Bars will be injected dynamically -->
+                                    </div>
+
+                                    <!-- Status Message -->
+                                    <div class="flex items-center justify-between text-xs font-mono text-slate-400 bg-slate-900/60 px-3 py-2 rounded-lg border border-slate-800/80">
+                                        <span id="hero-demo-status">Status: Ready to visualize</span>
+                                        <span class="text-cyan-400 font-semibold" id="hero-demo-step">O(n²) Step: 0</span>
+                                    </div>
+
+                                    <!-- Interactive Controls -->
+                                    <div class="flex items-center gap-3">
+                                        <button id="btn-hero-sort" onclick="runHeroSortDemo()" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 transition-all flex items-center justify-center gap-2 shadow-md shadow-cyan-600/30">
+                                            <span>▶ Run Sort</span>
+                                        </button>
+                                        <button id="btn-hero-shuffle" onclick="shuffleHeroBars()" class="py-2.5 px-4 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-all flex items-center justify-center gap-1.5 border border-slate-700">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <span>Shuffle</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Real-World Applications Grid -->
+            <section class="py-16 md:py-24 relative border-t border-slate-800/80" id="applications">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    
+                    <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold uppercase tracking-wider">
+                            ⚡ Real-World Impact
+                        </div>
+                        <h2 class="font-outfit text-3xl sm:text-4xl md:text-5xl font-extrabold text-white">
+                            Why Learn DSA? <span class="text-gradient">Real-Life Applications</span>
+                        </h2>
+                        <p class="text-slate-400 text-sm sm:text-base">
+                            Discover how fundamental data structures and algorithms power the digital technologies you use every day.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        
+                        <!-- Card 1: Maps & Navigation -->
+                        <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                            </div>
+                            <h3 class="font-outfit font-bold text-lg text-white group-hover:text-cyan-400 transition-colors">Maps & Navigation</h3>
+                            <p class="text-xs text-cyan-400 font-mono mt-1 mb-2 font-medium">Graphs · Dijkstra · BFS</p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Shortest path graph algorithms power Google Maps & GPS routing in milliseconds.
+                            </p>
+                        </div>
+
+                        <!-- Card 2: Search Engines -->
+                        <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-outfit font-bold text-lg text-white group-hover:text-purple-400 transition-colors">Search Engines</h3>
+                            <p class="text-xs text-purple-400 font-mono mt-1 mb-2 font-medium">Tries · Inverted Index · Binary Search</p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Efficient search trees and ranking algorithms instantly sift through billions of web pages.
+                            </p>
+                        </div>
+
+                        <!-- Card 3: Social Media Networks -->
+                        <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                            <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-outfit font-bold text-lg text-white group-hover:text-pink-400 transition-colors">Social Networks</h3>
+                            <p class="text-xs text-pink-400 font-mono mt-1 mb-2 font-medium">Graph Theory · BFS · DFS</p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Friend recommendations and connection suggestions are built on graph traversal algorithms.
+                            </p>
+                        </div>
+
+                        <!-- Card 4: E-Commerce & Recommendations -->
+                        <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-outfit font-bold text-lg text-white group-hover:text-emerald-400 transition-colors">E-Commerce</h3>
+                            <p class="text-xs text-emerald-400 font-mono mt-1 mb-2 font-medium">Quick Sort · Heaps · Hashing</p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Sorting products by price/ratings and personalized feeds rely heavily on high-speed sorting.
+                            </p>
+                        </div>
+
+                        <!-- Card 5: Operating Systems -->
+                        <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2m-6 12v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-outfit font-bold text-lg text-white group-hover:text-amber-400 transition-colors">Operating Systems</h3>
+                            <p class="text-xs text-amber-400 font-mono mt-1 mb-2 font-medium">Queues · Priority Queues · Stacks</p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                CPU task scheduling, process queues, and call stacks manage resource execution.
+                            </p>
+                        </div>
+
+                        <!-- Card 6: AI & Machine Learning -->
+                        <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-outfit font-bold text-lg text-white group-hover:text-indigo-400 transition-colors">AI & Pathfinding</h3>
+                            <p class="text-xs text-indigo-400 font-mono mt-1 mb-2 font-medium">A* Search · DP · Decision Trees</p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Game NPCs and autonomous navigation depend on state-space search and optimization.
+                            </p>
+                        </div>
+
+                        <!-- Card 7: Database Engines -->
+                        <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                            <div class="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                                </svg>
+                            </div>
+                            <h3 class="font-outfit font-bold text-lg text-white group-hover:text-teal-400 transition-colors">Databases</h3>
+                            <p class="text-xs text-teal-400 font-mono mt-1 mb-2 font-medium">B-Trees · Hash Tables · Merge Join</p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                High-speed SQL query indexing and record lookups are powered by balanced tree structures.
+                            </p>
+                        </div>
+
+                        <!-- Card 8: Robotics & Automation -->
+                        <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                            <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-outfit font-bold text-lg text-white group-hover:text-rose-400 transition-colors">Robotics & Vision</h3>
+                            <p class="text-xs text-rose-400 font-mono mt-1 mb-2 font-medium">Quadtrees · DFS · Graph Search</p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Real-time obstacle avoidance and mapping rely on spatial trees and graph traversal.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
         </div>
 
-        <div class="container mx-auto px-4 pb-5">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- ========================================================= -->
+        <!-- EXPLORE PAGE SECTION (REDESIGNED CARDS)                   -->
+        <!-- ========================================================= -->
+        <div id="explore-page" class="hidden transition-opacity duration-300 pb-24">
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <!-- Explore Header -->
+                <div class="text-center max-w-3xl mx-auto pt-6 pb-10 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-semibold uppercase tracking-wider">
+                        ✨ Interactive Visualizations
+                    </div>
+                    <h1 class="font-outfit text-4xl sm:text-5xl font-extrabold text-white">
+                        Explore <span class="text-gradient">Algorithms & Structures</span>
+                    </h1>
+                    <p class="text-slate-300 text-sm sm:text-base">
+                        Select an algorithm to open its dedicated live laboratory. Customize input data and control step execution at your own pace.
+                    </p>
 
-                <!-- Searching -->
-                <div
-                    class="rounded-2xl shadow-md transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-blue-900 text-white h-full">
-                    <div class="text-center p-3">
-                        <h5 class="text-lg">🔍 Searching</h5>
-                        <p class="text-sm">Learn Linear Search, Binary Search and more.</p>
-                        <a href="/visualize?topic=linear-search"
-                            class="block bg-blue-950 text-white py-2 px-3 mt-2 hover:bg-blue-800">Linear Search</a>
-                        <a href="/binary_search"
-                            class="block bg-blue-950 text-white py-2 px-3 mt-1 hover:bg-blue-800">Binary Search</a>
-
+                    <!-- Search Filter Bar -->
+                    <div class="pt-4 max-w-md mx-auto relative">
+                        <input type="text" id="algo-search" placeholder="Search algorithms (e.g. Merge, BFS, Queue)..." oninput="filterAlgorithms()"
+                            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all backdrop-blur-md">
+                        <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
                 </div>
 
-                <!-- Sorting -->
-                <div
-                    class="rounded-2xl shadow-md transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-blue-800 text-white h-full">
-                    <div class="text-center p-3">
-                        <h5 class="text-lg">📊 Sorting</h5>
-                        <p class="text-sm">Explore Bubble, Merge, Quick Sort and others.</p>
-                        <a href="/bubble_sort"
-                            class="block bg-blue-950 text-white py-2 px-3 mt-2 hover:bg-blue-800">Bubble Sort</a>
-                        <a href="/merge_sort"
-                            class="block bg-blue-950 text-white py-2 px-3 mt-1 hover:bg-blue-800">Merge Sort</a>
-                        <a href="/quick_sort"
-                            class="block bg-blue-950 text-white py-2 px-3 mt-1 hover:bg-blue-800">Quick Sort</a>
-                        <a href="/heap_sort" class="block bg-blue-950 text-white py-2 px-3 mt-1 hover:bg-blue-800">Heap
-                            Sort</a>
+                <!-- Category Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="explore-cards-grid">
+
+                    <!-- CATEGORY 1: SEARCHING -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-cyan-400 group relative overflow-hidden algo-card" data-tags="searching linear binary search">
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">2 Topics</span>
+                            </div>
+
+                            <div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">Searching</h3>
+                                <p class="text-xs text-slate-400 mt-1">Scan sequential datasets and divide-and-conquer search spaces.</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2.5 pt-2">
+                                <a href="/visualize?topic=linear-search" class="algo-btn block w-full py-3 px-4 rounded-xl bg-slate-900/80 hover:bg-cyan-950/60 border border-slate-800 hover:border-cyan-500/40 text-slate-200 hover:text-cyan-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                                        <span>Linear Search</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-cyan-400 transition-colors">O(n) →</span>
+                                </a>
+
+                                <a href="/binary_search" class="algo-btn block w-full py-3 px-4 rounded-xl bg-slate-900/80 hover:bg-cyan-950/60 border border-slate-800 hover:border-cyan-500/40 text-slate-200 hover:text-cyan-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                                        <span>Binary Search</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-cyan-400 transition-colors">O(log n) →</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY 2: SORTING -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-purple-400 group relative overflow-hidden algo-card" data-tags="sorting bubble merge quick heap sort">
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">4 Topics</span>
+                            </div>
+
+                            <div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-purple-400 transition-colors">Sorting</h3>
+                                <p class="text-xs text-slate-400 mt-1">Reorder arrays efficiently with comparisons, divides, and heap trees.</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2.5 pt-2">
+                                <a href="/bubble_sort" class="algo-btn block w-full py-2.5 px-4 rounded-xl bg-slate-900/80 hover:bg-purple-950/60 border border-slate-800 hover:border-purple-500/40 text-slate-200 hover:text-purple-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                                        <span>Bubble Sort</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-purple-400 transition-colors">O(n²) →</span>
+                                </a>
+
+                                <a href="/merge_sort" class="algo-btn block w-full py-2.5 px-4 rounded-xl bg-slate-900/80 hover:bg-purple-950/60 border border-slate-800 hover:border-purple-500/40 text-slate-200 hover:text-purple-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                                        <span>Merge Sort</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-purple-400 transition-colors">O(n log n) →</span>
+                                </a>
+
+                                <a href="/quick_sort" class="algo-btn block w-full py-2.5 px-4 rounded-xl bg-slate-900/80 hover:bg-purple-950/60 border border-slate-800 hover:border-purple-500/40 text-slate-200 hover:text-purple-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                                        <span>Quick Sort</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-purple-400 transition-colors">O(n log n) →</span>
+                                </a>
+
+                                <a href="/heap_sort" class="algo-btn block w-full py-2.5 px-4 rounded-xl bg-slate-900/80 hover:bg-purple-950/60 border border-slate-800 hover:border-purple-500/40 text-slate-200 hover:text-purple-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                                        <span>Heap Sort</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-purple-400 transition-colors">O(n log n) →</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY 3: STACK & QUEUE -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-amber-400 group relative overflow-hidden algo-card" data-tags="stack queue push pop enqueue dequeue">
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">2 Topics</span>
+                            </div>
+
+                            <div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-amber-400 transition-colors">Stack & Queue</h3>
+                                <p class="text-xs text-slate-400 mt-1">Visualize LIFO & FIFO fundamental linear data structure mechanisms.</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2.5 pt-2">
+                                <a href="/stack" class="algo-btn block w-full py-3 px-4 rounded-xl bg-slate-900/80 hover:bg-amber-950/60 border border-slate-800 hover:border-amber-500/40 text-slate-200 hover:text-amber-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                        <span>Stack (LIFO)</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-amber-400 transition-colors">Push / Pop →</span>
+                                </a>
+
+                                <a href="/queue" class="algo-btn block w-full py-3 px-4 rounded-xl bg-slate-900/80 hover:bg-amber-950/60 border border-slate-800 hover:border-amber-500/40 text-slate-200 hover:text-amber-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                        <span>Queue (FIFO)</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-amber-400 transition-colors">Enqueue →</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY 4: GRAPHS -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-emerald-400 group relative overflow-hidden algo-card" data-tags="graphs bfs dfs breadth depth first search traversal">
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">2 Topics</span>
+                            </div>
+
+                            <div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">Graphs</h3>
+                                <p class="text-xs text-slate-400 mt-1">Explore interconnected networks with layer-wise and recursive traversals.</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2.5 pt-2">
+                                <a href="/bfs" class="algo-btn block w-full py-3 px-4 rounded-xl bg-slate-900/80 hover:bg-emerald-950/60 border border-slate-800 hover:border-emerald-500/40 text-slate-200 hover:text-emerald-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        <span>BFS (Breadth First)</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-emerald-400 transition-colors">Queue-based →</span>
+                                </a>
+
+                                <a href="/dfs" class="algo-btn block w-full py-3 px-4 rounded-xl bg-slate-900/80 hover:bg-emerald-950/60 border border-slate-800 hover:border-emerald-500/40 text-slate-200 hover:text-emerald-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        <span>DFS (Depth First)</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-emerald-400 transition-colors">Stack-based →</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Callout Banner to Quiz -->
+                <div class="mt-14 rounded-3xl p-8 glass-panel border border-cyan-500/30 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-96 h-96 bg-cyan-500/10 blur-3xl pointer-events-none"></div>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                        <div class="space-y-2 text-center md:text-left">
+                            <h3 class="font-outfit text-2xl font-bold text-white">Finished Visualizing? Test Your Skills!</h3>
+                            <p class="text-sm text-slate-300 max-w-xl">
+                                Jump into the Quiz Arena containing 10 multiple-choice conceptual questions for every single algorithm.
+                            </p>
+                        </div>
+                        <a href="/quiz" class="px-7 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-purple-600 shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 transition-all duration-300 whitespace-nowrap">
+                            🎯 Launch Quiz Arena →
+                        </a>
                     </div>
                 </div>
 
-                <!-- Stack & Queue -->
-                <div
-                    class="rounded-2xl shadow-md transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-blue-700 text-white h-full flex flex-col items-center justify-center p-6">
-                    <h5 class="text-lg font-semibold mb-2">📦 Stack & Queue</h5>
-                    <p class="text-sm mb-4 text-center">Understand Push, Pop, Peek, Enqueue & Dequeue operations.</p>
-                    <div class="flex flex-col w-full gap-3">
-                        <a href="/stack"
-                            class="w-full text-center bg-blue-950 hover:bg-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-300">
-                            Stack
-                        </a>
-                        <a href="/queue"
-                            class="w-full text-center bg-blue-950 hover:bg-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-300">
-                            Queue
-                        </a>
-
-                    </div>
-                </div>
-
-                <!-- Graphs -->
-                <div
-                    class="rounded-2xl shadow-md transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl bg-blue-700 text-white h-full flex flex-col items-center justify-center p-6">
-                    <h5 class="text-lg font-semibold mb-2">📈 Graphs</h5>
-                    <p class="text-sm mb-4 text-center">Learn BFS & DFS traversal algorithms.</p>
-                    <div class="flex flex-col w-full gap-3">
-                        <a href="/bfs"
-                            class="w-full text-center bg-blue-950 hover:bg-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-300">
-                            BFS
-                        </a>
-                        <a href="/dfs"
-                            class="w-full text-center bg-blue-950 hover:bg-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-300">
-                            DFS
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Add other boxes as needed -->
             </div>
+
         </div>
 
+    </main>
 
-        <footer class="text-center py-4 bg-blue-950" id="contact-explore">
-            <div class="container mx-auto px-4">
-                <p class="mb-3">Connect with us</p>
-                <a href="https://instagram.com" target="_blank" class="mx-2 inline-block">
-                    <img src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram">
-                </a>
-                <a href="https://twitter.com" target="_blank" class="mx-2 inline-block">
-                    <img src="https://img.icons8.com/fluency/48/twitter.png" alt="Twitter">
-                </a>
-                <a href="https://linkedin.com" target="_blank" class="mx-2 inline-block">
-                    <img src="https://img.icons8.com/fluency/48/linkedin.png" alt="LinkedIn">
-                </a>
-                <hr class="mt-4 mb-2 border-blue-800">
-                <p class="text-sm mb-0">&copy; 2025 DSA Studio. All rights reserved.</p>
+    <!-- Sleek Modern Footer -->
+    <footer class="mt-20 border-t border-slate-800/80 bg-slate-950/90 py-12 relative z-10 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <span class="font-outfit font-bold text-lg text-white">DSA Studio</span>
+                    <span class="text-xs text-slate-500">| Interactive Algorithm Lab Assistant</span>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <a href="#" onclick="showPage('home-page')" class="text-xs text-slate-400 hover:text-cyan-400 transition-colors">Home</a>
+                    <a href="#" onclick="showPage('explore-page')" class="text-xs text-slate-400 hover:text-cyan-400 transition-colors">Explore</a>
+                    <a href="/quiz" class="text-xs text-slate-400 hover:text-cyan-400 transition-colors">Quiz</a>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <a href="https://github.com/adityac7705/DSA-Visual-Lab-Assistant" target="_blank" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:border-cyan-500/50 transition-colors">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
-        </footer>
-    </div>
 
+            <div class="mt-8 pt-6 border-t border-slate-900 text-center text-xs text-slate-500">
+                © 2025 DSA Studio. Designed for students and educators.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts & Canvas Animation -->
     <script>
-
+        // Page Navigation Logic
         function showPage(pageId) {
-            document.getElementById('home-page').classList.add('hidden');
-            document.getElementById('explore-page').classList.add('hidden');
-            const page = document.getElementById(pageId);
-            if (page) {
-                page.classList.remove('hidden');
+            const homePage = document.getElementById('home-page');
+            const explorePage = document.getElementById('explore-page');
+            const navHome = document.getElementById('nav-btn-home');
+            const navExplore = document.getElementById('nav-btn-explore');
+
+            if (pageId === 'home-page') {
+                homePage.classList.remove('hidden');
+                explorePage.classList.add('hidden');
+                if (navHome && navExplore) {
+                    navHome.className = 'nav-item px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 text-white bg-gradient-to-r from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/20';
+                    navExplore.className = 'nav-item px-5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300';
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (pageId === 'explore-page') {
+                homePage.classList.add('hidden');
+                explorePage.classList.remove('hidden');
+                if (navHome && navExplore) {
+                    navExplore.className = 'nav-item px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 text-white bg-gradient-to-r from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/20';
+                    navHome.className = 'nav-item px-5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300';
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
-        // Set Home page as default
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('home-page').classList.remove('hidden');
-        });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // This variable is populated by Flask: current_topic="{{ current_topic }}"
-            const currentTopic = "{{ current_topic }}";
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const openIcon = document.getElementById('menu-icon-open');
+            const closeIcon = document.getElementById('menu-icon-close');
+            menu.classList.toggle('hidden');
+            openIcon.classList.toggle('hidden');
+            closeIcon.classList.toggle('hidden');
+        }
 
-            // Logic to show the Linear Search content
-            if (currentTopic === 'linear-search') {
-                // 💡 ASSUMPTION: You have a div or section in visualize.html with this ID
-                const linearContent = document.getElementById('linear-search-visualization');
-                if (linearContent) {
-                    // Ensure only this section is visible
-                    // (You might need more logic to hide other algorithm sections)
-                    linearContent.style.display = 'block';
+        // Filter Algorithm Cards by Search
+        function filterAlgorithms() {
+            const query = document.getElementById('algo-search').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.algo-card');
+
+            cards.forEach(card => {
+                const tags = card.getAttribute('data-tags') || '';
+                const text = card.innerText.toLowerCase();
+                if (tags.includes(query) || text.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // ==========================================
+        // HERO LIVE SORTING DEMO SCRIPT
+        // ==========================================
+        let demoArr = [48, 18, 75, 32, 90, 12, 60, 40];
+        let isDemoSorting = false;
+
+        function renderHeroBars(arr, highlights = {}, swapIndices = []) {
+            const container = document.getElementById('hero-bars-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            arr.forEach((val, idx) => {
+                const bar = document.createElement('div');
+                bar.className = 'preview-bar rounded-lg flex flex-col items-center justify-end pb-2';
+                bar.style.width = '11%';
+                const hPercent = Math.max(18, Math.min(100, val));
+                bar.style.height = `${hPercent}%`;
+
+                // Color coding logic
+                if (swapIndices.includes(idx)) {
+                    bar.style.backgroundColor = '#ec4899'; // Pink swap
+                    bar.style.boxShadow = '0 0 15px rgba(236, 72, 153, 0.7)';
+                } else if (highlights.compare && highlights.compare.includes(idx)) {
+                    bar.style.backgroundColor = '#f59e0b'; // Amber compare
+                    bar.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.6)';
+                } else if (highlights.sorted && highlights.sorted.includes(idx)) {
+                    bar.style.backgroundColor = '#10b981'; // Emerald sorted
+                    bar.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.5)';
+                } else {
+                    bar.style.backgroundColor = '#06b6d4'; // Default cyan
+                    bar.style.boxShadow = '0 0 8px rgba(6, 182, 212, 0.3)';
+                }
+
+                // Label on bar
+                const label = document.createElement('span');
+                label.className = 'text-[10px] font-mono font-bold text-white/90';
+                label.innerText = val;
+                bar.appendChild(label);
+
+                container.appendChild(bar);
+            });
+        }
+
+        function shuffleHeroBars() {
+            if (isDemoSorting) return;
+            demoArr = Array.from({ length: 8 }, () => Math.floor(Math.random() * 75) + 15);
+            renderHeroBars(demoArr);
+            document.getElementById('hero-demo-status').innerText = 'Status: Array randomized';
+            document.getElementById('hero-demo-step').innerText = 'Step: 0';
+        }
+
+        async function runHeroSortDemo() {
+            if (isDemoSorting) return;
+            isDemoSorting = true;
+            const sortBtn = document.getElementById('btn-hero-sort');
+            const shuffleBtn = document.getElementById('btn-hero-shuffle');
+            sortBtn.classList.add('opacity-50', 'pointer-events-none');
+            shuffleBtn.classList.add('opacity-50', 'pointer-events-none');
+
+            const status = document.getElementById('hero-demo-status');
+            const stepText = document.getElementById('hero-demo-step');
+
+            let arr = [...demoArr];
+            let n = arr.length;
+            let stepCount = 0;
+            let sortedIndices = [];
+
+            for (let i = 0; i < n; i++) {
+                let swapped = false;
+                for (let j = 0; j < n - i - 1; j++) {
+                    stepCount++;
+                    stepText.innerText = `Step: ${stepCount}`;
+                    status.innerText = `Comparing [${arr[j]}] & [${arr[j+1]}]`;
+                    renderHeroBars(arr, { compare: [j, j + 1], sorted: sortedIndices });
+                    await new Promise(r => setTimeout(r, 220));
+
+                    if (arr[j] > arr[j + 1]) {
+                        status.innerText = `Swapping ${arr[j]} ↔ ${arr[j+1]}`;
+                        renderHeroBars(arr, { sorted: sortedIndices }, [j, j + 1]);
+                        await new Promise(r => setTimeout(r, 260));
+
+                        let temp = arr[j];
+                        arr[j] = arr[j + 1];
+                        arr[j + 1] = temp;
+                        swapped = true;
+                    }
+                }
+                sortedIndices.push(n - i - 1);
+            }
+            sortedIndices.push(0);
+            renderHeroBars(arr, { sorted: Array.from({ length: n }, (_, i) => i) });
+            status.innerText = '✨ Array fully sorted!';
+            stepText.innerText = `Done (${stepCount} ops)`;
+
+            demoArr = arr;
+            isDemoSorting = false;
+            sortBtn.classList.remove('opacity-50', 'pointer-events-none');
+            shuffleBtn.classList.remove('opacity-50', 'pointer-events-none');
+        }
+
+        // ==========================================
+        // INTERACTIVE CANVAS PARTICLES (Graph Mesh)
+        // ==========================================
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.6;
+                this.vy = (Math.random() - 0.5) * 0.6;
+                this.radius = Math.random() * 2 + 1;
+                this.color = Math.random() > 0.5 ? '#22d3ee' : '#a855f7';
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 45; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw connections (graph edges)
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 130) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(34, 211, 238, ${0.15 * (1 - dist / 130)})`;
+                        ctx.lineWidth = 0.8;
+                        ctx.stroke();
+                    }
                 }
             }
-            // ... add logic for other topics (binary-search, bubble-sort, etc.)
+
+            // Draw nodes
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHeroBars(demoArr);
         });
     </script>
-
-    <div id="linear-search-visualization" style="display: none;">
-        <h2>Linear Search Visualization</h2>
-    </div>
+</body>
 
 </html>

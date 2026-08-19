@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Search Interactive Lab — DSA Studio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e2d4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0891b2; }
+
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(17, 29, 53, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .array-node {
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .node-inspecting {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(217, 119, 6, 0.5)) !important;
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.6) !important;
+            transform: translateY(-10px) scale(1.1);
+        }
+
+        .node-found {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.5)) !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.7) !important;
+            transform: translateY(-12px) scale(1.12);
+        }
+
+        .node-checked {
+            opacity: 0.45;
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(71, 85, 105, 0.6);
+        }
+
+        .code-line {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .code-line.active {
+            background: rgba(34, 211, 238, 0.15);
+            border-left: 3px solid #22d3ee;
+            color: #38bdf8;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-cyan-500 selection:text-white">
+
+    <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none z-0"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none z-0"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-slate-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-all">
+                        <div class="w-full h-full bg-[#0d1527] rounded-[10px] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white">DSA Studio</span>
+                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Lab Mode</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">Interactive Visualizer</span>
+                    </div>
+                </a>
+
+                <div class="flex items-center gap-3">
+                    <a href="/#explore-page" class="text-xs font-semibold px-4 py-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors">
+                        ← All Algorithms
+                    </a>
+                    <a href="/quiz" class="text-xs font-semibold px-4 py-2 rounded-xl text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-md shadow-purple-500/20 hover:opacity-95 transition-all">
+                        🎯 Take Quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">🔍 Searching Algorithm</span>
+                    <span class="text-xs font-mono text-slate-400">Time: <strong class="text-cyan-300 font-bold">O(n)</strong> | Space: <strong class="text-emerald-300 font-bold">O(1)</strong></span>
+                </div>
+                <h1 class="font-outfit text-3xl sm:text-4xl font-extrabold text-white mt-1">
+                    Linear Search <span class="text-gradient">Sequential Scanning Lab</span>
+                </h1>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="setSampleData([14, 52, 8, 33, 19, 41, 7], 19)" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
+                    Find 19
+                </button>
+                <button onclick="setSampleData([14, 52, 8, 33, 19, 41, 7], 100)" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-rose-400 hover:border-rose-500/40 transition-all">
+                    Not Present (100)
+                </button>
+            </div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="glass-panel rounded-3xl p-6 border border-slate-800 shadow-xl space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+                <div class="sm:col-span-8">
+                    <label class="text-xs font-mono uppercase text-slate-400 mb-1 block">Input Array (Unsorted or Sorted):</label>
+                    <input type="text" id="arrayInput" value="14, 52, 8, 33, 19, 41, 7"
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="text-xs font-mono uppercase text-slate-400 mb-1 block">Target Value:</label>
+                    <input type="number" id="targetInput" value="19"
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-cyan-400 font-mono font-bold text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                </div>
+                <div class="sm:col-span-2">
+                    <button onclick="startLinearSearch()" id="runButton"
+                        class="w-full px-6 py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center gap-2">
+                        <span>🔍 Search</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-8 space-y-6">
+                <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-700/80 shadow-2xl relative overflow-hidden space-y-6">
+                    
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-2">
+                            <span id="action-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                                READY
+                            </span>
+                            <span id="target-badge" class="text-xs font-mono text-slate-400">Target: <strong class="text-cyan-400">19</strong></span>
+                        </div>
+                        <div class="text-xs font-mono text-slate-400">
+                            <span id="stepCounter" class="text-cyan-400 font-bold">Step 0 / 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Array Nodes -->
+                    <div class="min-h-[200px] flex flex-col justify-end items-center py-6 bg-slate-950/70 rounded-2xl border border-slate-800/80 px-2 sm:px-4">
+                        <div id="pointers-container" class="w-full flex justify-center gap-2.5 sm:gap-3 mb-2 h-7 text-xs font-mono font-bold"></div>
+                        <div id="arrayContainer" class="w-full flex justify-center items-end gap-2.5 sm:gap-3 pb-2 overflow-x-auto"></div>
+                        <div id="indices-container" class="w-full flex justify-center gap-2.5 sm:gap-3 mt-2 text-[11px] font-mono text-slate-500"></div>
+                    </div>
+
+                    <!-- Explanation -->
+                    <div id="step-explanation-card" class="rounded-2xl p-5 bg-slate-950/80 border border-slate-800 space-y-3">
+                        <div class="flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase">
+                            <span>🧠 Sequential Logic Breakdown:</span>
+                        </div>
+                        <div id="step-headline" class="text-base sm:text-lg font-outfit font-bold text-white leading-snug">
+                            Click "Search" to start sequential evaluation.
+                        </div>
+                        <div id="step-logic-details" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed">
+                            Awaiting start...
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <button onclick="prevStep()" id="prevButton" disabled
+                                class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-850 border border-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-all">
+                                ← Prev
+                            </button>
+                            <button onclick="nextStep()" id="nextButton" disabled
+                                class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md shadow-cyan-600/30 disabled:opacity-40 disabled:pointer-events-none transition-all">
+                                Next Step →
+                            </button>
+                        </div>
+                        <button onclick="toggleAutoPlay()" id="playPauseBtn"
+                            class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2">
+                            <span id="playIcon">▶</span>
+                            <span id="playText">Auto Play</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Right Stage -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono font-bold text-cyan-400 uppercase">💻 Live Code Execution</span>
+                        <span class="text-[11px] font-mono text-slate-500">Python 3</span>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-2xl font-mono text-xs text-slate-300 space-y-1.5 border border-slate-800/80 overflow-x-auto">
+                        <div id="code-line-1" class="code-line px-2 py-1 rounded">def linear_search(arr, target):</div>
+                        <div id="code-line-2" class="code-line px-2 py-1 rounded pl-4">for i in range(len(arr)):</div>
+                        <div id="code-line-3" class="code-line px-2 py-1 rounded pl-8">if arr[i] == target:</div>
+                        <div id="code-line-4" class="code-line px-2 py-1 rounded pl-12">return i # Match!</div>
+                        <div id="code-line-5" class="code-line px-2 py-1 rounded pl-4">return -1 # Not found</div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-6 border border-slate-800 space-y-3">
+                    <h3 class="font-outfit font-bold text-white text-base">Key Linear Search Properties:</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        • <strong>Unsorted friendly:</strong> Does not require elements to be in sorted order.<br>
+                        • <strong>Best case O(1):</strong> Target is found immediately at index 0.<br>
+                        • <strong>Worst case O(n):</strong> Target is at the very end or absent.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        let steps = [];
+        let currentStepIndex = -1;
+        let autoPlayTimer = null;
+        let playbackDelay = 700;
+
+        function setSampleData(arr, target) {
+            document.getElementById('arrayInput').value = arr.join(', ');
+            document.getElementById('targetInput').value = target;
+            startLinearSearch();
+        }
+
+        async function fetchSteps(arr, target) {
+            try {
+                const res = await fetch('/run-algo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ algo: 'linear', arr: arr, target: target })
+                });
+                const data = await res.json();
+                return data.steps || [];
+            } catch (e) {
+                console.error(e);
+                return [];
+            }
+        }
+
+        async function startLinearSearch() {
+            stopAutoPlay();
+            const raw = document.getElementById('arrayInput').value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+            const target = parseInt(document.getElementById('targetInput').value);
+            if (raw.length === 0 || isNaN(target)) return;
+
+            document.getElementById('target-badge').innerHTML = `Target: <strong class="text-cyan-400 font-bold">${target}</strong>`;
+
+            steps = await fetchSteps(raw, target);
+            if (steps.length > 0) {
+                currentStepIndex = 0;
+                renderActiveStep();
+            }
+        }
+
+        function highlightCodeLine(lineNum) {
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`code-line-${i}`);
+                if (el) el.classList.remove('active');
+            }
+            if (lineNum) {
+                const activeEl = document.getElementById(`code-line-${lineNum}`);
+                if (activeEl) activeEl.classList.add('active');
+            }
+        }
+
+        function renderActiveStep() {
+            if (steps.length === 0 || currentStepIndex < 0) return;
+
+            const step = steps[currentStepIndex];
+            const arr = step.array;
+            const highlight = step.highlight || [];
+            const action = step.action;
+            const target = step.target;
+
+            const currentIdx = highlight[0] !== undefined ? highlight[0] : -1;
+
+            const arrayContainer = document.getElementById('arrayContainer');
+            const pointersContainer = document.getElementById('pointers-container');
+            const indicesContainer = document.getElementById('indices-container');
+
+            arrayContainer.innerHTML = '';
+            pointersContainer.innerHTML = '';
+            indicesContainer.innerHTML = '';
+
+            const maxVal = Math.max(...arr, 50);
+
+            arr.forEach((val, idx) => {
+                const isInspecting = (idx === currentIdx && action === 'compare');
+                const isFound = (idx === currentIdx && action === 'found');
+                const isPast = (idx < currentIdx);
+
+                const node = document.createElement('div');
+                node.className = 'array-node flex flex-col items-center justify-end rounded-2xl border-2 p-2 shadow-lg';
+                node.style.width = '54px';
+                const heightPx = Math.max(65, Math.min(150, (val / maxVal) * 140));
+                node.style.height = `${heightPx}px`;
+
+                if (isFound) {
+                    node.className += ' node-found';
+                } else if (isInspecting) {
+                    node.className += ' node-inspecting';
+                } else if (isPast) {
+                    node.className += ' node-checked text-slate-500';
+                } else {
+                    node.className += ' bg-slate-900 border-slate-700 text-white';
+                }
+
+                node.innerHTML = `<span class="font-outfit font-extrabold text-lg text-white mb-1">${val}</span>`;
+                arrayContainer.appendChild(node);
+
+                // Pointer
+                const ptr = document.createElement('div');
+                ptr.style.width = '54px';
+                ptr.className = 'text-center text-[10px] font-mono font-bold';
+                if (isFound) {
+                    ptr.innerHTML = `<span class="text-emerald-400">🎯 Match</span>`;
+                } else if (isInspecting) {
+                    ptr.innerHTML = `<span class="text-amber-400">▼ [ i ]</span>`;
+                }
+                pointersContainer.appendChild(ptr);
+
+                // Index
+                const idxLabel = document.createElement('div');
+                idxLabel.style.width = '54px';
+                idxLabel.className = 'text-center';
+                idxLabel.innerText = `[${idx}]`;
+                indicesContainer.appendChild(idxLabel);
+            });
+
+            // Action & Logic
+            const actionBadge = document.getElementById('action-badge');
+            const headline = document.getElementById('step-headline');
+            const logicDetails = document.getElementById('step-logic-details');
+
+            if (action === 'found') {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+                actionBadge.innerText = '🎯 TARGET FOUND';
+                headline.innerText = `Element ${target} found at index [${currentIdx}]!`;
+                logicDetails.innerHTML = `<strong>Match Confirmed:</strong> <code>arr[${currentIdx}] (${arr[currentIdx]}) == target (${target})</code>.<br>Linear Search completes successfully.`;
+                highlightCodeLine(4);
+                stopAutoPlay();
+            } else if (action === 'done' || action === 'not_found') {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30';
+                actionBadge.innerText = '❌ NOT FOUND';
+                headline.innerText = `Target ${target} was not found in the array.`;
+                logicDetails.innerHTML = `All ${arr.length} elements examined without a match.`;
+                highlightCodeLine(5);
+                stopAutoPlay();
+            } else {
+                actionBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30';
+                actionBadge.innerText = '🔍 CHECKING ELEMENT';
+                const curVal = arr[currentIdx];
+                headline.innerText = `Checking if arr[${currentIdx}] (${curVal}) == ${target}`;
+                logicDetails.innerHTML = `
+                    <strong>Condition:</strong> <code>${curVal} == ${target}</code> → <strong>False</strong>.<br>
+                    Element does not match. Advancing pointer <code>i &rarr; ${currentIdx + 1}</code>.
+                `;
+                highlightCodeLine(3);
+            }
+
+            document.getElementById('stepCounter').innerText = `Step ${currentStepIndex + 1} of ${steps.length}`;
+            document.getElementById('prevButton').disabled = (currentStepIndex <= 0);
+            document.getElementById('nextButton').disabled = (currentStepIndex >= steps.length - 1);
+        }
+
+        function nextStep() {
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                renderActiveStep();
+            } else {
+                stopAutoPlay();
+            }
+        }
+
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderActiveStep();
+            }
+        }
+
+        function toggleAutoPlay() {
+            if (autoPlayTimer) stopAutoPlay();
+            else startAutoPlay();
+        }
+
+        function startAutoPlay() {
+            if (currentStepIndex >= steps.length - 1) currentStepIndex = 0;
+            document.getElementById('playIcon').innerText = '⏸';
+            document.getElementById('playText').innerText = 'Pause';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-md shadow-rose-600/30 transition-all flex items-center gap-2';
+            autoPlayTimer = setInterval(nextStep, playbackDelay);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+            }
+            document.getElementById('playIcon').innerText = '▶';
+            document.getElementById('playText').innerText = 'Auto Play';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startLinearSearch();
+        });
+    </script>
+</body>
+
+</html>

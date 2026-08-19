@@ -1,451 +1,445 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DFS Visualization</title>
+    <title>DFS (Depth-First Search) Lab — DSA Studio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg: #181825;
-            --card: #232334;
-            --muted: #a1a1aa;
-            --accent: #8b5cf6;
-            --done: #34d399;
-            --text-main: #ede9fe;
-            --text-sub: #d1d5db;
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e2d4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0891b2; }
+
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg);
-            color: var(--text-main);
-            padding: 30px;
-            line-height: 1.6;
+        .glass-card {
+            background: rgba(17, 29, 53, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
         }
 
-        h1 {
-            margin: 0 auto 30px auto;
-            color: var(--accent) !important;
-            font-size: 5rem !important;
-            font-weight: 800 !important;
-            padding-bottom: 14px;
-            text-align: center;
-            display: block;
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        #dfs-theory {
-            margin-bottom: 25px;
-            padding: 25px;
-            background: var(--card);
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
-            border: 2px solid var(--accent);
-            max-width: 3000px;
-            margin-inline: auto;
-        }
-
-        #dfs-theory h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--done);
-            margin-bottom: 12px;
-        }
-
-        #dfs-theory p,
-        #dfs-theory li {
-            color: var(--text-sub);
-            font-size: 1rem;
-        }
-
-        #dfs-theory ol {
-            list-style-type: decimal;
-            padding-left: 25px;
-            margin-top: 10px;
-        }
-
-        #user-input-panel {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 25px;
-            border: 2px solid var(--accent);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
-            margin-bottom: 25px;
-            max-width: 3000px;
-            margin-inline: auto;
-        }
-
-        label {
-            color: var(--muted);
-            font-weight: 600;
-        }
-
-        input[type="text"],
-        input[type="number"] {
-            padding: 8px;
-            border-radius: 8px;
-            border: none;
-            margin-left: 10px;
-            background: #f8f8f8;
-            color: #000;
-        }
-
-        .control-button {
-            padding: 10px 16px;
-            font-weight: 600;
+        .graph-node {
             cursor: pointer;
-            border-radius: 8px;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            transition: 0.2s;
-            margin-top: 10px;
-            margin-right: 10px;
-        }
-
-        .control-button:first-of-type {
-            background: var(--accent);
-            color: white;
-        }
-
-        .control-button:first-of-type:hover {
-            background: #7c3aed;
-        }
-
-        #nextButton {
-            background: #374151;
-            color: var(--text-sub);
-        }
-
-        #nextButton:hover {
-            background: #4b5563;
-        }
-
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            background: var(--card);
-            border-radius: 16px;
-            border: 2px solid var(--accent);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
-            padding: 25px;
-            max-width: 1000px;
-            margin-inline: auto;
-            gap: 20px;
-        }
-
-        .graph-section {
-            flex: 2;
-            position: relative;
-        }
-
-        .graph-title {
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 15px;
-        }
-
-        .data-structures-section {
-            flex: 1;
-            border-left: 1px solid #4b5563;
-            padding-left: 20px;
-        }
-
-        .data-title {
-            font-weight: 700;
-            color: var(--done);
-            margin-bottom: 10px;
-        }
-
-        .array-row {
-            display: flex;
-            border: 1px solid #4b5563;
-            border-radius: 6px;
-            min-height: 40px;
-            min-width: 100px;
-            background: #1f2937;
-            margin-bottom: 15px;
-        }
-
-        .array-cell {
-            padding: 10px 15px;
-            border-right: 1px solid #4b5563;
-            text-align: center;
-            font-weight: bold;
-            min-width: 40px;
-            color: #fff;
-        }
-
-        .array-cell:last-child {
-            border-right: none;
-        }
-
-        .visited-cell {
-            background: var(--done);
-            color: #064e3b;
-            box-shadow: 0 0 10px var(--done);
-        }
-
-        .stack-cell {
-            background: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        .node {
-            stroke: #a1a1aa;
-            stroke-width: 2;
-            fill: #3b3b4f;
-            transition: 0.3s;
-        }
-
-        .node-label {
-            font-size: 16px;
-            font-weight: bold;
-            fill: var(--text-main);
-            pointer-events: none;
-        }
-
-        .node-black {
-            fill: var(--done);
-        }
-
-        .node-blue {
-            fill: var(--accent);
+            transition: all 0.3s ease;
         }
 
         .edge {
-            stroke: #666;
-            stroke-width: 2;
+            stroke: #475569;
+            stroke-width: 2.5;
+            stroke-dasharray: 4 2;
         }
 
-        #interpretation-text {
-            background: #111827;
-            padding: 10px;
-            border-radius: 8px;
-            color: var(--text-sub);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            border: 1px solid #374151;
-        }
-
-        #errorMessage {
-            border: 2px solid #ef4444;
-            background: #2f3542;
-            color: #f87171;
-            font-weight: 600;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .hidden {
-            display: none;
+        .edge.active {
+            stroke: #a855f7;
+            stroke-width: 3.5;
+            stroke-dasharray: none;
         }
     </style>
 </head>
 
-<body>
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-cyan-500 selection:text-white">
 
-    <h1>DFS Traversal</h1>
+    <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none z-0"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none z-0"></div>
 
-    <div id="dfs-theory">
-        <h2>What is DFS (Depth-First Search)?</h2>
-        <p><strong>Depth-First Search (DFS)</strong> is a graph traversal algorithm that explores as far as possible along each branch before backtracking. Starting from a source node, DFS moves to an unvisited neighbor, then continues deeper along that path until it reaches a node with no unvisited neighbors, at which point it backtracks to explore other paths. DFS is typically implemented using a stack data structure or recursion. It is widely used in applications like detecting cycles in graphs, topological sorting, solving mazes or puzzles, and finding connected components in a graph. The time complexity of DFS is <strong>O(V + E)</strong> for a graph represented with an adjacency list, since every vertex and edge is visited once, and O(V²) for an adjacency matrix, where each vertex examines all possible edges. The space complexity is O(V) due to the recursion stack or explicit stack and the visited list.</p>
-        <br>
-        <h2>Steps of DFS</h2>
-        <ul>
-            <li>Step 1: Choose a start node and mark it visited.</li>
-            <li>Step 2: Explore each unvisited neighbor deeply before moving to others.</li>
-            <li>Step 3: Use a stack (or recursion) to backtrack when needed.</li>
-            <li>Step 4: Repeat until all nodes are visited.</li>
-            <li>Step 5: DFS completes when there are no unvisited nodes left.</li>
-        </ul>
-    </div>
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-slate-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-all">
+                        <div class="w-full h-full bg-[#0d1527] rounded-[10px] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white">DSA Studio</span>
+                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">Graph Lab</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">Interactive Visualizer</span>
+                    </div>
+                </a>
 
-    <div id="user-input-panel">
-        <label>Vertices:</label>
-        <input type="number" id="vertex-count" min="1" value="5">
-        <label>Edges:</label>
-        <input type="text" id="edges-input" value="0-1,0-2,0-3,1-2,2-4">
-        <br><br>
-        <button class="control-button" onclick="runCustomDFS()">Run DFS</button>
-        <button class="control-button" id="nextButton" onclick="nextStep()">Next Step</button>
-    </div>
+                <div class="flex items-center gap-3">
+                    <a href="/#explore-page" class="text-xs font-semibold px-4 py-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors">
+                        ← All Algorithms
+                    </a>
+                    <a href="/quiz" class="text-xs font-semibold px-4 py-2 rounded-xl text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-md shadow-purple-500/20 hover:opacity-95 transition-all">
+                        🎯 Take Quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <div class="container">
-        <div class="graph-section">
-            <div class="graph-title">Graph</div>
-            <svg id="dfs-graph" width="450" height="350"></svg>
+    <!-- Main Content -->
+    <main class="relative z-10 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">📈 Graph Traversal</span>
+                    <span class="text-xs font-mono text-slate-400">Time: <strong class="text-purple-300 font-bold">O(V + E)</strong> | Space: <strong class="text-amber-300 font-bold">O(V)</strong></span>
+                </div>
+                <h1 class="font-outfit text-3xl sm:text-4xl font-extrabold text-white mt-1">
+                    Depth-First Search (DFS) <span class="text-gradient">Backtracking Lab</span>
+                </h1>
+            </div>
         </div>
 
-        <div class="data-structures-section">
-            <div class="data-title">Visited</div>
-            <div class="array-row" id="visited-array"></div>
-            <div class="data-title">Stack</div>
-            <div class="array-row" id="stack-array"></div>
-            <div class="data-title">State Interpretation</div>
-            <p id="interpretation-text">Click "Run DFS" to start.</p>
+        <!-- Input Bar -->
+        <div class="glass-panel rounded-3xl p-6 border border-slate-800 shadow-xl space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+                <div class="sm:col-span-3">
+                    <label class="text-xs font-mono uppercase text-slate-400 mb-1 block">Vertices Count:</label>
+                    <input type="number" id="vertex-count" value="5" min="1" max="10"
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-400">
+                </div>
+                <div class="sm:col-span-7">
+                    <label class="text-xs font-mono uppercase text-slate-400 mb-1 block">Edges (e.g. 0-1,0-2,0-3,1-2,2-4):</label>
+                    <input type="text" id="edges-input" value="0-1,0-2,0-3,1-2,2-4"
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-400">
+                </div>
+                <div class="sm:col-span-2">
+                    <button onclick="runCustomDFS()"
+                        class="w-full px-6 py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-purple-500 via-pink-600 to-cyan-500 hover:opacity-95 shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center gap-2">
+                        <span>🧗 Run DFS</span>
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div id="errorMessage" class="hidden"></div>
+        <!-- Stage Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Graph Canvas -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="glass-panel rounded-3xl p-6 border border-slate-700/80 shadow-2xl relative overflow-hidden space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono font-bold text-purple-400 uppercase">Interactive Graph Canvas</span>
+                        <span id="stepCounter" class="text-xs font-mono text-cyan-400 font-bold">Step 0 / 0</span>
+                    </div>
+
+                    <div class="flex justify-center items-center py-4 bg-slate-950/70 rounded-2xl border border-slate-800/80">
+                        <svg id="dfs-graph" width="460" height="320"></svg>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="pt-2 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <button onclick="prevStep()" id="prevButton" disabled
+                                class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-850 border border-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-all">
+                                ← Prev
+                            </button>
+                            <button onclick="nextStep()" id="nextButton" disabled
+                                class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md shadow-cyan-600/30 disabled:opacity-40 disabled:pointer-events-none transition-all">
+                                Next Step →
+                            </button>
+                        </div>
+                        <button onclick="toggleAutoPlay()" id="playPauseBtn"
+                            class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2">
+                            <span id="playIcon">▶</span>
+                            <span id="playText">Auto Play</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Call Stack & Visited State -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-5">
+                    
+                    <div>
+                        <div class="text-xs font-mono uppercase text-emerald-400 font-bold mb-2">✅ Visited Nodes (Discovery Order):</div>
+                        <div id="visited-array" class="flex flex-wrap gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800 min-h-[48px] items-center">
+                            <!-- Injected visited nodes -->
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-xs font-mono uppercase text-purple-400 font-bold mb-2">🥞 DFS Call Stack (LIFO):</div>
+                        <div id="stack-array" class="flex flex-wrap gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800 min-h-[48px] items-center">
+                            <!-- Injected stack elements -->
+                        </div>
+                    </div>
+
+                    <!-- Explanation -->
+                    <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                        <div class="text-xs font-mono uppercase text-cyan-400 font-bold">🧠 State Interpretation:</div>
+                        <p id="interpretation-text" class="text-xs text-slate-300 leading-relaxed">
+                            Click "Run DFS" to start deep path exploration and backtracking.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
 
     <script>
         let graph = {};
         let steps = [];
         let currentStepIndex = -1;
         let ALL_NODES = [];
+        let simulation, svg, nodeElements, linkElements, labels;
+        let autoPlayTimer = null;
 
-        function showMessage(msg) {
-            const div = document.getElementById('errorMessage');
-            div.textContent = msg;
-            div.classList.toggle('hidden', !msg);
-        }
+        function runCustomDFS() {
+            stopAutoPlay();
+            const vertexCount = parseInt(document.getElementById('vertex-count').value);
+            const edgesInput = document.getElementById('edges-input').value.trim();
 
-        function parseGraph() {
-            const n = parseInt(document.getElementById('vertex-count').value);
-            const edgesText = document.getElementById('edges-input').value.trim();
-            if (n <= 0) {
-                showMessage("Vertices must be >=1");
-                return false;
-            }
             graph = {};
             ALL_NODES = [];
-            for (let i = 0; i < n; i++) {
+            for (let i = 0; i < vertexCount; i++) {
                 graph[i] = [];
                 ALL_NODES.push(i);
             }
-            if (edgesText) {
-                const edges = edgesText.split(',');
-                for (const e of edges) {
-                    const [u, v] = e.split('-').map(Number);
-                    if (u >= n || v >= n) {
-                        showMessage("Invalid edge");
-                        return false;
-                    }
-                    graph[u].push(v);
-                    graph[v].push(u);
-                }
-            }
-            showMessage('');
-            return true;
-        }
 
-        function dfsSteps(start) {
-            let visited = new Set();
-            let stack = [start];
-            let result = [];
-            while (stack.length > 0) {
-                let curr = stack.pop();
-                if (!visited.has(curr)) {
-                    visited.add(curr);
-                    result.push({
-                        visited: [...visited],
-                        stack: [...stack],
-                        interpretation: `Visited node ${curr}`
-                    });
-                    let neighbors = graph[curr].filter(v => !visited.has(v)).sort((a, b) => b - a);
-                    stack.push(...neighbors);
-                } else {
-                    result.push({ visited: [...visited], stack: [...stack], interpretation: `Backtracking from node ${curr}` });
-                }
-            }
-            return result;
-        }
-
-        function renderStep() {
-            const svg = document.getElementById('dfs-graph');
-            const visitedDiv = document.getElementById('visited-array');
-            const stackDiv = document.getElementById('stack-array');
-            const interp = document.getElementById('interpretation-text');
-            svg.innerHTML = '';
-            visitedDiv.innerHTML = '';
-            stackDiv.innerHTML = '';
-
-            if (currentStepIndex < 0 || steps.length === 0) {
-                interp.textContent = 'Click "Run DFS"';
-                return;
-            }
-
-            const phase = steps[currentStepIndex];
-            const W = 450, H = 350, R = 120, radius = 20;
-            let pos = {};
-            ALL_NODES.forEach((n, i) => {
-                const angle = 2 * Math.PI * i / ALL_NODES.length - Math.PI / 2;
-                pos[n] = { x: W / 2 + R * Math.cos(angle), y: H / 2 + R * Math.sin(angle) };
-            });
-
-            ALL_NODES.forEach(u => {
-                graph[u].forEach(v => {
-                    if (u < v) {
-                        let line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-                        line.setAttribute('x1', pos[u].x);
-                        line.setAttribute('y1', pos[u].y);
-                        line.setAttribute('x2', pos[v].x);
-                        line.setAttribute('y2', pos[v].y);
-                        line.setAttribute('class', 'edge');
-                        svg.appendChild(line);
+            if (edgesInput) {
+                const edgeList = edgesInput.split(',');
+                edgeList.forEach(e => {
+                    const [u, v] = e.split('-').map(x => parseInt(x.trim()));
+                    if (!isNaN(u) && !isNaN(v) && graph[u] && graph[v]) {
+                        graph[u].push(v);
+                        graph[v].push(u);
                     }
                 });
+            }
+
+            // Generate DFS steps
+            steps = [];
+            let visited = [];
+            let stack = [];
+
+            function dfsRecursive(u) {
+                visited.push(u);
+                stack.push(u);
+                steps.push({
+                    currentNode: u,
+                    stack: [...stack],
+                    visited: [...visited],
+                    stateInterpretation: `Diving into node ${u}. Marked visited and pushed to call stack.`
+                });
+
+                for (let v of (graph[u] || [])) {
+                    if (!visited.includes(v)) {
+                        dfsRecursive(v);
+                        steps.push({
+                            currentNode: u,
+                            stack: [...stack],
+                            visited: [...visited],
+                            stateInterpretation: `Backtracked to node ${u} from neighbor branch.`
+                        });
+                    }
+                }
+
+                stack.pop();
+            }
+
+            dfsRecursive(0);
+
+            steps.push({
+                currentNode: null,
+                stack: [],
+                visited: [...visited],
+                stateInterpretation: "Call stack unwound completely. DFS traversal finished!"
             });
 
-            ALL_NODES.forEach(n => {
-                let circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-                circle.setAttribute('cx', pos[n].x);
-                circle.setAttribute('cy', pos[n].y);
-                circle.setAttribute('r', radius);
-                circle.setAttribute('class', 'node');
-                if (phase.visited.includes(n)) circle.classList.add('node-black');
-                else if (phase.stack.includes(n)) circle.classList.add('node-blue');
-                svg.appendChild(circle);
+            drawGraph();
+            currentStepIndex = 0;
+            renderActiveStep();
+        }
 
-                let label = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-                label.setAttribute('x', pos[n].x);
-                label.setAttribute('y', pos[n].y + 5);
-                label.setAttribute('text-anchor', 'middle');
-                label.setAttribute('class', 'node-label');
-                label.textContent = n;
-                svg.appendChild(label);
+        function drawGraph() {
+            svg = d3.select("#dfs-graph");
+            svg.selectAll("*").remove();
+
+            const nodes = ALL_NODES.map(d => ({ id: d }));
+            const links = [];
+            for (let u in graph) {
+                for (let v of graph[u]) {
+                    if (parseInt(u) < v) links.push({ source: parseInt(u), target: v });
+                }
+            }
+
+            simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(90))
+                .force("charge", d3.forceManyBody().strength(-240))
+                .force("center", d3.forceCenter(230, 160));
+
+            linkElements = svg.append("g")
+                .selectAll("line")
+                .data(links)
+                .join("line")
+                .attr("class", "edge");
+
+            nodeElements = svg.append("g")
+                .selectAll("circle")
+                .data(nodes)
+                .join("circle")
+                .attr("r", 20)
+                .attr("class", "graph-node")
+                .attr("fill", "#1e293b")
+                .attr("stroke", "#a855f7")
+                .attr("stroke-width", 2.5);
+
+            labels = svg.append("g")
+                .selectAll("text")
+                .data(nodes)
+                .join("text")
+                .text(d => d.id)
+                .attr("font-family", "Outfit")
+                .attr("font-weight", "bold")
+                .attr("font-size", 14)
+                .attr("fill", "#ede9fe")
+                .attr("text-anchor", "middle")
+                .attr("dy", 5);
+
+            simulation.on("tick", () => {
+                linkElements
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                nodeElements
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                labels
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
             });
+        }
 
-            phase.visited.forEach(v => {
-                let div = document.createElement('div');
-                div.className = 'array-cell visited-cell';
-                div.textContent = v;
-                visitedDiv.appendChild(div);
-            });
+        function renderActiveStep() {
+            if (steps.length === 0 || currentStepIndex < 0) return;
 
-            phase.stack.forEach(s => {
-                let div = document.createElement('div');
-                div.className = 'array-cell stack-cell';
-                div.textContent = s;
-                stackDiv.appendChild(div);
-            });
+            const step = steps[currentStepIndex];
 
-            interp.textContent = phase.interpretation;
+            // Update Graph Colors
+            if (nodeElements) {
+                nodeElements.attr("fill", d => {
+                    if (d.id === step.currentNode) return "#f59e0b"; // Current amber
+                    if (step.stack.includes(d.id)) return "#a855f7"; // In stack purple
+                    if (step.visited.includes(d.id)) return "#10b981"; // Visited emerald
+                    return "#1e293b";
+                }).attr("stroke", d => {
+                    if (d.id === step.currentNode) return "#fcd34d";
+                    if (step.stack.includes(d.id)) return "#c084fc";
+                    if (step.visited.includes(d.id)) return "#34d399";
+                    return "#a855f7";
+                });
+            }
+
+            // Update Visited Chips
+            const visitedContainer = document.getElementById('visited-array');
+            visitedContainer.innerHTML = step.visited.map(v => `
+                <span class="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs border border-emerald-500/40">${v}</span>
+            `).join('');
+
+            // Update Stack Chips
+            const stackContainer = document.getElementById('stack-array');
+            if (step.stack.length === 0) {
+                stackContainer.innerHTML = `<span class="text-xs text-slate-500 font-mono">Call stack is empty</span>`;
+            } else {
+                stackContainer.innerHTML = step.stack.map((s, idx) => `
+                    <span class="px-3 py-1 rounded-xl ${idx === step.stack.length - 1 ? 'bg-purple-500/30 text-purple-200 border-purple-400' : 'bg-slate-800 text-slate-300 border-slate-700'} font-mono font-bold text-xs border">${s}</span>
+                `).join('');
+            }
+
+            // Interpretation
+            document.getElementById('interpretation-text').innerText = step.stateInterpretation;
+
+            // Step counter
+            document.getElementById('stepCounter').innerText = `Step ${currentStepIndex + 1} of ${steps.length}`;
+            document.getElementById('prevButton').disabled = (currentStepIndex <= 0);
+            document.getElementById('nextButton').disabled = (currentStepIndex >= steps.length - 1);
         }
 
         function nextStep() {
             if (currentStepIndex < steps.length - 1) {
                 currentStepIndex++;
-                renderStep();
+                renderActiveStep();
+            } else {
+                stopAutoPlay();
             }
         }
 
-        function runCustomDFS() {
-            if (!parseGraph()) return;
-            currentStepIndex = -1;
-            steps = dfsSteps(0);
-            if (steps.length > 0) {
-                currentStepIndex = 0;
-                renderStep();
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderActiveStep();
             }
         }
+
+        function toggleAutoPlay() {
+            if (autoPlayTimer) stopAutoPlay();
+            else startAutoPlay();
+        }
+
+        function startAutoPlay() {
+            if (currentStepIndex >= steps.length - 1) currentStepIndex = 0;
+            document.getElementById('playIcon').innerText = '⏸';
+            document.getElementById('playText').innerText = 'Pause';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-md shadow-rose-600/30 transition-all flex items-center gap-2';
+            autoPlayTimer = setInterval(nextStep, 900);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+            }
+            document.getElementById('playIcon').innerText = '▶';
+            document.getElementById('playText').innerText = 'Auto Play';
+            document.getElementById('playPauseBtn').className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition-all flex items-center gap-2';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            runCustomDFS();
+        });
     </script>
-
 </body>
 
 </html>
