@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Crafter: ε-NFA to DFA Alchemist (Gate Smashers Lec-23)</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                    colors: {
+                        alch: {
+                            cyan: '#06b6d4',
+                            glow: '#22d3ee',
+                            purple: '#a855f7',
+                            violet: '#c084fc',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            rose: '#f43f5e',
+                            dark: '#070b14',
+                            surface: '#0b1329',
+                            card: '#101a38',
+                            border: '#1e293b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+
+        .glass-panel {
+            background: rgba(11, 19, 41, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(16, 26, 56, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        /* Animated Dashed line for Epsilon Portals */
+        @keyframes dashMove {
+            to {
+                stroke-dashoffset: -24;
+            }
+        }
+        .portal-path {
+            stroke-dasharray: 6 4;
+            animation: dashMove 1.2s linear infinite;
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.4)); }
+            50% { filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.85)); }
+        }
+
+        .state-node-group {
+            cursor: grab;
+            transition: transform 0.15s ease-out;
+        }
+        .state-node-group:active {
+            cursor: grabbing;
+        }
+        .state-node-group.selected circle.outer-circle {
+            stroke: #f59e0b !important;
+            stroke-width: 4 !important;
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.7));
+        }
+
+        .edge-active {
+            stroke: #f59e0b !important;
+            stroke-width: 4.5 !important;
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.9));
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-[#070b14] text-slate-100 min-h-screen font-sans selection:bg-purple-500/30 selection:text-purple-200">
+
+    <!-- Ambient Alchemy Glow -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/4 -right-32 w-[30rem] h-[30rem] bg-purple-600/15 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-32 left-1/3 w-[28rem] h-[28rem] bg-emerald-600/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <nav class="relative z-30 border-b border-slate-800/80 glass-panel sticky top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            <!-- Left: Logo & Subject Breadcrumb -->
+            <div class="flex items-center gap-3">
+                <a href="/" class="flex items-center gap-2 group">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-105 transition-transform">
+                        <span class="text-white text-lg">⚡</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-sm sm:text-base text-white tracking-tight">Portal Crafter</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-950/80 text-purple-300 border border-purple-500/40">ε-NFA → DFA</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-mono hidden sm:block">Gate Smashers Lec-23 Engine • Fully Customizable</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Center: Navigation Links -->
+            <div class="hidden md:flex items-center gap-2">
+                <a href="/dfa" class="px-3 py-1.5 rounded-xl text-xs font-mono text-cyan-300 hover:bg-slate-800/60 transition-colors">🤖 DFA Dungeon</a>
+                <a href="/nfa" class="px-3 py-1.5 rounded-xl text-xs font-mono text-pink-300 hover:bg-slate-800/60 transition-colors">🌌 NFA Lab</a>
+                <a href="/enfa" class="px-3 py-1.5 rounded-xl text-xs font-mono text-purple-300 bg-purple-950/60 border border-purple-500/40 font-bold">🔮 ε-NFA Converter</a>
+                <a href="/enfa-eliminate" class="px-3 py-1.5 rounded-xl text-xs font-mono text-pink-300 hover:bg-slate-800/60 transition-colors">⚡ ε-Eliminator</a>
+                <a href="/moore-mealy" class="px-3 py-1.5 rounded-xl text-xs font-mono text-amber-300 hover:bg-slate-800/60 transition-colors">🦹 Moore→Mealy</a>
+                <a href="/quiz" class="px-3 py-1.5 rounded-xl text-xs font-mono text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors">🎯 Quiz</a>
+            </div>
+
+            <!-- Right Controls: Presets, Audio & Help -->
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAudio()" id="btn-audio" class="p-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-slate-500 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1.5">
+                    <span id="audio-icon">🔊</span>
+                    <span id="audio-label" class="hidden sm:inline font-mono">Sound</span>
+                </button>
+                <a href="/" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all">
+                    Dashboard
+                </a>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- ========================================================================= -->
+        <!-- TOP BANNER: PRESETS, ALPHABET EDITOR & 2^N POWER SET METER                 -->
+        <!-- ========================================================================= -->
+        <div class="glass-card rounded-3xl p-5 border border-purple-500/30 shadow-2xl space-y-4">
+            
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <!-- Left Title & Presets -->
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                            Gate Smashers Lecture 23
+                        </span>
+                        <span class="text-xs text-slate-400">Direct Conversion Algorithm</span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-outfit font-black text-white tracking-tight">
+                        Portal Crafter: <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">The ε-NFA to DFA Alchemist</span>
+                    </h1>
+                    <p class="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                        Customize any <span class="text-purple-300 font-mono font-bold">ε-NFA</span> with states, custom symbols, and free <span class="text-purple-400 font-mono font-bold">ε-wormholes</span>. Watch the engine automatically forge fused composite super-nodes into an equivalent <span class="text-cyan-300 font-mono font-bold">DFA</span>!
+                    </p>
+                </div>
+
+                <!-- 1-Click Presets -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-mono text-slate-400">1-Click Presets:</span>
+                    <button onclick="loadPreset('gate_smashers_23')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-950/70 hover:bg-purple-900 text-purple-200 border border-purple-500/50 shadow-md shadow-purple-900/30 transition-all flex items-center gap-1.5">
+                        <span>⭐ Video Example (Lec 23)</span>
+                    </button>
+                    <button onclick="loadPreset('chained_epsilon')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/40 transition-all flex items-center gap-1.5">
+                        <span>🌀 Chained ε-Portal</span>
+                    </button>
+                    <button onclick="loadPreset('blank')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-700 transition-all">
+                        <span>🧹 Blank Canvas</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Interactive Settings & 2^n Power Set Meter -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 pt-3 border-t border-slate-800/80 items-center">
+                
+                <!-- Alphabet Σ Editor (4 Cols) -->
+                <div class="md:col-span-5 flex items-center gap-3 bg-slate-900/70 p-2.5 rounded-2xl border border-slate-800">
+                    <span class="text-xs font-mono text-slate-400 font-semibold whitespace-nowrap">Alphabet (Σ):</span>
+                    <input type="text" id="alphabet-input" value="a, b" onchange="updateAlphabetFromInput()" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-400" placeholder="e.g. a, b or 0, 1">
+                    <span class="text-[11px] font-mono text-purple-400 bg-purple-950/60 px-2 py-1 rounded-lg border border-purple-500/30" title="Epsilon (free portal) is always enabled!">+ ε (free)</span>
+                    <button onclick="updateAlphabetFromInput()" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-colors">Set</button>
+                </div>
+
+                <!-- Power Set 2^n Meter (7 Cols) -->
+                <div class="md:col-span-7 flex items-center justify-between gap-4 bg-slate-900/70 p-2.5 rounded-2xl border border-slate-800 font-mono text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="text-purple-400 text-base">📊</span>
+                        <div>
+                            <span class="text-slate-400">Power Set Bound: </span>
+                            <span id="power-set-formula" class="font-bold text-white">2ⁿ = 2³ = 8 max DFA states</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <span class="text-slate-400">Actual Reachable: </span>
+                            <span id="reachable-states-count" class="font-bold text-emerald-400">5 / 8</span>
+                        </div>
+                        <div class="w-24 bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                            <div id="power-set-progress" class="bg-gradient-to-r from-purple-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 62.5%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- CORE SPLIT-SCREEN WORKBENCH: ε-NFA CANVAS (LEFT) vs EQUIVALENT DFA (RIGHT)-->
+        <!-- ========================================================================= -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- LEFT: ε-NFA WORKBENCH (6 Cols) -->
+            <div class="lg:col-span-6 glass-card rounded-3xl p-4 sm:p-5 border border-purple-500/30 shadow-2xl space-y-4 flex flex-col justify-between">
+                
+                <div class="space-y-3">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">🌀</span>
+                            <div>
+                                <h2 class="font-outfit font-bold text-base text-white">1. Input ε-NFA Machine</h2>
+                                <p class="text-[11px] text-slate-400 font-mono">Build with states & free ε-wormholes</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-purple-400 animate-ping"></span>
+                            <span class="text-[11px] font-mono text-purple-300">Live Custom Graph</span>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar: Add State, Connect, Toggle Final, Set Start -->
+                    <div class="flex items-center gap-2 flex-wrap text-xs font-mono">
+                        <button onclick="addNewNfaState()" class="px-2.5 py-1.5 rounded-xl font-bold bg-purple-600 hover:bg-purple-500 text-white transition-all flex items-center gap-1">
+                            <span>+ Add State</span>
+                        </button>
+                        <button id="btn-connect-mode" onclick="toggleConnectMode()" class="px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:bg-purple-950/40 transition-all flex items-center gap-1">
+                            <span>🔗 Connect Arrow</span>
+                        </button>
+                        <button id="btn-toggle-final" onclick="toggleSelectedAsFinal()" class="px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-950/40 transition-all flex items-center gap-1">
+                            <span>🏆 Toggle Final</span>
+                        </button>
+                        <button onclick="setSelectedAsStart()" class="px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-950/40 transition-all flex items-center gap-1">
+                            <span>▶ Set Start</span>
+                        </button>
+                        <button onclick="deleteSelectedNode()" class="px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-rose-400 border border-rose-500/40 hover:bg-rose-950/40 transition-all">
+                            <span>🗑️ Delete</span>
+                        </button>
+                    </div>
+
+                    <!-- Connection Helper Banner -->
+                    <div id="connect-banner" class="hidden glass-panel rounded-xl p-2.5 border border-purple-500/50 bg-purple-950/40 flex items-center justify-between text-xs font-mono text-purple-200">
+                        <div class="flex items-center gap-2">
+                            <span class="animate-bounce">🔗</span>
+                            <span id="connect-hint-text">Click the <strong>SOURCE</strong> state to begin.</span>
+                        </div>
+                        <button onclick="cancelConnectMode()" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-[11px]">Cancel</button>
+                    </div>
+
+                    <!-- State Selector Quick Pills -->
+                    <div class="flex items-center justify-between flex-wrap gap-2 px-1 text-xs font-mono bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-slate-400">States:</span>
+                            <div id="nfa-state-pills" class="flex items-center gap-1 flex-wrap"></div>
+                        </div>
+                        <div class="text-[11px] text-amber-300">
+                            Selected: <span id="nfa-selected-label" class="font-bold text-amber-400">q0</span>
+                        </div>
+                    </div>
+
+                    <!-- SVG Canvas for ε-NFA -->
+                    <div class="relative w-full overflow-hidden bg-slate-950/90 rounded-2xl border border-slate-800" style="height: 380px;">
+                        <svg id="enfa-canvas" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="arrow-cyan" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#22d3ee" />
+                                </marker>
+                                <marker id="arrow-purple" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#c084fc" />
+                                </marker>
+                                <marker id="arrow-slate" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8" />
+                                </marker>
+                                <marker id="arrow-amber" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" />
+                                </marker>
+                            </defs>
+
+                            <!-- Dot Grid -->
+                            <g opacity="0.06" stroke="#38bdf8" stroke-width="1">
+                                <line x1="0" y1="95" x2="800" y2="95" stroke-dasharray="6 6" />
+                                <line x1="0" y1="190" x2="800" y2="190" stroke-dasharray="6 6" />
+                                <line x1="0" y1="285" x2="800" y2="285" stroke-dasharray="6 6" />
+                                <line x1="150" y1="0" x2="150" y2="400" stroke-dasharray="6 6" />
+                                <line x1="300" y1="0" x2="300" y2="400" stroke-dasharray="6 6" />
+                                <line x1="450" y1="0" x2="450" y2="400" stroke-dasharray="6 6" />
+                            </g>
+
+                            <!-- Layers -->
+                            <g id="enfa-edges-layer"></g>
+                            <g id="enfa-nodes-layer"></g>
+                            <g id="enfa-clones-layer"></g>
+                        </svg>
+
+                        <!-- Canvas Legend Overlay -->
+                        <div class="absolute bottom-2 left-2 flex items-center gap-3 text-[10px] font-mono bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Start</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full border border-emerald-400"></span> Final</span>
+                            <span class="flex items-center gap-1 text-purple-300 font-bold">--- ε-Portal (Free Move)</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ε-Closure of States Table -->
+                <div class="mt-3 bg-slate-950/70 p-3 rounded-2xl border border-slate-800/80 space-y-2">
+                    <div class="flex items-center justify-between text-xs font-mono">
+                        <span class="text-purple-300 font-bold flex items-center gap-1">
+                            <span>🔮</span> ε-Closure Table (Free Reachable States)
+                        </span>
+                        <span class="text-[10px] text-slate-400">0 or more ε-transitions</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs font-mono">
+                            <tbody id="epsilon-closures-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT: EQUIVALENT DFA WORKBENCH (6 Cols) -->
+            <div class="lg:col-span-6 glass-card rounded-3xl p-4 sm:p-5 border border-cyan-500/30 shadow-2xl space-y-4 flex flex-col justify-between">
+                
+                <div class="space-y-3">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">💎</span>
+                            <div>
+                                <h2 class="font-outfit font-bold text-base text-white">2. Equivalent DFA Machine</h2>
+                                <p class="text-[11px] text-slate-400 font-mono">Fused Composite Super-Nodes</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Alias Toggle: Clean Names (A, B, C) vs Subset Notation ([q0, q1]) -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-mono text-slate-400">Notation:</span>
+                            <button id="btn-notation-toggle" onclick="toggleNotation()" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-cyan-950/70 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-900/60 transition-colors">
+                                Subset [q₀, q₁]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Control Bar -->
+                    <div class="flex items-center justify-between flex-wrap gap-2 text-xs font-mono bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800">
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="stepPrev()" class="px-2.5 py-1 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-colors">
+                                ◀ Prev
+                            </button>
+                            <button onclick="stepNext()" class="px-3 py-1 rounded-xl font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md shadow-cyan-600/30 transition-colors">
+                                Next Step ▶
+                            </button>
+                            <button id="btn-autoplay" onclick="toggleAutoPlay()" class="px-2.5 py-1 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-purple-300 border border-purple-500/40 transition-colors flex items-center gap-1">
+                                <span id="autoplay-icon">▶▶</span>
+                                <span id="autoplay-label">Auto-Play</span>
+                            </button>
+                            <button onclick="solveAllDfaSteps()" class="px-2.5 py-1 rounded-xl font-bold bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/40 transition-colors">
+                                ⚡ Generate All
+                            </button>
+                            <button onclick="resetDfaSteps()" class="px-2 py-1 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-colors">
+                                ⏮ Reset
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-2 text-slate-400 text-[11px]">
+                            <span>Speed:</span>
+                            <input type="range" id="speed-slider" min="400" max="2400" step="200" value="1200" class="w-20 accent-cyan-400 cursor-pointer">
+                            <span id="speed-label">1.2s</span>
+                        </div>
+                    </div>
+
+                    <!-- Step Progress Status Pill -->
+                    <div class="flex items-center justify-between text-xs font-mono px-1">
+                        <span class="text-slate-400">Generation Progress:</span>
+                        <span id="step-counter-badge" class="font-bold text-cyan-400 px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30">
+                            Step 0 / 0
+                        </span>
+                    </div>
+
+                    <!-- SVG Canvas for DFA -->
+                    <div class="relative w-full overflow-hidden bg-slate-950/90 rounded-2xl border border-slate-800" style="height: 380px;">
+                        <svg id="dfa-canvas" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="dfa-arrow-cyan" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#22d3ee" />
+                                </marker>
+                                <marker id="dfa-arrow-emerald" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#34d399" />
+                                </marker>
+                                <marker id="dfa-arrow-purple" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#c084fc" />
+                                </marker>
+                                <marker id="dfa-arrow-slate" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8" />
+                                </marker>
+                            </defs>
+
+                            <!-- Dot Grid -->
+                            <g opacity="0.06" stroke="#38bdf8" stroke-width="1">
+                                <line x1="0" y1="95" x2="800" y2="95" stroke-dasharray="6 6" />
+                                <line x1="0" y1="190" x2="800" y2="190" stroke-dasharray="6 6" />
+                                <line x1="0" y1="285" x2="800" y2="285" stroke-dasharray="6 6" />
+                                <line x1="150" y1="0" x2="150" y2="400" stroke-dasharray="6 6" />
+                                <line x1="300" y1="0" x2="300" y2="400" stroke-dasharray="6 6" />
+                                <line x1="450" y1="0" x2="450" y2="400" stroke-dasharray="6 6" />
+                            </g>
+
+                            <!-- Layers -->
+                            <g id="dfa-edges-layer"></g>
+                            <g id="dfa-nodes-layer"></g>
+                            <g id="dfa-tokens-layer"></g>
+                        </svg>
+
+                        <!-- Canvas Legend Overlay -->
+                        <div class="absolute bottom-2 left-2 flex items-center gap-3 text-[10px] font-mono bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Start</span>
+                            <span class="flex items-center gap-1 text-emerald-300"><span class="w-2.5 h-2.5 rounded-full border border-emerald-400"></span> 🏆 Final State</span>
+                            <span class="text-slate-400">Draggable Crystal Nodes</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Final States Bound Summary Card -->
+                <div class="mt-3 bg-slate-950/70 p-3 rounded-2xl border border-slate-800/80 space-y-1 font-mono text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-emerald-400 font-bold flex items-center gap-1">
+                            <span>🏆</span> Final States Rule:
+                        </span>
+                        <span id="final-states-d-readout" class="text-emerald-300 font-bold">Contains original final q2</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">
+                        Any composite DFA state that contains at least one original final state becomes a Final State (double ring).
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- LIVE NARRATION & MATHEMATICAL STEP-BY-STEP DERIVATION CARD                -->
+        <!-- ========================================================================= -->
+        <div class="glass-card rounded-3xl p-5 border border-purple-500/40 shadow-2xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📜</span>
+                    <div>
+                        <h3 class="font-outfit font-bold text-sm text-white">Live Step-by-Step Derivation & Lecture 23 Narration</h3>
+                        <p class="text-[11px] font-mono text-purple-300">Mathematical Proof: NextState(S, x) = ε-closure( ⋃ δ(q, x) )</p>
+                    </div>
+                </div>
+                <span id="math-step-tag" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                    Step 1: Start State Discovery
+                </span>
+            </div>
+
+            <!-- Active Formula Card -->
+            <div class="bg-slate-950/90 rounded-2xl p-4 border border-slate-800 space-y-3 font-mono">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div class="text-slate-300 font-semibold" id="narration-headline">
+                        Start State: ε-closure(q₀) = [q₀, q₁]
+                    </div>
+                    <div class="text-cyan-400 text-[11px]" id="narration-timestamp">
+                        Video Ref: [01:12 - 02:18]
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-purple-950/30 border border-purple-500/30 text-xs sm:text-sm text-purple-200 leading-relaxed" id="narration-formula-box">
+                    $$\text{Start State} = \varepsilon\text{-closure}(q_0) = \{q_0, q_1\}$$
+                    Since $q_0 \xrightarrow{\varepsilon} q_1$, BitBot teleports instantly through the wormhole without spending input energy!
+                </div>
+
+                <div class="text-xs text-slate-300 leading-relaxed" id="narration-explanation">
+                    The combined subset $[q_0, q_1]$ is crowned as the Initial State of our newly forged DFA.
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- DUAL-MACHINE STRING RACE: RUN TEST STRINGS ON BOTH MACHINES SIMULTANEOUSLY-->
+        <!-- ========================================================================= -->
+        <div class="glass-card rounded-3xl p-5 border border-cyan-500/30 shadow-2xl space-y-4">
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🏁</span>
+                    <div>
+                        <h3 class="font-outfit font-bold text-base text-white">Dual-Machine Race (Equivalence Proof)</h3>
+                        <p class="text-xs text-slate-400">Run any string simultaneously on ε-NFA (with wormhole teleports) vs DFA (deterministic token)</p>
+                    </div>
+                </div>
+
+                <!-- Test Presets -->
+                <div class="flex items-center gap-1.5 flex-wrap text-xs font-mono">
+                    <span class="text-slate-400">Try String:</span>
+                    <button onclick="setRaceString('aabba')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800">"aabba"</button>
+                    <button onclick="setRaceString('ba')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800">"ba"</button>
+                    <button onclick="setRaceString('a')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-pink-300 border border-slate-800">"a"</button>
+                    <button onclick="setRaceString('b')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-pink-300 border border-slate-800">"b"</button>
+                    <button onclick="setRaceString('ab')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-purple-300 border border-slate-800">"ab"</button>
+                </div>
+            </div>
+
+            <!-- Race Controls & String Input -->
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <div class="flex-1 w-full relative">
+                    <input type="text" id="race-string-input" value="aabba" class="w-full bg-slate-950 border border-slate-700 rounded-2xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none focus:border-cyan-400 placeholder:text-slate-600" placeholder="Type test string over alphabet (e.g. aabba)">
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="startStringRace()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-2xl font-bold text-xs bg-gradient-to-r from-cyan-500 to-purple-600 hover:opacity-95 text-white shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center gap-2">
+                        <span>▶ Run Race</span>
+                    </button>
+                    <button onclick="stepRaceString()" class="px-3.5 py-2.5 rounded-2xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-colors">
+                        Step ⏭
+                    </button>
+                    <button onclick="resetRaceString()" class="px-3.5 py-2.5 rounded-2xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-colors">
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Race Ribbon Status & Tape -->
+            <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-3 font-mono">
+                <div class="flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-400">Tape Runner:</span>
+                        <div id="race-tape-cells" class="flex items-center gap-1.5 flex-wrap"></div>
+                    </div>
+                    <div id="race-result-badge" class="font-bold text-xs px-3 py-1 rounded-xl bg-slate-900 text-slate-400 border border-slate-800">
+                        Ready to simulate
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80 text-xs">
+                    <!-- Left: NFA Status -->
+                    <div class="bg-purple-950/20 p-3 rounded-xl border border-purple-500/30 flex items-center justify-between">
+                        <div>
+                            <span class="text-purple-300 font-bold">ε-NFA Clones:</span>
+                            <div id="race-nfa-status" class="text-slate-200 text-xs mt-0.5">Start in ε-closure(q₀): { q₀, q₁ }</div>
+                        </div>
+                        <span id="race-nfa-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 text-slate-400">Pending</span>
+                    </div>
+
+                    <!-- Right: DFA Status -->
+                    <div class="bg-cyan-950/20 p-3 rounded-xl border border-cyan-500/30 flex items-center justify-between">
+                        <div>
+                            <span class="text-cyan-300 font-bold">DFA Token:</span>
+                            <div id="race-dfa-status" class="text-slate-200 text-xs mt-0.5">Start in [q₀, q₁]</div>
+                        </div>
+                        <span id="race-dfa-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 text-slate-400">Pending</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- COMPLETE TRANSITION MATRIX & EXPORT HUB                                   -->
+        <!-- ========================================================================= -->
+        <div class="glass-card rounded-3xl p-5 border border-slate-800 shadow-2xl space-y-4">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📊</span>
+                    <div>
+                        <h3 class="font-outfit font-bold text-base text-white">Transition Relations & Derivation Hub</h3>
+                        <p class="text-xs text-slate-400 font-mono">Interactive Matrix Tables with Live Edit and Derivation Tooltips</p>
+                    </div>
+                </div>
+
+                <!-- Export Buttons -->
+                <div class="flex items-center gap-2">
+                    <button onclick="exportToJson()" class="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-700 transition-colors flex items-center gap-1.5">
+                        <span>📥 Export JSON</span>
+                    </button>
+                    <button onclick="exportToMarkdown()" class="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-900 hover:bg-slate-800 text-purple-300 border border-slate-700 transition-colors flex items-center gap-1.5">
+                        <span>📋 Copy Markdown Notes</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Transition Tables -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Left: Editable ε-NFA Transition Matrix (5 Cols) -->
+                <div class="lg:col-span-5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-mono font-bold text-purple-300">ε-NFA Transition Table δ</span>
+                        <span class="text-[10px] font-mono text-slate-500">Edit cells: comma-separated targets</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-800">
+                        <table class="w-full text-left text-xs font-mono">
+                            <thead class="bg-slate-900 text-slate-300 border-b border-slate-800" id="matrix-nfa-thead">
+                                <!-- Populated dynamically -->
+                            </thead>
+                            <tbody id="matrix-nfa-tbody" class="divide-y divide-slate-800/60 bg-slate-950/70 text-slate-200">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right: Generated Equivalent DFA Table with Derivations (7 Cols) -->
+                <div class="lg:col-span-7 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-mono font-bold text-cyan-300">Equivalent DFA Transition Table δ'</span>
+                        <span class="text-[10px] font-mono text-emerald-400">🏆 = Contains original final state</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-800">
+                        <table class="w-full text-left text-xs font-mono">
+                            <thead class="bg-slate-900 text-slate-300 border-b border-slate-800" id="matrix-dfa-thead">
+                                <!-- Populated dynamically -->
+                            </thead>
+                            <tbody id="matrix-dfa-tbody" class="divide-y divide-slate-800/60 bg-slate-950/70 text-slate-200">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal: Transition Symbol Chooser -->
+    <div id="modal-symbol-chooser" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="max-w-sm w-full glass-panel rounded-3xl p-6 border border-purple-500/40 shadow-2xl space-y-4">
+            <div class="space-y-1 text-center">
+                <div class="text-2xl">🔀</div>
+                <h3 class="font-outfit text-base font-bold text-white">Select Transition Symbol</h3>
+                <p id="symbol-modal-desc" class="text-xs text-slate-300 font-mono">From q0 → q1</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-2" id="symbol-buttons-container">
+                <!-- Dynamically populated from Alphabet + Epsilon -->
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <button onclick="removePendingTransition()" class="flex-1 py-2 rounded-xl text-xs font-bold text-rose-400 bg-rose-950/40 hover:bg-rose-900/40 border border-rose-500/30 transition-colors">
+                    Delete Link
+                </button>
+                <button onclick="closeSymbolModal()" class="flex-1 py-2 rounded-xl text-xs font-bold text-slate-400 bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden bg-slate-900/95 border border-purple-500/60 text-purple-200 text-xs font-mono px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 transition-all">
+        <span id="toast-icon">✨</span>
+        <span id="toast-text">Message</span>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- ALGORITHMIC ENGINE & GAME LOGIC                                           -->
+    <!-- ========================================================================= -->
+    <script>
+        // ==========================================
+        // 1. SOUND EFFECTS (WEB AUDIO API)
+        // ==========================================
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = document.getElementById('audio-icon');
+            const label = document.getElementById('audio-label');
+            if (isAudioMuted) {
+                if (icon) icon.textContent = '🔇';
+                if (label) label.textContent = 'Muted';
+            } else {
+                if (icon) icon.textContent = '🔊';
+                if (label) label.textContent = 'Sound';
+                playBeep(640, 0.08, 'sine');
+            }
+        }
+
+        function playBeep(freq = 440, duration = 0.1, type = 'sine') {
+            if (isAudioMuted) return;
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + duration);
+        }
+
+        function playTeleportSound() {
+            if (isAudioMuted) return;
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(320, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18);
+            gain.gain.setValueAtTime(0.09, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.18);
+        }
+
+        function playFusionChord() {
+            if (isAudioMuted) return;
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                setTimeout(() => playBeep(freq, 0.22, 'triangle'), idx * 50);
+            });
+        }
+
+        function playVictoryFanfare() {
+            if (isAudioMuted) return;
+            [440, 554.37, 659.25, 880].forEach((freq, i) => {
+                setTimeout(() => playBeep(freq, 0.25, 'sine'), i * 80);
+            });
+        }
+
+        // ==========================================
+        // 2. STATE DATA & PRESETS
+        // ==========================================
+        let alphabet = ['a', 'b']; // excluding ε
+        let useCleanAlias = false;  // false: [q0, q1], true: A, B, C
+
+        // ε-NFA Graph Definition
+        let nfaNodes = [
+            { id: 'q0', label: 'q0', x: 120, y: 190, isStart: true, isFinal: false },
+            { id: 'q1', label: 'q1', x: 280, y: 190, isStart: false, isFinal: false },
+            { id: 'q2', label: 'q2', x: 440, y: 190, isStart: false, isFinal: true }
+        ];
+
+        // Transitions: { from, to, symbol } (symbol can be 'a', 'b', or 'ε')
+        let nfaTransitions = [
+            { from: 'q0', to: 'q0', symbol: 'a' },
+            { from: 'q0', to: 'q1', symbol: 'ε' },
+            { from: 'q1', to: 'q2', symbol: 'a' },
+            { from: 'q1', to: 'q1', symbol: 'b' },
+            { from: 'q2', to: 'q2', symbol: 'a' },
+            { from: 'q2', to: 'q2', symbol: 'b' }
+        ];
+
+        let selectedNodeId = 'q0';
+        let isConnecting = false;
+        let connectSourceId = null;
+        let pendingConnect = { from: null, to: null };
+
+        // Generated DFA State & Steps Data
+        let dfaSteps = [];
+        let currentStepIdx = 0;
+        let autoPlayTimer = null;
+
+        // Final Full DFA Structure
+        let dfaNodes = [];
+        let dfaTransitions = [];
+        let stateAliasMap = {}; // '[q0, q1]' -> 'A'
+
+        // Dual String Race Simulator
+        let raceString = "aabba";
+        let raceHead = 0;
+        let raceNfaActiveClones = [];
+        let raceDfaCurrentState = null;
+        let raceTimer = null;
+
+        // Presets
+        const PRESETS = {
+            gate_smashers_23: {
+                alphabet: ['a', 'b'],
+                nodes: [
+                    { id: 'q0', label: 'q0', x: 120, y: 190, isStart: true, isFinal: false },
+                    { id: 'q1', label: 'q1', x: 280, y: 190, isStart: false, isFinal: false },
+                    { id: 'q2', label: 'q2', x: 440, y: 190, isStart: false, isFinal: true }
+                ],
+                transitions: [
+                    { from: 'q0', to: 'q0', symbol: 'a' },
+                    { from: 'q0', to: 'q1', symbol: 'ε' },
+                    { from: 'q1', to: 'q2', symbol: 'a' },
+                    { from: 'q1', to: 'q1', symbol: 'b' },
+                    { from: 'q2', to: 'q2', symbol: 'a' },
+                    { from: 'q2', to: 'q2', symbol: 'b' }
+                ]
+            },
+            chained_epsilon: {
+                alphabet: ['a', 'b'],
+                nodes: [
+                    { id: 'q0', label: 'q0', x: 120, y: 190, isStart: true, isFinal: false },
+                    { id: 'q1', label: 'q1', x: 280, y: 190, isStart: false, isFinal: false },
+                    { id: 'q2', label: 'q2', x: 440, y: 190, isStart: false, isFinal: true }
+                ],
+                transitions: [
+                    { from: 'q0', to: 'q1', symbol: 'ε' },
+                    { from: 'q1', to: 'q2', symbol: 'ε' },
+                    { from: 'q0', to: 'q0', symbol: 'a' },
+                    { from: 'q1', to: 'q1', symbol: 'b' },
+                    { from: 'q2', to: 'q2', symbol: 'a, b' }
+                ]
+            },
+            blank: {
+                alphabet: ['a', 'b'],
+                nodes: [
+                    { id: 'q0', label: 'q0', x: 200, y: 190, isStart: true, isFinal: false },
+                    { id: 'q1', label: 'q1', x: 400, y: 190, isStart: false, isFinal: true }
+                ],
+                transitions: [
+                    { from: 'q0', to: 'q1', symbol: 'ε' }
+                ]
+            }
+        };
+
+        // ==========================================
+        // 3. CORE ALGORITHM ENGINE (GATE SMASHERS LEC-23)
+        // ==========================================
+
+        /**
+         * Computes the ε-closure of a single state or state set.
+         * Handles cycles gracefully using a visited Set.
+         */
+        function getEpsilonClosure(stateSet) {
+            const initialList = Array.isArray(stateSet) ? stateSet : [stateSet];
+            const closure = new Set(initialList);
+            const queue = [...initialList];
+
+            while (queue.length > 0) {
+                const curr = queue.shift();
+                nfaTransitions.forEach(tr => {
+                    if (tr.from === curr && (tr.symbol === 'ε' || tr.symbol.includes('ε'))) {
+                        if (!closure.has(tr.to)) {
+                            closure.add(tr.to);
+                            queue.push(tr.to);
+                        }
+                    }
+                });
+            }
+
+            return Array.from(closure).sort();
+        }
+
+        /**
+         * Move(S, symbol): returns direct targets from states in S on given symbol
+         */
+        function getDirectMoves(stateSet, symbol) {
+            const targets = new Set();
+            stateSet.forEach(s => {
+                nfaTransitions.forEach(tr => {
+                    if (tr.from === s) {
+                        const syms = tr.symbol.split(',').map(x => x.trim());
+                        if (syms.includes(symbol)) {
+                            targets.add(tr.to);
+                        }
+                    }
+                });
+            });
+            return Array.from(targets).sort();
+        }
+
+        /**
+         * NextState(S, x) = ε-closure( Move(S, x) )
+         * Also generates full human-readable derivation step
+         */
+        function computeNextComposite(compositeState, symbol) {
+            const directTargets = getDirectMoves(compositeState, symbol);
+            const fullClosure = getEpsilonClosure(directTargets);
+
+            // Detailed Gate Smashers breakdown:
+            const breakdownParts = [];
+            compositeState.forEach(st => {
+                const stMoves = getDirectMoves([st], symbol);
+                const stClosure = getEpsilonClosure(stMoves);
+                breakdownParts.push({
+                    state: st,
+                    moves: stMoves,
+                    closure: stClosure
+                });
+            });
+
+            return {
+                source: compositeState,
+                symbol: symbol,
+                directTargets: directTargets,
+                nextState: fullClosure,
+                breakdown: breakdownParts
+            };
+        }
+
+        /**
+         * Recomputes the entire DFA conversion steps using BFS Queue
+         */
+        function recomputeDfaConversion() {
+            dfaSteps = [];
+            stateAliasMap = {};
+
+            const startNode = nfaNodes.find(n => n.isStart) || nfaNodes[0];
+            if (!startNode) return;
+
+            const originalFinals = nfaNodes.filter(n => n.isFinal).map(n => n.id);
+
+            // Step 1: Initial DFA State via ε-closure(q0)
+            const initialSet = getEpsilonClosure([startNode.id]);
+            const initialKey = formatStateKey(initialSet);
+
+            assignAlias(initialKey);
+
+            // Step 0: Initial State Discovery
+            dfaSteps.push({
+                type: 'INIT_STATE',
+                state: initialSet,
+                stateKey: initialKey,
+                alias: stateAliasMap[initialKey],
+                symbol: null,
+                isFinal: initialSet.some(s => originalFinals.includes(s)),
+                description: `Calculate ε-closure(${startNode.id}): all states reachable using only free ε-arrows. Start state of DFA is [${initialSet.join(', ')}].`,
+                formula: `\\text{Start State} = \\varepsilon\\text{-closure}(${startNode.id}) = [${initialSet.join(', ')}]`,
+                videoRef: 'Lecture 23 [01:12 - 02:18]'
+            });
+
+            const queue = [initialSet];
+            const visitedKeys = new Set([initialKey]);
+            const generatedEdges = [];
+            const generatedStates = [initialSet];
+
+            while (queue.length > 0) {
+                const currSet = queue.shift();
+                const currKey = formatStateKey(currSet);
+                const currAlias = stateAliasMap[currKey];
+
+                alphabet.forEach(symbol => {
+                    const result = computeNextComposite(currSet, symbol);
+                    const nextSet = result.nextState;
+
+                    if (nextSet.length === 0) {
+                        // Empty set ∅
+                        dfaSteps.push({
+                            type: 'EXPAND_EMPTY',
+                            fromState: currSet,
+                            fromKey: currKey,
+                            fromAlias: currAlias,
+                            symbol: symbol,
+                            toState: [],
+                            toKey: '∅',
+                            toAlias: '∅',
+                            isNewState: false,
+                            description: `From ${currAlias} [${currSet.join(', ')}] on '${symbol}': no states reachable (∅).`,
+                            formula: `\\delta(${currKey}, '${symbol}') = \\varepsilon\\text{-closure}(\\emptyset) = \\emptyset`
+                        });
+                        return;
+                    }
+
+                    const nextKey = formatStateKey(nextSet);
+                    const isNew = !visitedKeys.has(nextKey);
+
+                    if (isNew) {
+                        visitedKeys.add(nextKey);
+                        assignAlias(nextKey);
+                        queue.push(nextSet);
+                        generatedStates.push(nextSet);
+                    }
+
+                    const nextAlias = stateAliasMap[nextKey];
+                    const isFinalState = nextSet.some(s => originalFinals.includes(s));
+
+                    generatedEdges.push({
+                        from: currKey,
+                        to: nextKey,
+                        symbol: symbol
+                    });
+
+                    // Build human-friendly formula and explanation
+                    let detailsStr = result.breakdown.map(b => {
+                        const moveStr = b.moves.length > 0 ? `{ ${b.moves.join(', ')} }` : '∅';
+                        const closStr = b.closure.length > 0 ? `[${b.closure.join(', ')}]` : '∅';
+                        return `From ${b.state}: on '${symbol}' → ${moveStr} ⇒ ε-closure = ${closStr}`;
+                    }).join('; ');
+
+                    dfaSteps.push({
+                        type: 'EXPAND_TRANSITION',
+                        fromState: currSet,
+                        fromKey: currKey,
+                        fromAlias: currAlias,
+                        symbol: symbol,
+                        toState: nextSet,
+                        toKey: nextKey,
+                        toAlias: nextAlias,
+                        isNewState: isNew,
+                        isFinal: isFinalState,
+                        description: `From ${currAlias} on '${symbol}': Union of ε-closures = [${nextSet.join(', ')}]. ${isNew ? '🎉 New composite state discovered!' : 'Transitions to existing state.'}`,
+                        formula: `\\delta(${currAlias}, '${symbol}') = \\varepsilon\\text{-closure}\\left( \\bigcup_{q \\in ${currAlias}} \\delta(q, '${symbol}') \\right) = [${nextSet.join(', ')}]`,
+                        details: detailsStr
+                    });
+                });
+            }
+
+            // Step 3: Final State rule confirmation step
+            const finalDfaStates = generatedStates.filter(st => st.some(s => originalFinals.includes(s)));
+            dfaSteps.push({
+                type: 'MARK_FINALS',
+                finalStates: finalDfaStates.map(s => formatStateKey(s)),
+                description: `Mark Final States: Any composite DFA state containing original final state(s) { ${originalFinals.join(', ')} } becomes a Final State (double-circle). Total ${finalDfaStates.length} final states out of ${generatedStates.length} reachable states.`,
+                formula: `\\text{Final States} = \\{ S \\in Q_{\\text{DFA}} \\mid S \\cap F \\neq \\emptyset \\}`,
+                videoRef: 'Lecture 23 [09:41 - 10:25]'
+            });
+
+            // Update Power Set Meter
+            updatePowerSetMeter(nfaNodes.length, generatedStates.length);
+        }
+
+        function formatStateKey(stateList) {
+            return `[${stateList.slice().sort().join(', ')}]`;
+        }
+
+        function assignAlias(key) {
+            if (stateAliasMap[key]) return;
+            const alphabetLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const count = Object.keys(stateAliasMap).length;
+            stateAliasMap[key] = count < alphabetLetters.length ? alphabetLetters[count] : `S${count}`;
+        }
+
+        function getDisplayName(key) {
+            if (!key) return '';
+            if (key === '∅') return '∅';
+            if (useCleanAlias && stateAliasMap[key]) {
+                return stateAliasMap[key];
+            }
+            return key;
+        }
+
+        function toggleNotation() {
+            useCleanAlias = !useCleanAlias;
+            const btn = document.getElementById('btn-notation-toggle');
+            if (btn) {
+                btn.textContent = useCleanAlias ? 'Aliases (A, B, C)' : 'Subset [q₀, q₁]';
+            }
+            renderDfaCanvas();
+            renderDfaMatrixTable();
+            updateStepNarration(dfaSteps[currentStepIdx]);
+            showToast(useCleanAlias ? 'Switched to Clean Aliases (A, B, C)' : 'Switched to Subset Notation ([q0, q1])');
+        }
+
+        // ==========================================
+        // 4. POWER SET METER (2^n THEORETICAL BOUND)
+        // ==========================================
+        function updatePowerSetMeter(n, reachable) {
+            const maxStates = Math.pow(2, n);
+            const formulaEl = document.getElementById('power-set-formula');
+            const reachableEl = document.getElementById('reachable-states-count');
+            const progressEl = document.getElementById('power-set-progress');
+
+            if (formulaEl) {
+                formulaEl.textContent = `2ⁿ = 2^${n} = ${maxStates} max DFA states`;
+            }
+            if (reachableEl) {
+                reachableEl.textContent = `${reachable} / ${maxStates} (${Math.round((reachable / maxStates) * 100)}%)`;
+            }
+            if (progressEl) {
+                const pct = Math.min(100, Math.max(5, (reachable / maxStates) * 100));
+                progressEl.style.width = `${pct}%`;
+            }
+        }
+
+        // ==========================================
+        // 5. STEP-BY-STEP SIMULATION CONTROLLER
+        // ==========================================
+        function resetDfaSteps() {
+            stopAutoPlay();
+            currentStepIdx = 0;
+            renderDfaUpToStep(0);
+            updateStepNarration(dfaSteps[0]);
+            playBeep(420, 0.08);
+        }
+
+        function stepNext() {
+            if (currentStepIdx < dfaSteps.length - 1) {
+                currentStepIdx++;
+                renderDfaUpToStep(currentStepIdx);
+                updateStepNarration(dfaSteps[currentStepIdx]);
+                playBeep(560, 0.08);
+            } else {
+                stopAutoPlay();
+                playVictoryFanfare();
+                showToast("🎉 Conversion Complete! Equivalent DFA fully constructed.");
+            }
+        }
+
+        function stepPrev() {
+            if (currentStepIdx > 0) {
+                currentStepIdx--;
+                renderDfaUpToStep(currentStepIdx);
+                updateStepNarration(dfaSteps[currentStepIdx]);
+                playBeep(380, 0.08);
+            }
+        }
+
+        function solveAllDfaSteps() {
+            stopAutoPlay();
+            currentStepIdx = dfaSteps.length - 1;
+            renderDfaUpToStep(currentStepIdx);
+            updateStepNarration(dfaSteps[currentStepIdx]);
+            playFusionChord();
+            showToast("⚡ Generated full equivalent DFA!");
+        }
+
+        function toggleAutoPlay() {
+            if (autoPlayTimer) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+
+        function startAutoPlay() {
+            if (currentStepIdx >= dfaSteps.length - 1) {
+                currentStepIdx = 0;
+            }
+            const icon = document.getElementById('autoplay-icon');
+            const label = document.getElementById('autoplay-label');
+            if (icon) icon.textContent = '⏸';
+            if (label) label.textContent = 'Pause';
+
+            const speed = parseInt(document.getElementById('speed-slider').value, 10) || 1200;
+            autoPlayTimer = setInterval(() => {
+                if (currentStepIdx < dfaSteps.length - 1) {
+                    stepNext();
+                } else {
+                    stopAutoPlay();
+                }
+            }, speed);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+            }
+            const icon = document.getElementById('autoplay-icon');
+            const label = document.getElementById('autoplay-label');
+            if (icon) icon.textContent = '▶▶';
+            if (label) label.textContent = 'Auto-Play';
+        }
+
+        // ==========================================
+        // 6. NARRATION & LIVE MATH CARD
+        // ==========================================
+        function updateStepNarration(step) {
+            const counter = document.getElementById('step-counter-badge');
+            const tag = document.getElementById('math-step-tag');
+            const headline = document.getElementById('narration-headline');
+            const timestamp = document.getElementById('narration-timestamp');
+            const box = document.getElementById('narration-formula-box');
+            const expl = document.getElementById('narration-explanation');
+
+            if (counter) counter.textContent = `Step ${currentStepIdx + 1} / ${dfaSteps.length}`;
+            if (!step) return;
+
+            if (step.type === 'INIT_STATE') {
+                if (tag) tag.textContent = 'Step 1: Start State Discovery via ε-Closure';
+                if (headline) headline.textContent = `Start State: ε-closure(${nfaNodes.find(n => n.isStart)?.id || 'q0'}) = ${step.alias} ${step.stateKey}`;
+                if (timestamp) timestamp.textContent = step.videoRef || '[01:12 - 02:18]';
+                if (box) box.innerHTML = `<strong>DFA Start State = ε-closure(${nfaNodes.find(n => n.isStart)?.id || 'q0'}) = { ${step.state.join(', ')} }</strong><br><span class="text-xs text-purple-300">Free teleports through all reachable ε-wormholes without reading any symbol!</span>`;
+                if (expl) expl.textContent = step.description;
+            } else if (step.type === 'EXPAND_TRANSITION') {
+                if (tag) tag.textContent = `Step 2: Transition on '${step.symbol}'`;
+                if (headline) headline.textContent = `From ${step.fromAlias} on '${step.symbol}' → ${step.toAlias} ${step.toKey}`;
+                if (timestamp) timestamp.textContent = `NextState(${step.fromAlias}, '${step.symbol}')`;
+                if (box) {
+                    box.innerHTML = `
+                        <div><strong>δ(${step.fromAlias}, '${step.symbol}') = ε-closure( ⋃ δ(q, '${step.symbol}') ) = ${step.toAlias} ${step.toKey}</strong></div>
+                        ${step.details ? `<div class="text-[11px] text-purple-300/90 pt-1 font-mono">${step.details}</div>` : ''}
+                    `;
+                }
+                if (expl) expl.textContent = step.description;
+            } else if (step.type === 'EXPAND_EMPTY') {
+                if (tag) tag.textContent = `Empty Move on '${step.symbol}'`;
+                if (headline) headline.textContent = `From ${step.fromAlias} on '${step.symbol}' → ∅ (No transition)`;
+                if (box) box.innerHTML = `<strong>δ(${step.fromAlias}, '${step.symbol}') = ε-closure(∅) = ∅</strong>`;
+                if (expl) expl.textContent = step.description;
+            } else if (step.type === 'MARK_FINALS') {
+                if (tag) tag.textContent = 'Step 3: Crown Final States';
+                if (headline) headline.textContent = `Final States = ${step.finalStates.map(k => getDisplayName(k)).join(', ')}`;
+                if (timestamp) timestamp.textContent = step.videoRef || '[09:41 - 10:25]';
+                if (box) box.innerHTML = `<strong>Any composite DFA state containing an original final state becomes a Final State (double-circle).</strong>`;
+                if (expl) expl.textContent = step.description;
+            }
+        }
+
+        // ==========================================
+        // 7. CANVAS GRAPH RENDERING (SVG)
+        // ==========================================
+
+        /**
+         * Render ε-NFA Canvas with Drag-and-Drop & Wormholes
+         */
+        function renderNfaCanvas() {
+            const edgesLayer = document.getElementById('enfa-edges-layer');
+            const nodesLayer = document.getElementById('enfa-nodes-layer');
+            if (!edgesLayer || !nodesLayer) return;
+
+            edgesLayer.innerHTML = '';
+            nodesLayer.innerHTML = '';
+
+            const nodeMap = {};
+            nfaNodes.forEach(n => nodeMap[n.id] = n);
+
+            // 1. Edges
+            nfaTransitions.forEach(tr => {
+                const u = nodeMap[tr.from];
+                const v = nodeMap[tr.to];
+                if (!u || !v) return;
+
+                const isEpsilon = tr.symbol === 'ε' || tr.symbol.includes('ε');
+                const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                if (tr.from === tr.to) {
+                    // Self Loop
+                    const cx = u.x;
+                    const cy = u.y;
+                    const loopPath = `M ${cx - 15} ${cy - 28} C ${cx - 45} ${cy - 85}, ${cx + 45} ${cy - 85}, ${cx + 15} ${cy - 28}`;
+                    edgeGroup.innerHTML = `
+                        <path id="nfa-edge-${tr.from}-${tr.to}" d="${loopPath}" fill="none" stroke="${isEpsilon ? '#c084fc' : '#64748b'}" stroke-width="2.5" class="${isEpsilon ? 'portal-path' : ''}" marker-end="url(#arrow-${isEpsilon ? 'purple' : 'slate'})" />
+                        <rect x="${cx - 14}" y="${cy - 78}" width="28" height="20" rx="5" fill="#070b14" stroke="${isEpsilon ? '#c084fc' : '#38bdf8'}" stroke-width="1.5" />
+                        <text x="${cx}" y="${cy - 64}" fill="${isEpsilon ? '#c084fc' : '#38bdf8'}" font-family="'Fira Code', monospace" font-size="11" font-weight="bold" text-anchor="middle">${tr.symbol}</text>
+                    `;
+                } else {
+                    // Between distinct nodes
+                    const hasReverse = nfaTransitions.some(e => e.from === tr.to && e.to === tr.from);
+                    let dPath = '';
+                    let midX = (u.x + v.x) / 2;
+                    let midY = (u.y + v.y) / 2;
+
+                    if (hasReverse) {
+                        const dx = v.x - u.x;
+                        const dy = v.y - u.y;
+                        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                        midX += -dy / len * 34;
+                        midY += dx / len * 34;
+                        dPath = `M ${u.x} ${u.y} Q ${midX} ${midY} ${v.x} ${v.y}`;
+                    } else {
+                        dPath = `M ${u.x} ${u.y} L ${v.x} ${v.y}`;
+                    }
+
+                    edgeGroup.innerHTML = `
+                        <path id="nfa-edge-${tr.from}-${tr.to}" d="${dPath}" fill="none" stroke="${isEpsilon ? '#c084fc' : '#64748b'}" stroke-width="2.5" class="${isEpsilon ? 'portal-path' : ''}" marker-end="url(#arrow-${isEpsilon ? 'purple' : 'slate'})" />
+                        <rect x="${midX - 15}" y="${midY - 11}" width="30" height="22" rx="6" fill="#070b14" stroke="${isEpsilon ? '#c084fc' : '#ec4899'}" stroke-width="1.5" />
+                        <text x="${midX}" y="${midY + 5}" fill="${isEpsilon ? '#c084fc' : '#ec4899'}" font-family="'Fira Code', monospace" font-size="12" font-weight="bold" text-anchor="middle">${tr.symbol}</text>
+                    `;
+                }
+
+                edgeGroup.style.cursor = 'pointer';
+                edgeGroup.onclick = (e) => {
+                    e.stopPropagation();
+                    openSymbolModal(tr.from, tr.to);
+                };
+                edgesLayer.appendChild(edgeGroup);
+            });
+
+            // 2. Nodes
+            nfaNodes.forEach(n => {
+                const isSel = selectedNodeId === n.id;
+                const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                nodeGroup.className = `state-node-group ${isSel ? 'selected' : ''}`;
+                nodeGroup.id = `nfa-node-${n.id}`;
+
+                nodeGroup.innerHTML = `
+                    ${isSel ? `
+                        <circle cx="${n.x}" cy="${n.y}" r="40" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5 4" opacity="0.95" />
+                    ` : ''}
+
+                    ${n.isStart ? `
+                        <line x1="${n.x - 65}" y1="${n.y}" x2="${n.x - 36}" y2="${n.y}" stroke="#22d3ee" stroke-width="3" marker-end="url(#arrow-cyan)" />
+                        <text x="${n.x - 65}" y="${n.y - 8}" fill="#22d3ee" font-family="'Fira Code', monospace" font-size="10" font-weight="bold">START</text>
+                    ` : ''}
+
+                    <circle class="outer-circle" cx="${n.x}" cy="${n.y}" r="32" fill="${n.isFinal ? '#06261a' : '#0c1733'}" stroke="${n.isFinal ? '#10b981' : isSel ? '#f59e0b' : '#38bdf8'}" stroke-width="${n.isFinal ? '3.5' : '3'}" />
+                    
+                    ${n.isFinal ? `<circle cx="${n.x}" cy="${n.y}" r="25" fill="none" stroke="#34d399" stroke-width="2" />` : ''}
+
+                    <text x="${n.x}" y="${n.y + 6}" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="17" font-weight="900" text-anchor="middle">${n.label}</text>
+                    
+                    <text x="${n.x}" y="${n.y + 48}" fill="${n.isFinal ? '#34d399' : '#94a3b8'}" font-family="'Fira Code', monospace" font-size="10" font-weight="bold" text-anchor="middle">
+                        ${n.isStart ? 'Start' : ''} ${n.isFinal ? '🏆 Final' : ''}
+                    </text>
+                `;
+
+                setupNodeInteractions(nodeGroup, n);
+                nodesLayer.appendChild(nodeGroup);
+            });
+
+            renderStatePills();
+            renderEpsilonClosuresTable();
+            renderNfaMatrixTable();
+        }
+
+        /**
+         * Render DFA Canvas progressively based on current step index
+         */
+        function renderDfaUpToStep(stepIdx) {
+            const originalFinals = nfaNodes.filter(n => n.isFinal).map(n => n.id);
+            const activeStates = new Map(); // key -> { key, isFinal }
+            const activeEdges = [];
+
+            // Extract elements discovered up to stepIdx
+            for (let i = 0; i <= stepIdx && i < dfaSteps.length; i++) {
+                const s = dfaSteps[i];
+                if (s.type === 'INIT_STATE') {
+                    activeStates.set(s.stateKey, {
+                        key: s.stateKey,
+                        state: s.state,
+                        isStart: true,
+                        isFinal: s.isFinal
+                    });
+                } else if (s.type === 'EXPAND_TRANSITION') {
+                    if (!activeStates.has(s.toKey)) {
+                        activeStates.set(s.toKey, {
+                            key: s.toKey,
+                            state: s.toState,
+                            isStart: false,
+                            isFinal: s.isFinal
+                        });
+                    }
+                    activeEdges.push({
+                        from: s.fromKey,
+                        to: s.toKey,
+                        symbol: s.symbol
+                    });
+                }
+            }
+
+            // Convert to DFA node positions (arranged in circle or grid)
+            dfaNodes = [];
+            const stateKeys = Array.from(activeStates.keys());
+            const radius = 120;
+            const centerX = 280;
+            const centerY = 190;
+
+            stateKeys.forEach((k, idx) => {
+                const angle = (idx / Math.max(1, stateKeys.length)) * 2 * Math.PI - Math.PI / 2;
+                const existing = dfaNodes.find(n => n.id === k);
+                const x = stateKeys.length === 1 ? centerX : centerX + radius * Math.cos(angle);
+                const y = stateKeys.length === 1 ? centerY : centerY + radius * Math.sin(angle);
+                const stData = activeStates.get(k);
+
+                dfaNodes.push({
+                    id: k,
+                    label: getDisplayName(k),
+                    x: Math.round(x),
+                    y: Math.round(y),
+                    isStart: stData.isStart,
+                    isFinal: stData.isFinal
+                });
+            });
+
+            dfaTransitions = activeEdges;
+            renderDfaCanvas();
+            renderDfaMatrixTable();
+        }
+
+        function renderDfaCanvas() {
+            const edgesLayer = document.getElementById('dfa-edges-layer');
+            const nodesLayer = document.getElementById('dfa-nodes-layer');
+            if (!edgesLayer || !nodesLayer) return;
+
+            edgesLayer.innerHTML = '';
+            nodesLayer.innerHTML = '';
+
+            const nodeMap = {};
+            dfaNodes.forEach(n => nodeMap[n.id] = n);
+
+            // Group multiple symbols between same nodes (e.g. a, b self-loop)
+            const groupedEdges = {};
+            dfaTransitions.forEach(tr => {
+                const key = `${tr.from}->${tr.to}`;
+                if (!groupedEdges[key]) {
+                    groupedEdges[key] = { from: tr.from, to: tr.to, symbols: new Set() };
+                }
+                groupedEdges[key].symbols.add(tr.symbol);
+            });
+
+            // 1. Render DFA Edges
+            Object.values(groupedEdges).forEach(edge => {
+                const u = nodeMap[edge.from];
+                const v = nodeMap[edge.to];
+                if (!u || !v) return;
+
+                const symbolText = Array.from(edge.symbols).sort().join(', ');
+                const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                if (edge.from === edge.to) {
+                    // Self Loop
+                    const cx = u.x;
+                    const cy = u.y;
+                    const loopPath = `M ${cx - 15} ${cy - 30} C ${cx - 45} ${cy - 85}, ${cx + 45} ${cy - 85}, ${cx + 15} ${cy - 30}`;
+                    edgeGroup.innerHTML = `
+                        <path d="${loopPath}" fill="none" stroke="#22d3ee" stroke-width="2.5" marker-end="url(#dfa-arrow-cyan)" />
+                        <rect x="${cx - 16}" y="${cy - 78}" width="32" height="20" rx="5" fill="#070b14" stroke="#22d3ee" stroke-width="1.5" />
+                        <text x="${cx}" y="${cy - 64}" fill="#22d3ee" font-family="'Fira Code', monospace" font-size="11" font-weight="bold" text-anchor="middle">${symbolText}</text>
+                    `;
+                } else {
+                    const hasReverse = Object.values(groupedEdges).some(e => e.from === edge.to && e.to === edge.from);
+                    let dPath = '';
+                    let midX = (u.x + v.x) / 2;
+                    let midY = (u.y + v.y) / 2;
+
+                    if (hasReverse) {
+                        const dx = v.x - u.x;
+                        const dy = v.y - u.y;
+                        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                        midX += -dy / len * 36;
+                        midY += dx / len * 36;
+                        dPath = `M ${u.x} ${u.y} Q ${midX} ${midY} ${v.x} ${v.y}`;
+                    } else {
+                        dPath = `M ${u.x} ${u.y} L ${v.x} ${v.y}`;
+                    }
+
+                    edgeGroup.innerHTML = `
+                        <path d="${dPath}" fill="none" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#dfa-arrow-cyan)" />
+                        <rect x="${midX - 18}" y="${midY - 11}" width="36" height="22" rx="6" fill="#070b14" stroke="#c084fc" stroke-width="1.5" />
+                        <text x="${midX}" y="${midY + 5}" fill="#c084fc" font-family="'Fira Code', monospace" font-size="12" font-weight="bold" text-anchor="middle">${symbolText}</text>
+                    `;
+                }
+
+                edgesLayer.appendChild(edgeGroup);
+            });
+
+            // 2. Render DFA Crystal Nodes
+            dfaNodes.forEach(n => {
+                const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                nodeGroup.className = 'state-node-group';
+                nodeGroup.id = `dfa-node-${n.id}`;
+
+                const radius = useCleanAlias ? 32 : Math.max(34, n.id.length * 4.5);
+
+                nodeGroup.innerHTML = `
+                    ${n.isStart ? `
+                        <line x1="${n.x - radius - 30}" y1="${n.y}" x2="${n.x - radius - 4}" y2="${n.y}" stroke="#22d3ee" stroke-width="3" marker-end="url(#dfa-arrow-cyan)" />
+                        <text x="${n.x - radius - 32}" y="${n.y - 8}" fill="#22d3ee" font-family="'Fira Code', monospace" font-size="10" font-weight="bold">START</text>
+                    ` : ''}
+
+                    <circle class="outer-circle" cx="${n.x}" cy="${n.y}" r="${radius}" fill="${n.isFinal ? '#06261a' : '#0c1733'}" stroke="${n.isFinal ? '#10b981' : '#06b6d4'}" stroke-width="${n.isFinal ? '3.5' : '3'}" />
+                    
+                    ${n.isFinal ? `<circle cx="${n.x}" cy="${n.y}" r="${radius - 7}" fill="none" stroke="#34d399" stroke-width="2.5" />` : ''}
+
+                    <text x="${n.x}" y="${n.y + 6}" fill="#ffffff" font-family="'Fira Code', monospace" font-size="${useCleanAlias ? 16 : 12}" font-weight="900" text-anchor="middle">${getDisplayName(n.id)}</text>
+                    
+                    <text x="${n.x}" y="${n.y + radius + 18}" fill="${n.isFinal ? '#34d399' : '#94a3b8'}" font-family="'Fira Code', monospace" font-size="10" font-weight="bold" text-anchor="middle">
+                        ${n.isStart ? 'Start' : ''} ${n.isFinal ? '🏆 Final' : ''}
+                    </text>
+                `;
+
+                setupDfaDraggable(nodeGroup, n);
+                nodesLayer.appendChild(nodeGroup);
+            });
+        }
+
+        // ==========================================
+        // 8. INTERACTIVE CANVAS EVENTS & DRAGGING
+        // ==========================================
+        let draggedNfaNode = null;
+        let draggedDfaNode = null;
+        let dragOffset = { x: 0, y: 0 };
+        const nfaSvg = document.getElementById('enfa-canvas');
+        const dfaSvg = document.getElementById('dfa-canvas');
+
+        function setupNodeInteractions(el, nodeData) {
+            el.onclick = (e) => {
+                e.stopPropagation();
+                getAudioContext();
+                if (isConnecting) {
+                    handleConnectClick(nodeData.id);
+                    return;
+                }
+                selectedNodeId = nodeData.id;
+                renderNfaCanvas();
+                playBeep(450, 0.05, 'sine');
+            };
+
+            el.ondblclick = (e) => {
+                e.stopPropagation();
+                toggleNodeFinalById(nodeData.id);
+            };
+
+            el.onmousedown = (e) => {
+                e.stopPropagation();
+                getAudioContext();
+                if (isConnecting) return;
+
+                selectedNodeId = nodeData.id;
+                draggedNfaNode = nodeData;
+                const pt = getSvgPoint(e, nfaSvg);
+                dragOffset.x = pt.x - nodeData.x;
+                dragOffset.y = pt.y - nodeData.y;
+            };
+
+            el.ontouchstart = (e) => {
+                e.stopPropagation();
+                if (isConnecting) {
+                    handleConnectClick(nodeData.id);
+                    return;
+                }
+                selectedNodeId = nodeData.id;
+                draggedNfaNode = nodeData;
+                const touch = e.touches[0];
+                const pt = getSvgPoint(touch, nfaSvg);
+                dragOffset.x = pt.x - nodeData.x;
+                dragOffset.y = pt.y - nodeData.y;
+            };
+        }
+
+        function setupDfaDraggable(el, nodeData) {
+            el.onmousedown = (e) => {
+                e.stopPropagation();
+                draggedDfaNode = nodeData;
+                const pt = getSvgPoint(e, dfaSvg);
+                dragOffset.x = pt.x - nodeData.x;
+                dragOffset.y = pt.y - nodeData.y;
+            };
+            el.ontouchstart = (e) => {
+                e.stopPropagation();
+                draggedDfaNode = nodeData;
+                const touch = e.touches[0];
+                const pt = getSvgPoint(touch, dfaSvg);
+                dragOffset.x = pt.x - nodeData.x;
+                dragOffset.y = pt.y - nodeData.y;
+            };
+        }
+
+        function getSvgPoint(e, svgEl) {
+            const rect = svgEl.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (draggedNfaNode) {
+                const pt = getSvgPoint(e, nfaSvg);
+                draggedNfaNode.x = Math.max(35, Math.min(650, pt.x - dragOffset.x));
+                draggedNfaNode.y = Math.max(35, Math.min(340, pt.y - dragOffset.y));
+                renderNfaCanvas();
+            } else if (draggedDfaNode) {
+                const pt = getSvgPoint(e, dfaSvg);
+                draggedDfaNode.x = Math.max(40, Math.min(650, pt.x - dragOffset.x));
+                draggedDfaNode.y = Math.max(40, Math.min(340, pt.y - dragOffset.y));
+                renderDfaCanvas();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (draggedNfaNode) draggedNfaNode = null;
+            if (draggedDfaNode) draggedDfaNode = null;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (draggedNfaNode) {
+                const pt = getSvgPoint(e.touches[0], nfaSvg);
+                draggedNfaNode.x = Math.max(35, Math.min(650, pt.x - dragOffset.x));
+                draggedNfaNode.y = Math.max(35, Math.min(340, pt.y - dragOffset.y));
+                renderNfaCanvas();
+            } else if (draggedDfaNode) {
+                const pt = getSvgPoint(e.touches[0], dfaSvg);
+                draggedDfaNode.x = Math.max(40, Math.min(650, pt.x - dragOffset.x));
+                draggedDfaNode.y = Math.max(40, Math.min(340, pt.y - dragOffset.y));
+                renderDfaCanvas();
+            }
+        });
+
+        window.addEventListener('touchend', () => {
+            draggedNfaNode = null;
+            draggedDfaNode = null;
+        });
+
+        // Click on empty canvas deselects
+        nfaSvg.addEventListener('click', (e) => {
+            if ((e.target === nfaSvg || e.target.id === 'enfa-canvas' || e.target.tagName === 'svg') && !isConnecting) {
+                selectedNodeId = null;
+                renderNfaCanvas();
+            }
+        });
+
+        // ==========================================
+        // 9. CONNECT MODE & SYMBOL CHOOSER
+        // ==========================================
+        function toggleConnectMode() {
+            getAudioContext();
+            isConnecting = !isConnecting;
+            connectSourceId = null;
+            const btn = document.getElementById('btn-connect-mode');
+            const banner = document.getElementById('connect-banner');
+            const hint = document.getElementById('connect-hint-text');
+
+            if (isConnecting) {
+                btn.className = 'px-2.5 py-1.5 rounded-xl font-bold bg-purple-600 text-white shadow-lg shadow-purple-500/30 transition-all flex items-center gap-1 animate-pulse';
+                banner.classList.remove('hidden');
+                if (hint) hint.innerHTML = "Click the <strong>SOURCE</strong> state to begin. (Or click same state to loop!)";
+                playBeep(600, 0.08);
+            } else {
+                btn.className = 'px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:bg-purple-950/40 transition-all flex items-center gap-1';
+                banner.classList.add('hidden');
+            }
+        }
+
+        function cancelConnectMode() {
+            isConnecting = false;
+            connectSourceId = null;
+            const btn = document.getElementById('btn-connect-mode');
+            const banner = document.getElementById('connect-banner');
+            if (btn) btn.className = 'px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:bg-purple-950/40 transition-all flex items-center gap-1';
+            if (banner) banner.classList.add('hidden');
+        }
+
+        function handleConnectClick(nodeId) {
+            const hint = document.getElementById('connect-hint-text');
+            if (!connectSourceId) {
+                connectSourceId = nodeId;
+                playBeep(520, 0.08);
+                if (hint) hint.innerHTML = `Source: <strong>${nodeId}</strong>. Now click the <strong>TARGET</strong> state (or click <strong>${nodeId}</strong> to loop!).`;
+            } else {
+                const from = connectSourceId;
+                const to = nodeId;
+                cancelConnectMode();
+                openSymbolModal(from, to);
+            }
+        }
+
+        function openSymbolModal(from, to) {
+            pendingConnect = { from, to };
+            const modal = document.getElementById('modal-symbol-chooser');
+            const desc = document.getElementById('symbol-modal-desc');
+            const container = document.getElementById('symbol-buttons-container');
+
+            if (modal) modal.classList.remove('hidden');
+            if (desc) {
+                desc.textContent = from === to ? `Self-Loop on State [ ${from} ]` : `Transition from State [ ${from} ] → [ ${to} ]`;
+            }
+
+            if (container) {
+                container.innerHTML = '';
+
+                // Symbol buttons for each item in Alphabet
+                alphabet.forEach(sym => {
+                    const btn = document.createElement('button');
+                    btn.className = 'py-2 px-3 rounded-xl font-mono font-bold text-xs bg-slate-900 hover:bg-cyan-950 text-cyan-300 border border-cyan-500/40 transition-colors';
+                    btn.textContent = `'${sym}'`;
+                    btn.onclick = () => confirmTransitionSymbol(sym);
+                    container.appendChild(btn);
+                });
+
+                // Free Epsilon 'ε' Portal button
+                const epsBtn = document.createElement('button');
+                epsBtn.className = 'py-2 px-3 rounded-xl font-mono font-bold text-xs bg-purple-950/80 hover:bg-purple-900 text-purple-200 border border-purple-500/60 shadow-md shadow-purple-500/20 transition-colors';
+                epsBtn.textContent = `'ε' (Portal)`;
+                epsBtn.onclick = () => confirmTransitionSymbol('ε');
+                container.appendChild(epsBtn);
+            }
+        }
+
+        function closeSymbolModal() {
+            const modal = document.getElementById('modal-symbol-chooser');
+            if (modal) modal.classList.add('hidden');
+            pendingConnect = { from: null, to: null };
+        }
+
+        function confirmTransitionSymbol(symbol) {
+            if (!pendingConnect.from || !pendingConnect.to) return;
+            const { from, to } = pendingConnect;
+
+            // Remove existing exact transition or update
+            nfaTransitions = nfaTransitions.filter(e => !(e.from === from && e.to === to && e.symbol === symbol));
+            nfaTransitions.push({ from, to, symbol });
+
+            closeSymbolModal();
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+
+            if (symbol === 'ε') {
+                playTeleportSound();
+                showToast(`Opened ε-wormhole portal: ${from} --ε--> ${to}!`);
+            } else {
+                playBeep(640, 0.08);
+                showToast(`Added transition: δ(${from}, '${symbol}') ∋ ${to}`);
+            }
+        }
+
+        function removePendingTransition() {
+            if (!pendingConnect.from || !pendingConnect.to) return;
+            nfaTransitions = nfaTransitions.filter(e => !(e.from === pendingConnect.from && e.to === pendingConnect.to));
+            closeSymbolModal();
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+            playBeep(320, 0.08);
+            showToast(`Removed transition between ${pendingConnect.from} and ${pendingConnect.to}`);
+        }
+
+        // ==========================================
+        // 10. NODE CRUD & STATE MANAGEMENT
+        // ==========================================
+        function addNewNfaState() {
+            getAudioContext();
+            let newId = `q${nfaNodes.length}`;
+            let counter = nfaNodes.length;
+            const existingIds = new Set(nfaNodes.map(n => n.id));
+            while (existingIds.has(newId)) {
+                counter++;
+                newId = `q${counter}`;
+            }
+
+            const isStart = nfaNodes.length === 0;
+            const newNode = {
+                id: newId,
+                label: newId,
+                x: 100 + (nfaNodes.length * 80) % 520,
+                y: 190 + (nfaNodes.length % 2 === 0 ? 30 : -30),
+                isStart: isStart,
+                isFinal: false
+            };
+
+            nfaNodes.push(newNode);
+            selectedNodeId = newId;
+
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+            playBeep(680, 0.1);
+            showToast(`Added State ${newId}. Connect arrows or drag anywhere!`);
+        }
+
+        function toggleNodeFinalById(id) {
+            getAudioContext();
+            const n = nfaNodes.find(node => node.id === id);
+            if (!n) return;
+            n.isFinal = !n.isFinal;
+            selectedNodeId = n.id;
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+            playVictoryFanfare();
+            showToast(`State ${n.id} is now ${n.isFinal ? 'a 🏆 Final State (Double Ring)!' : 'non-accepting.'}`);
+        }
+
+        function toggleSelectedAsFinal(targetId = null) {
+            const idToToggle = targetId || selectedNodeId || (nfaNodes.length > 0 ? nfaNodes[nfaNodes.length - 1].id : null);
+            if (!idToToggle) {
+                alert("Please add or select a state node on the canvas first!");
+                return;
+            }
+            toggleNodeFinalById(idToToggle);
+        }
+
+        function setSelectedAsStart() {
+            if (!selectedNodeId) {
+                alert("Please click a state node on the canvas first to select it!");
+                return;
+            }
+            getAudioContext();
+            nfaNodes.forEach(n => n.isStart = (n.id === selectedNodeId));
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+            playBeep(580, 0.1);
+            showToast(`State ${selectedNodeId} is now the initial Start State (q₀)!`);
+        }
+
+        function deleteSelectedNode() {
+            if (!selectedNodeId) {
+                alert("Please click a state node to select it for deletion.");
+                return;
+            }
+            getAudioContext();
+            const delId = selectedNodeId;
+            nfaNodes = nfaNodes.filter(n => n.id !== delId);
+            nfaTransitions = nfaTransitions.filter(e => e.from !== delId && e.to !== delId);
+
+            if (nfaNodes.length > 0 && !nfaNodes.some(n => n.isStart)) {
+                nfaNodes[0].isStart = true;
+            }
+
+            selectedNodeId = nfaNodes.length > 0 ? nfaNodes[0].id : null;
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+            playBeep(280, 0.1);
+            showToast(`State ${delId} deleted.`);
+        }
+
+        function renderStatePills() {
+            const container = document.getElementById('nfa-state-pills');
+            const selLabel = document.getElementById('nfa-selected-label');
+            const btnFinal = document.getElementById('btn-toggle-final');
+
+            if (selLabel) selLabel.textContent = selectedNodeId || 'None';
+            if (btnFinal) btnFinal.innerHTML = `<span>🏆 Toggle Final ${selectedNodeId ? `(${selectedNodeId})` : ''}</span>`;
+            if (!container) return;
+
+            container.innerHTML = '';
+            if (nfaNodes.length === 0) {
+                container.innerHTML = '<span class="text-slate-600 text-[11px] italic">No states</span>';
+                return;
+            }
+
+            nfaNodes.forEach(n => {
+                const isSel = selectedNodeId === n.id;
+                const pill = document.createElement('div');
+                pill.className = `inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs cursor-pointer transition-all ${
+                    isSel
+                        ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-bold shadow-sm shadow-amber-500/30 ring-1 ring-amber-400'
+                        : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500'
+                }`;
+
+                pill.innerHTML = `
+                    <span>${n.isStart ? '▶ ' : ''}${n.label}</span>
+                    <button onclick="event.stopPropagation(); toggleNodeFinalById('${n.id}')" title="Click to toggle Final" class="px-1 py-0.2 rounded text-[10px] font-bold transition-colors ${
+                        n.isFinal ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/60' : 'bg-slate-800 text-slate-500 hover:text-emerald-400'
+                    }">
+                        ${n.isFinal ? '🏆 Final' : '○'}
+                    </button>
+                `;
+
+                pill.onclick = () => {
+                    selectedNodeId = n.id;
+                    renderNfaCanvas();
+                    playBeep(450, 0.05, 'sine');
+                };
+
+                container.appendChild(pill);
+            });
+        }
+
+        // ==========================================
+        // 11. TABLES: ε-CLOSURE & TRANSITION MATRICES
+        // ==========================================
+        function renderEpsilonClosuresTable() {
+            const tbody = document.getElementById('epsilon-closures-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            nfaNodes.forEach(n => {
+                const closure = getEpsilonClosure([n.id]);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-1 px-2 font-bold text-slate-300">ε-closure(${n.id})</td>
+                    <td class="py-1 px-2 text-purple-300 font-bold">=</td>
+                    <td class="py-1 px-2 text-cyan-300 font-bold">[ ${closure.join(', ')} ]</td>
+                    <td class="py-1 px-2 text-[10px] text-slate-500">
+                        ${closure.length > 1 ? `Reaches ${closure.filter(x => x !== n.id).join(', ')} via free portal` : 'Self only'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderNfaMatrixTable() {
+            const thead = document.getElementById('matrix-nfa-thead');
+            const tbody = document.getElementById('matrix-nfa-tbody');
+            if (!thead || !tbody) return;
+
+            // Columns: State | a | b | ε
+            const cols = [...alphabet, 'ε'];
+            thead.innerHTML = `
+                <tr>
+                    <th class="p-2 font-bold">State (q)</th>
+                    ${cols.map(c => `<th class="p-2 font-bold ${c === 'ε' ? 'text-purple-300' : 'text-cyan-300'}">${c}</th>`).join('')}
+                </tr>
+            `;
+
+            tbody.innerHTML = '';
+            nfaNodes.forEach(n => {
+                const tr = document.createElement('tr');
+                let rowHtml = `
+                    <td class="p-2 font-bold flex items-center gap-1">
+                        ${n.isStart ? '<span class="text-cyan-400">▶</span>' : ''}
+                        <span>${n.label}</span>
+                        ${n.isFinal ? '<span class="text-emerald-400">🏆</span>' : ''}
+                    </td>
+                `;
+
+                cols.forEach(c => {
+                    const targets = [];
+                    nfaTransitions.forEach(trItem => {
+                        if (trItem.from === n.id) {
+                            const syms = trItem.symbol.split(',').map(s => s.trim());
+                            if (syms.includes(c)) targets.push(trItem.to);
+                        }
+                    });
+
+                    const valStr = targets.join(', ');
+                    rowHtml += `
+                        <td class="p-1">
+                            <input type="text" value="${valStr}" onchange="updateMatrixCell('${n.id}', '${c}', this.value)" class="w-full bg-slate-900/80 hover:bg-slate-900 border border-slate-700/80 focus:border-purple-400 rounded px-2 py-1 text-xs font-mono text-slate-200" placeholder="∅">
+                        </td>
+                    `;
+                });
+
+                tr.innerHTML = rowHtml;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateMatrixCell(fromId, symbol, newTargetsStr) {
+            const rawTargets = newTargetsStr.split(',').map(s => s.trim()).filter(Boolean);
+            
+            // Remove previous transitions for (fromId, symbol)
+            nfaTransitions = nfaTransitions.filter(tr => !(tr.from === fromId && tr.symbol === symbol));
+
+            // Add new ones
+            rawTargets.forEach(tgt => {
+                // Ensure target state exists, if not add it
+                if (!nfaNodes.some(n => n.id === tgt)) {
+                    nfaNodes.push({
+                        id: tgt,
+                        label: tgt,
+                        x: 100 + (nfaNodes.length * 80) % 520,
+                        y: 190,
+                        isStart: false,
+                        isFinal: false
+                    });
+                }
+                nfaTransitions.push({ from: fromId, to: tgt, symbol });
+            });
+
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+            showToast(`Updated transition matrix: δ(${fromId}, '${symbol}') = { ${rawTargets.join(', ') || '∅'} }`);
+        }
+
+        function renderDfaMatrixTable() {
+            const thead = document.getElementById('matrix-dfa-thead');
+            const tbody = document.getElementById('matrix-dfa-tbody');
+            if (!thead || !tbody) return;
+
+            thead.innerHTML = `
+                <tr>
+                    <th class="p-2 font-bold">DFA State</th>
+                    ${alphabet.map(c => `<th class="p-2 font-bold text-cyan-300">Input '${c}'</th>`).join('')}
+                </tr>
+            `;
+
+            tbody.innerHTML = '';
+            if (dfaNodes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-slate-500 italic">No states generated yet. Click "Next Step" or "Generate All".</td></tr>';
+                return;
+            }
+
+            dfaNodes.forEach(n => {
+                const tr = document.createElement('tr');
+                tr.className = `hover:bg-slate-900/60 transition-colors ${n.isFinal ? 'bg-emerald-950/20' : ''}`;
+
+                let rowHtml = `
+                    <td class="p-2 font-bold">
+                        <span class="${n.isFinal ? 'text-emerald-300' : 'text-slate-200'}">${getDisplayName(n.id)}</span>
+                        ${n.isStart ? '<span class="text-cyan-400 text-[10px] ml-1">[Start]</span>' : ''}
+                        ${n.isFinal ? '<span class="text-emerald-400 text-[10px] ml-1">[🏆 Final]</span>' : ''}
+                    </td>
+                `;
+
+                alphabet.forEach(sym => {
+                    const edge = dfaTransitions.find(e => e.from === n.id && e.symbol === sym);
+                    const targetName = edge ? getDisplayName(edge.to) : '∅';
+                    rowHtml += `
+                        <td class="p-2 font-mono ${targetName !== '∅' ? 'text-cyan-300 font-bold' : 'text-slate-600'}">
+                            ${targetName}
+                        </td>
+                    `;
+                });
+
+                tr.innerHTML = rowHtml;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // 12. DUAL-MACHINE STRING RACE (SIMULATOR)
+        // ==========================================
+        function setRaceString(str) {
+            const inp = document.getElementById('race-string-input');
+            if (inp) inp.value = str;
+            resetRaceString();
+        }
+
+        function resetRaceString() {
+            if (raceTimer) {
+                clearInterval(raceTimer);
+                raceTimer = null;
+            }
+            raceString = (document.getElementById('race-string-input')?.value || 'aabba').trim();
+            raceHead = 0;
+
+            const startNode = nfaNodes.find(n => n.isStart) || nfaNodes[0];
+            raceNfaActiveClones = startNode ? getEpsilonClosure([startNode.id]) : [];
+
+            const initialKey = formatStateKey(raceNfaActiveClones);
+            raceDfaCurrentState = initialKey;
+
+            renderRaceTape();
+            updateRaceStatus('Ready to simulate');
+        }
+
+        function renderRaceTape() {
+            const container = document.getElementById('race-tape-cells');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (raceString.length === 0) {
+                container.innerHTML = '<span class="text-slate-500 italic">Empty string (ε)</span>';
+                return;
+            }
+
+            for (let i = 0; i < raceString.length; i++) {
+                const cell = document.createElement('div');
+                cell.className = `w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs border transition-all ${
+                    i === raceHead
+                        ? 'bg-gradient-to-tr from-cyan-500 to-purple-600 text-white border-cyan-300 shadow-md shadow-cyan-500/40 scale-110 -translate-y-0.5'
+                        : i < raceHead
+                        ? 'bg-slate-950/60 border-slate-800 text-slate-500'
+                        : 'bg-slate-900 border-slate-700 text-slate-200'
+                }`;
+                cell.textContent = raceString[i];
+                container.appendChild(cell);
+            }
+        }
+
+        function stepRaceString() {
+            if (raceHead >= raceString.length) {
+                checkRaceOutcome();
+                return;
+            }
+
+            const char = raceString[raceHead];
+            
+            // 1. ε-NFA Step: Direct Moves on char, then apply ε-closure
+            const directTargets = getDirectMoves(raceNfaActiveClones, char);
+            raceNfaActiveClones = getEpsilonClosure(directTargets);
+
+            // 2. DFA Step: Traverse DFA edge
+            const dfaEdge = dfaTransitions.find(e => e.from === raceDfaCurrentState && e.symbol === char);
+            raceDfaCurrentState = dfaEdge ? dfaEdge.to : '∅';
+
+            raceHead++;
+            renderRaceTape();
+            playBeep(520, 0.08);
+
+            const nfaDesc = raceNfaActiveClones.length > 0 ? `{ ${raceNfaActiveClones.join(', ')} }` : '∅ (Collapsed)';
+            const dfaDesc = raceDfaCurrentState !== '∅' ? getDisplayName(raceDfaCurrentState) : '∅ (Dead)';
+
+            updateRaceStatus(`Read '${char}': ε-NFA in ${nfaDesc} | DFA in ${dfaDesc}`);
+
+            if (raceHead >= raceString.length) {
+                setTimeout(checkRaceOutcome, 300);
+            }
+        }
+
+        function startStringRace() {
+            resetRaceString();
+            const speed = 700;
+            raceTimer = setInterval(() => {
+                if (raceHead < raceString.length) {
+                    stepRaceString();
+                } else {
+                    clearInterval(raceTimer);
+                    raceTimer = null;
+                }
+            }, speed);
+        }
+
+        function checkRaceOutcome() {
+            const originalFinals = nfaNodes.filter(n => n.isFinal).map(n => n.id);
+            
+            // ε-NFA acceptance: at least one active clone is in a final state
+            const nfaAccepted = raceNfaActiveClones.some(s => originalFinals.includes(s));
+
+            // DFA acceptance: current DFA composite state is marked as final
+            const dfaNodeObj = dfaNodes.find(n => n.id === raceDfaCurrentState);
+            const dfaAccepted = dfaNodeObj ? dfaNodeObj.isFinal : false;
+
+            const badge = document.getElementById('race-result-badge');
+            const nfaBadge = document.getElementById('race-nfa-badge');
+            const dfaBadge = document.getElementById('race-dfa-badge');
+
+            if (nfaAccepted && dfaAccepted) {
+                playVictoryFanfare();
+                if (badge) {
+                    badge.textContent = '🎉 BOTH MACHINES ACCEPT!';
+                    badge.className = 'font-bold text-xs px-3 py-1 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-500/50';
+                }
+                if (nfaBadge) { nfaBadge.textContent = 'ACCEPTED 🏆'; nfaBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'; }
+                if (dfaBadge) { dfaBadge.textContent = 'ACCEPTED 🏆'; dfaBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'; }
+            } else if (!nfaAccepted && !dfaAccepted) {
+                playBeep(260, 0.2, 'sawtooth');
+                if (badge) {
+                    badge.textContent = '❌ BOTH MACHINES REJECT!';
+                    badge.className = 'font-bold text-xs px-3 py-1 rounded-xl bg-rose-950 text-rose-300 border border-rose-500/50';
+                }
+                if (nfaBadge) { nfaBadge.textContent = 'REJECTED'; nfaBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/50'; }
+                if (dfaBadge) { dfaBadge.textContent = 'REJECTED'; dfaBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/50'; }
+            } else {
+                // Should never happen if equivalent
+                if (badge) {
+                    badge.textContent = 'MISMATCH!';
+                    badge.className = 'font-bold text-xs px-3 py-1 rounded-xl bg-amber-950 text-amber-300 border border-amber-500';
+                }
+            }
+        }
+
+        function updateRaceStatus(text) {
+            const nfaStatus = document.getElementById('race-nfa-status');
+            const dfaStatus = document.getElementById('race-dfa-status');
+            if (nfaStatus) nfaStatus.textContent = `Active: { ${raceNfaActiveClones.join(', ') || '∅'} }`;
+            if (dfaStatus) dfaStatus.textContent = `State: ${getDisplayName(raceDfaCurrentState)}`;
+        }
+
+        // ==========================================
+        // 13. EXPORT HUBS (JSON & MARKDOWN)
+        // ==========================================
+        function exportToJson() {
+            const data = {
+                title: "Epsilon-NFA to DFA Conversion",
+                alphabet: alphabet,
+                nfa: {
+                    states: nfaNodes.map(n => ({ id: n.id, isStart: n.isStart, isFinal: n.isFinal })),
+                    transitions: nfaTransitions
+                },
+                dfa: {
+                    states: dfaNodes.map(n => ({ id: n.id, alias: stateAliasMap[n.id] || '', isStart: n.isStart, isFinal: n.isFinal })),
+                    transitions: dfaTransitions
+                },
+                derivationSteps: dfaSteps
+            };
+
+            const str = JSON.stringify(data, null, 2);
+            const blob = new Blob([str], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'enfa_to_dfa_solution.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Downloaded enfa_to_dfa_solution.json");
+        }
+
+        function exportToMarkdown() {
+            let md = `# Epsilon-NFA (ε-NFA) to DFA Direct Conversion\n\n`;
+            md += `### Alphabet (Σ): { ${alphabet.join(', ')} }\n\n`;
+            md += `### Original ε-NFA States:\n`;
+            nfaNodes.forEach(n => {
+                md += `- **${n.id}**: ${n.isStart ? '[Start State]' : ''} ${n.isFinal ? '[Final State]' : ''}\n`;
+            });
+            md += `\n### ε-Closure of Each State:\n`;
+            nfaNodes.forEach(n => {
+                md += `- ε-closure(${n.id}) = [${getEpsilonClosure([n.id]).join(', ')}]\n`;
+            });
+
+            md += `\n### Equivalent DFA States (${dfaNodes.length} reachable states):\n`;
+            dfaNodes.forEach(n => {
+                md += `- **${n.id}** (${stateAliasMap[n.id] || ''}): ${n.isStart ? '[Start]' : ''} ${n.isFinal ? '[Final]' : ''}\n`;
+            });
+
+            md += `\n### DFA Transition Function δ:\n`;
+            md += `| DFA State | ${alphabet.map(a => `Input '${a}'`).join(' | ')} |\n`;
+            md += `| :--- | ${alphabet.map(() => ':---').join(' | ')} |\n`;
+
+            dfaNodes.forEach(n => {
+                const row = [getDisplayName(n.id)];
+                alphabet.forEach(sym => {
+                    const edge = dfaTransitions.find(e => e.from === n.id && e.symbol === sym);
+                    row.push(edge ? getDisplayName(edge.to) : '∅');
+                });
+                md += `| ${row.join(' | ')} |\n`;
+            });
+
+            navigator.clipboard.writeText(md).then(() => {
+                showToast("📋 Markdown notes copied to clipboard!");
+            }).catch(() => {
+                alert("Failed to copy automatically. Please export JSON instead.");
+            });
+        }
+
+        // ==========================================
+        // 14. PRESETS & INITIALIZATION
+        // ==========================================
+        function loadPreset(key) {
+            getAudioContext();
+            const p = PRESETS[key];
+            if (!p) return;
+
+            alphabet = [...p.alphabet];
+            document.getElementById('alphabet-input').value = alphabet.join(', ');
+
+            nfaNodes = JSON.parse(JSON.stringify(p.nodes));
+            nfaTransitions = JSON.parse(JSON.stringify(p.transitions));
+            selectedNodeId = nfaNodes[0] ? nfaNodes[0].id : null;
+
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+            resetRaceString();
+            playVictoryFanfare();
+            showToast(`Loaded preset: ${key}`);
+        }
+
+        function updateAlphabetFromInput() {
+            const raw = document.getElementById('alphabet-input').value;
+            const items = raw.split(',').map(s => s.trim().toLowerCase()).filter(s => s && s !== 'ε' && s !== 'epsilon');
+            if (items.length === 0) {
+                alert("Please provide at least one input symbol for the alphabet.");
+                return;
+            }
+            alphabet = Array.from(new Set(items));
+            document.getElementById('alphabet-input').value = alphabet.join(', ');
+            renderNfaCanvas();
+            recomputeDfaConversion();
+            resetDfaSteps();
+            showToast(`Alphabet updated to Σ = { ${alphabet.join(', ')} }`);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            const txt = document.getElementById('toast-text');
+            if (t && txt) {
+                txt.textContent = msg;
+                t.classList.remove('hidden');
+                setTimeout(() => t.classList.add('hidden'), 3200);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPreset('gate_smashers_23');
+        });
+    </script>
+</body>
+
+</html>

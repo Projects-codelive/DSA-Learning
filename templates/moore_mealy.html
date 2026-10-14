@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badge Thief: Moore to Mealy Machine Conversion (Gate Smashers Lec-27)</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                    colors: {
+                        heist: {
+                            cyan: '#06b6d4',
+                            glow: '#22d3ee',
+                            amber: '#f59e0b',
+                            gold: '#fbbf24',
+                            emerald: '#10b981',
+                            purple: '#a855f7',
+                            pink: '#ec4899',
+                            rose: '#f43f5e',
+                            dark: '#060913',
+                            surface: '#0c1326',
+                            card: '#111b36',
+                            border: '#1b2a4d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #060913; }
+        ::-webkit-scrollbar-thumb { background: #1b2a4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+
+        .glass-panel {
+            background: rgba(12, 19, 38, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(17, 27, 54, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+
+        .state-node-group {
+            cursor: grab;
+            transition: transform 0.15s ease-out;
+        }
+        .state-node-group:active {
+            cursor: grabbing;
+        }
+
+        .heist-badge-glow {
+            filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.85));
+            animation: pulseBadge 2s ease-in-out infinite;
+        }
+        @keyframes pulseBadge {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.6)); }
+            50% { filter: drop-shadow(0 0 14px rgba(6, 182, 212, 0.95)); }
+        }
+
+        .mealy-arrow-gold {
+            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.7));
+        }
+
+        .edge-active {
+            stroke: #10b981 !important;
+            stroke-width: 4.5 !important;
+            filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.9));
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-[#060913] text-slate-100 min-h-screen font-sans selection:bg-amber-500/30 selection:text-amber-200">
+
+    <!-- Ambient Ambient Heist Lights -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-cyan-600/12 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/4 -right-32 w-[30rem] h-[30rem] bg-amber-600/12 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-32 left-1/3 w-[28rem] h-[28rem] bg-purple-600/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="relative z-30 border-b border-slate-800/80 glass-panel sticky top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            <!-- Left: Logo & Subject Breadcrumb -->
+            <div class="flex items-center gap-3">
+                <a href="/" class="flex items-center gap-2 group">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-105 transition-transform">
+                        <span class="text-white text-lg">🦹</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-outfit font-extrabold text-sm sm:text-base text-white tracking-tight">Badge Thief</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-500/40">Moore → Mealy</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-mono hidden sm:block">Gate Smashers Lec-27 Engine • 100% User-Customizable</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Center Navigation Links -->
+            <div class="hidden md:flex items-center gap-1.5 text-xs font-mono">
+                <a href="/dfa" class="px-2.5 py-1.5 rounded-xl text-cyan-300 hover:bg-slate-800/60 transition-colors">🤖 DFA</a>
+                <a href="/nfa" class="px-2.5 py-1.5 rounded-xl text-pink-300 hover:bg-slate-800/60 transition-colors">🌌 NFA</a>
+                <a href="/enfa" class="px-2.5 py-1.5 rounded-xl text-purple-300 hover:bg-slate-800/60 transition-colors">🔮 ε-NFA→DFA</a>
+                <a href="/enfa-eliminate" class="px-2.5 py-1.5 rounded-xl text-emerald-300 hover:bg-slate-800/60 transition-colors">⚡ ε-Eliminator</a>
+                <a href="/moore-mealy" class="px-2.5 py-1.5 rounded-xl text-amber-300 bg-amber-950/70 border border-amber-500/40 font-bold">🦹 Moore→Mealy</a>
+            </div>
+
+            <!-- Right Controls -->
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAudio()" id="btn-audio" class="p-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-slate-500 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1.5">
+                    <span id="audio-icon">🔊</span>
+                    <span id="audio-label" class="hidden sm:inline font-mono">Sound</span>
+                </button>
+                <a href="/" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all">
+                    Dashboard
+                </a>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- ========================================================================= -->
+        <!-- TOP BANNER: PRESETS, CORE FORMULA & MODE TOGGLES                          -->
+        <!-- ========================================================================= -->
+        <div class="glass-card rounded-3xl p-5 border border-amber-500/30 shadow-2xl space-y-4">
+            
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                            Gate Smashers Lecture 27
+                        </span>
+                        <span class="text-xs text-slate-400 font-mono">Moore Machine to Mealy Machine Conversion</span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-outfit font-black text-white tracking-tight">
+                        Badge Thief: <span class="bg-gradient-to-r from-cyan-400 via-amber-400 to-emerald-400 bg-clip-text text-transparent">The Moore-to-Mealy Heist</span>
+                    </h1>
+                    <p class="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                        In a <span class="text-cyan-300 font-mono font-bold">Moore Machine</span>, outputs live inside states (<span class="font-mono text-cyan-400">q₁ / 1</span>). In a <span class="text-amber-400 font-mono font-bold">Mealy Machine</span>, states lose their badges; instead, every transition arrow copies the badge of its <span class="text-amber-300 font-bold underline decoration-amber-500/60">Destination State</span> (<span class="font-mono text-amber-300">input / destination_output</span>)!
+                    </p>
+                </div>
+
+                <!-- 1-Click Presets -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-mono text-slate-400">1-Click Presets:</span>
+                    <button onclick="loadPreset('gate_smashers_27')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-950/70 hover:bg-amber-900 text-amber-200 border border-amber-500/50 shadow-md shadow-amber-900/30 transition-all flex items-center gap-1.5">
+                        <span>⭐ Video Example (Lec 27)</span>
+                    </button>
+                    <button onclick="loadPreset('traffic_signal')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/40 transition-all flex items-center gap-1.5">
+                        <span>🚦 3-Output Traffic Signal</span>
+                    </button>
+                    <button onclick="loadPreset('blank')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-700 transition-all">
+                        <span>🧹 Blank Custom</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Golden Formula & Mode Switcher Bar -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-3 border-t border-slate-800/80 items-center">
+                
+                <!-- Core Formula (7 Cols) -->
+                <div class="md:col-span-7 bg-slate-900/80 p-2.5 rounded-2xl border border-slate-800 font-mono text-xs flex items-center gap-2.5">
+                    <span class="text-amber-400 text-base">🗝️</span>
+                    <div>
+                        <span class="text-slate-400">The Golden Heist Rule: </span>
+                        <span class="font-bold text-amber-300">λ_Mealy(qᵢ, a) = λ_Moore( δ(qᵢ, a) )</span>
+                        <span class="text-[11px] text-slate-400 block sm:inline sm:ml-2">Arrow output = Destination state's Moore badge!</span>
+                    </div>
+                </div>
+
+                <!-- Active App Mode Selector (5 Cols) -->
+                <div class="md:col-span-5 flex items-center justify-end gap-1.5 text-xs font-mono">
+                    <button onclick="setAppMode('convert')" id="tab-convert" class="px-3 py-1.5 rounded-xl font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 transition-all">
+                        🔬 Dual Converter
+                    </button>
+                    <button onclick="setAppMode('challenge')" id="tab-challenge" class="px-3 py-1.5 rounded-xl font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-all">
+                        🎮 Play Challenge
+                    </button>
+                    <button onclick="setAppMode('race')" id="tab-race" class="px-3 py-1.5 rounded-xl font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-all">
+                        🏁 String Race
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- MODE 1: DUAL-METHOD VISUAL CONVERTER (SPLIT-SCREEN CANVAS & SYNC TABLE)   -->
+        <!-- ========================================================================= -->
+        <div id="section-convert" class="space-y-6">
+            
+            <!-- Split-Screen Workbenches -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- LEFT: MOORE MACHINE CANVAS (INPUT) (6 Cols) -->
+                <div class="lg:col-span-6 glass-card rounded-3xl p-4 sm:p-5 border border-cyan-500/30 shadow-2xl space-y-4">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">🛡️</span>
+                            <div>
+                                <h2 class="font-outfit font-bold text-base text-white">1. Moore Machine (Input)</h2>
+                                <p class="text-[11px] text-slate-400 font-mono">States hold output badges: <span class="text-cyan-300 font-bold">[ qᵢ / Output ]</span></p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono font-bold text-cyan-300 px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/40">
+                            State Output (λ_M)
+                        </span>
+                    </div>
+
+                    <!-- Toolbar -->
+                    <div class="flex items-center gap-1.5 flex-wrap text-xs font-mono">
+                        <button onclick="addNewMooreState()" class="px-2.5 py-1.5 rounded-xl font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-all flex items-center gap-1">
+                            <span>+ Add State</span>
+                        </button>
+                        <button id="btn-connect-mode" onclick="toggleConnectMode()" class="px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-950/40 transition-all flex items-center gap-1">
+                            <span>🔗 Connect Arrow</span>
+                        </button>
+                        <button onclick="promptEditOutput()" class="px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:bg-amber-950/40 transition-all flex items-center gap-1">
+                            <span>🏷️ Edit Output Badge</span>
+                        </button>
+                        <button onclick="setSelectedAsStart()" class="px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-950/40 transition-all flex items-center gap-1">
+                            <span>▶ Set Start</span>
+                        </button>
+                        <button onclick="deleteSelectedNode()" class="px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-rose-400 border border-rose-500/40 hover:bg-rose-950/40 transition-all">
+                            <span>🗑️ Delete</span>
+                        </button>
+                    </div>
+
+                    <!-- Connect Mode Instructions -->
+                    <div id="connect-banner" class="hidden glass-panel rounded-xl p-2.5 border border-cyan-500/50 bg-cyan-950/40 flex items-center justify-between text-xs font-mono text-cyan-200">
+                        <div class="flex items-center gap-2">
+                            <span class="animate-bounce">🔗</span>
+                            <span id="connect-hint-text">Click the <strong>SOURCE</strong> state to begin.</span>
+                        </div>
+                        <button onclick="cancelConnectMode()" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-[11px]">Cancel</button>
+                    </div>
+
+                    <!-- State Selector Quick Pills -->
+                    <div class="flex items-center justify-between flex-wrap gap-2 px-1 text-xs font-mono bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-slate-400">States:</span>
+                            <div id="moore-state-pills" class="flex items-center gap-1 flex-wrap"></div>
+                        </div>
+                        <div class="text-[11px] text-amber-300">
+                            Selected: <span id="moore-selected-label" class="font-bold text-amber-400">q0</span>
+                        </div>
+                    </div>
+
+                    <!-- SVG Canvas for Moore Machine -->
+                    <div class="relative w-full overflow-hidden bg-slate-950/90 rounded-2xl border border-slate-800" style="height: 380px;">
+                        <svg id="moore-canvas" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="arrow-cyan" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#22d3ee" />
+                                </marker>
+                                <marker id="arrow-slate" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8" />
+                                </marker>
+                                <marker id="arrow-amber" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" />
+                                </marker>
+                            </defs>
+
+                            <g opacity="0.06" stroke="#38bdf8" stroke-width="1">
+                                <line x1="0" y1="95" x2="800" y2="95" stroke-dasharray="6 6" />
+                                <line x1="0" y1="190" x2="800" y2="190" stroke-dasharray="6 6" />
+                                <line x1="0" y1="285" x2="800" y2="285" stroke-dasharray="6 6" />
+                                <line x1="150" y1="0" x2="150" y2="400" stroke-dasharray="6 6" />
+                                <line x1="300" y1="0" x2="300" y2="400" stroke-dasharray="6 6" />
+                                <line x1="450" y1="0" x2="450" y2="400" stroke-dasharray="6 6" />
+                            </g>
+
+                            <g id="moore-edges-layer"></g>
+                            <g id="moore-nodes-layer"></g>
+                        </svg>
+
+                        <div class="absolute bottom-2 left-2 flex items-center gap-3 text-[10px] font-mono bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Start</span>
+                            <span class="text-cyan-300 font-bold">Badge inside state = Moore Output</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT: CONVERTED MEALY MACHINE CANVAS (OUTPUT) (6 Cols) -->
+                <div class="lg:col-span-6 glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/30 shadow-2xl space-y-4">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">🏹</span>
+                            <div>
+                                <h2 class="font-outfit font-bold text-base text-white">2. Converted Mealy Machine</h2>
+                                <p class="text-[11px] text-slate-400 font-mono">Arrows steal destination badges: <span class="text-amber-300 font-bold">input / output</span></p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono font-bold text-amber-300 px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/40">
+                            Transition Output (λ_Mealy)
+                        </span>
+                    </div>
+
+                    <!-- Step-by-Step Conversion Controls -->
+                    <div class="flex items-center justify-between flex-wrap gap-2 text-xs font-mono bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800">
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="stepPrevHeist()" class="px-2.5 py-1 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-colors">
+                                ◀ Prev
+                            </button>
+                            <button onclick="stepNextHeist()" class="px-3 py-1 rounded-xl font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-500/30 transition-colors">
+                                Steal Next Badge ▶
+                            </button>
+                            <button id="btn-autoplay-heist" onclick="toggleAutoHeist()" class="px-2.5 py-1 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-purple-300 border border-purple-500/40 transition-colors flex items-center gap-1">
+                                <span id="auto-heist-icon">▶▶</span>
+                                <span id="auto-heist-label">Auto Heist</span>
+                            </button>
+                            <button onclick="convertAllInstantly()" class="px-2.5 py-1 rounded-xl font-bold bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/40 transition-colors">
+                                ⚡ Heist All
+                            </button>
+                            <button onclick="resetHeistSteps()" class="px-2 py-1 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-colors">
+                                ⏮ Reset
+                            </button>
+                        </div>
+
+                        <span id="heist-step-badge" class="font-bold text-amber-400 px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/30">
+                            Arrow 0 / 0
+                        </span>
+                    </div>
+
+                    <!-- SVG Canvas for Mealy Machine -->
+                    <div class="relative w-full overflow-hidden bg-slate-950/90 rounded-2xl border border-slate-800" style="height: 380px;">
+                        <svg id="mealy-canvas" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="mealy-arrow-amber" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" />
+                                </marker>
+                                <marker id="mealy-arrow-cyan" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#22d3ee" />
+                                </marker>
+                                <marker id="mealy-arrow-slate" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+                                </marker>
+                            </defs>
+
+                            <g opacity="0.06" stroke="#38bdf8" stroke-width="1">
+                                <line x1="0" y1="95" x2="800" y2="95" stroke-dasharray="6 6" />
+                                <line x1="0" y1="190" x2="800" y2="190" stroke-dasharray="6 6" />
+                                <line x1="0" y1="285" x2="800" y2="285" stroke-dasharray="6 6" />
+                                <line x1="150" y1="0" x2="150" y2="400" stroke-dasharray="6 6" />
+                                <line x1="300" y1="0" x2="300" y2="400" stroke-dasharray="6 6" />
+                                <line x1="450" y1="0" x2="450" y2="400" stroke-dasharray="6 6" />
+                            </g>
+
+                            <g id="mealy-edges-layer"></g>
+                            <g id="mealy-nodes-layer"></g>
+                        </svg>
+
+                        <div class="absolute bottom-2 left-2 flex items-center gap-3 text-[10px] font-mono bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300">
+                            <span class="text-amber-300 font-bold">Arrow Badge = input / destination_output</span>
+                            <span class="text-slate-400">Draggable States</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Live Heist Step Narration Card -->
+            <div class="glass-card rounded-3xl p-5 border border-amber-500/30 shadow-2xl space-y-3 font-mono">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">📜</span>
+                        <div>
+                            <h3 class="font-outfit font-bold text-sm text-white">Live Heist Derivation & Lecture 27 Explanation</h3>
+                            <p class="text-[11px] text-amber-300">Formula: λ_Mealy(qᵢ, a) = λ_Moore( δ(qᵢ, a) )</p>
+                        </div>
+                    </div>
+                    <span id="heist-step-tag" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        Ready to Convert
+                    </span>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2 text-xs">
+                    <div class="flex items-center justify-between text-slate-300 font-semibold" id="heist-narration-headline">
+                        Click "Steal Next Badge ▶" or pick an arrow to begin!
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-amber-950/20 border border-amber-500/30 text-amber-200 leading-relaxed" id="heist-narration-formula">
+                        Destination State Output Lookup: Whenever a transition goes from $q_i \xrightarrow{a} q_j$, look up state $q_j$'s Moore output badge and attach it to the arrow label!
+                    </div>
+                    <div class="text-[11px] text-slate-400" id="heist-narration-exam-tip">
+                        Exam Pro-Tip: In competitive exams, you never need to redraw the entire diagram! Simply look at the Next State table cell and write its output right beside it.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two-Way Synced Tables: Moore Table vs. Converted Mealy Table -->
+            <div class="glass-card rounded-3xl p-5 border border-slate-800 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">📊</span>
+                        <div>
+                            <h3 class="font-outfit font-bold text-base text-white">Method 2: Direct Table-to-Table Conversion</h3>
+                            <p class="text-xs text-slate-400 font-mono">Interactive Moore Table (editable) ➔ Converted Mealy Table (derived instantly)</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/40">
+                        m States Rule: Exactly same number of states!
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Left: Moore Transition Table (Editable) (5 Cols) -->
+                    <div class="lg:col-span-5 space-y-2 font-mono text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-cyan-300">Moore Machine Table (Editable)</span>
+                            <span class="text-[10px] text-slate-500">Edit cells to sync diagram</span>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-slate-800">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-2 font-bold">Current State</th>
+                                        <th class="p-2 font-bold text-cyan-300">Next State (0)</th>
+                                        <th class="p-2 font-bold text-cyan-300">Next State (1)</th>
+                                        <th class="p-2 font-bold text-amber-300">State Output (λ_M)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="moore-table-tbody" class="divide-y divide-slate-800/60 bg-slate-950/70 text-slate-200">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right: Converted Mealy Transition Table (7 Cols) -->
+                    <div class="lg:col-span-7 space-y-2 font-mono text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-amber-300">Converted Mealy Machine Table</span>
+                            <span class="text-[10px] text-amber-400">Next State & Output paired</span>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-slate-800">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
+                                    <tr>
+                                        <th rowspan="2" class="p-2 font-bold border-r border-slate-800">Current State</th>
+                                        <th colspan="2" class="p-1.5 text-center font-bold text-cyan-300 border-r border-slate-800">Input '0'</th>
+                                        <th colspan="2" class="p-1.5 text-center font-bold text-cyan-300">Input '1'</th>
+                                    </tr>
+                                    <tr class="border-t border-slate-800/80 text-[11px]">
+                                        <th class="p-1.5 text-slate-400 border-r border-slate-800">Next State</th>
+                                        <th class="p-1.5 text-amber-400 border-r border-slate-800">Output</th>
+                                        <th class="p-1.5 text-slate-400 border-r border-slate-800">Next State</th>
+                                        <th class="p-1.5 text-amber-400">Output</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mealy-table-tbody" class="divide-y divide-slate-800/60 bg-slate-950/70 text-slate-200">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- MODE 2: PLAY THE ALGORITHM! (INTERACTIVE HEIST CHALLENGE)                 -->
+        <!-- ========================================================================= -->
+        <div id="section-challenge" class="hidden space-y-6">
+            
+            <div class="glass-card rounded-3xl p-6 border border-amber-500/40 shadow-2xl space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl">
+                            🎯
+                        </div>
+                        <div>
+                            <h2 class="font-outfit font-bold text-lg text-white">Play the Algorithm: Heist Wire Challenge</h2>
+                            <p class="text-xs text-slate-400 font-mono">Avoid the common trap: Pick Destination Output vs Source Output!</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 font-mono text-xs">
+                        <div class="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400">Score: </span>
+                            <span id="quiz-score" class="font-bold text-amber-400">0 XP</span>
+                        </div>
+                        <div class="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400">Question: </span>
+                            <span id="quiz-counter" class="font-bold text-cyan-400">1 / 6</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Challenge Question Box -->
+                <div class="bg-slate-950/90 rounded-2xl p-5 border border-slate-800 space-y-4 font-mono">
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-amber-400" id="challenge-step-badge">Question 1:</span>
+                        <h3 class="text-base font-bold text-white" id="challenge-question-text">
+                            A Mealy transition arrow goes from State q₁ to State q₂ on Input '0'. What output badge belongs on this arrow?
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2" id="challenge-options-grid">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <!-- Trap Warning Alert Box -->
+                    <div id="challenge-feedback" class="hidden p-3.5 rounded-xl text-xs space-y-1"></div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button onclick="nextChallengeQuestion()" id="btn-next-question" class="px-5 py-2.5 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/30 transition-all flex items-center gap-1.5">
+                        <span>Next Wire Challenge ▶</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- MODE 3: LIVE TRANSDUCER RACE (STRING SIMULATOR WITH DUAL TAPE)            -->
+        <!-- ========================================================================= -->
+        <div id="section-race" class="hidden space-y-6">
+            
+            <div class="glass-card rounded-3xl p-6 border border-cyan-500/40 shadow-2xl space-y-5 font-mono">
+                
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-xl">
+                            🏁
+                        </div>
+                        <div>
+                            <h2 class="font-outfit font-bold text-lg text-white">Live Transducer Race: Moore (n+1) vs Mealy (n)</h2>
+                            <p class="text-xs text-slate-400">Notice: Moore prints initial output before any input; Mealy prints only on transitions!</p>
+                        </div>
+                    </div>
+
+                    <!-- String Presets -->
+                    <div class="flex items-center gap-1.5 flex-wrap text-xs">
+                        <span class="text-slate-400">Presets:</span>
+                        <button onclick="applyRaceInput('01101')" class="px-2 py-0.5 rounded bg-slate-900 text-cyan-300 border border-slate-800">"01101"</button>
+                        <button onclick="applyRaceInput('1001')" class="px-2 py-0.5 rounded bg-slate-900 text-cyan-300 border border-slate-800">"1001"</button>
+                        <button onclick="applyRaceInput('0011')" class="px-2 py-0.5 rounded bg-slate-900 text-amber-300 border border-slate-800">"0011"</button>
+                        <button onclick="applyRaceInput('1')" class="px-2 py-0.5 rounded bg-slate-900 text-emerald-300 border border-slate-800">"1"</button>
+                    </div>
+                </div>
+
+                <!-- Input Field & Run Bar -->
+                <div class="flex flex-col sm:flex-row items-center gap-3">
+                    <input type="text" id="race-string-input" value="01101" class="flex-1 w-full bg-slate-950 border border-slate-700 rounded-2xl px-4 py-2.5 text-sm text-cyan-300 font-bold focus:outline-none focus:border-cyan-400" placeholder="Type binary string (e.g. 01101)">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button onclick="startTransducerRace()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-2xl font-bold text-xs bg-gradient-to-r from-cyan-500 to-amber-500 hover:opacity-95 text-slate-950 font-black shadow-lg shadow-cyan-500/25 transition-all">
+                            ▶ Run Race
+                        </button>
+                        <button onclick="stepTransducerRace()" class="px-3.5 py-2.5 rounded-2xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-colors">
+                            Step ⏭
+                        </button>
+                        <button onclick="resetTransducerRace()" class="px-3.5 py-2.5 rounded-2xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-colors">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Dual Output Tape Comparison -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    
+                    <!-- Moore Tape (n + 1 outputs) -->
+                    <div class="bg-slate-950/80 p-4 rounded-2xl border border-cyan-500/30 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-cyan-300 text-xs">1. Moore Output Tape (Length = n + 1)</span>
+                            <span id="moore-tape-len" class="text-[10px] text-cyan-400 font-bold">Length: 0</span>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 min-h-[50px] flex items-center gap-1.5 flex-wrap" id="moore-tape-cells">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Prints Start State initial output <span class="text-cyan-300 font-bold">immediately at step 0</span> before reading any input!
+                        </p>
+                    </div>
+
+                    <!-- Mealy Tape (n outputs) -->
+                    <div class="bg-slate-950/80 p-4 rounded-2xl border border-amber-500/30 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-amber-300 text-xs">2. Mealy Output Tape (Length = n)</span>
+                            <span id="mealy-tape-len" class="text-[10px] text-amber-400 font-bold">Length: 0</span>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 min-h-[50px] flex items-center gap-1.5 flex-wrap" id="mealy-tape-cells">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Outputs are generated <span class="text-amber-300 font-bold">only when transitions are taken</span>. Perfectly matches Moore's transition sequence!
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Synchronous Step Readout -->
+                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs flex items-center justify-between">
+                    <span id="race-step-log">Step 0: Ready. Click "Run Race" to start.</span>
+                    <span class="text-emerald-400 font-bold" id="race-match-status">Synchronized</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- COMPETITIVE EXAM BOSS CHALLENGE & EXPORT HUB                             -->
+        <!-- ========================================================================= -->
+        <div class="glass-card rounded-3xl p-5 border border-slate-800 shadow-2xl space-y-4 font-mono text-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🎓</span>
+                    <div>
+                        <h3 class="font-outfit font-bold text-base text-white">Competitive Exam Rule & Export Hub</h3>
+                        <p class="text-slate-400">Gate Smashers Lecture 27 Exam Questions & Notes Export</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="exportToJson()" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-700 transition-colors">
+                        📥 Export JSON
+                    </button>
+                    <button onclick="exportToMarkdown()" class="px-3 py-1.5 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 transition-colors">
+                        📋 Copy Markdown Notes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Exam Question Box -->
+            <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
+                <span class="text-amber-400 font-bold">GATE / University Exam Question:</span>
+                <p class="text-slate-200 leading-relaxed">
+                    "If a Moore machine has <span class="text-cyan-400 font-bold">m states</span> and <span class="text-cyan-400 font-bold">n output symbols</span>, what is the maximum number of states in the equivalent Mealy machine?"
+                </p>
+                <div class="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-emerald-300 leading-relaxed">
+                    <strong>Answer: At most m states (exactly m states in standard conversion).</strong><br>
+                    <span class="text-slate-400 text-[11px]">Explanation: Since each Moore state $q_j$ has a fixed output $\lambda_M(q_j)$, every arrow entering $q_j$ simply takes $\lambda_M(q_j)$. No state splitting is required! (Unlike Mealy-to-Moore where states can expand up to $m \times n$).</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Transition Input Chooser -->
+    <div id="modal-symbol-chooser" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="max-w-sm w-full glass-panel rounded-3xl p-6 border border-cyan-500/40 shadow-2xl space-y-4">
+            <div class="space-y-1 text-center">
+                <div class="text-2xl">🔀</div>
+                <h3 class="font-outfit text-base font-bold text-white">Select Transition Input Symbol</h3>
+                <p id="symbol-modal-desc" class="text-xs text-slate-300 font-mono">From q0 → q1</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2" id="symbol-buttons-container"></div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <button onclick="removePendingTransition()" class="flex-1 py-2 rounded-xl text-xs font-bold text-rose-400 bg-rose-950/40 hover:bg-rose-900/40 border border-rose-500/30 transition-colors">
+                    Delete Link
+                </button>
+                <button onclick="closeSymbolModal()" class="flex-1 py-2 rounded-xl text-xs font-bold text-slate-400 bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden bg-slate-900/95 border border-amber-500/60 text-amber-200 text-xs font-mono px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 transition-all">
+        <span id="toast-icon">✨</span>
+        <span id="toast-text">Message</span>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- ALGORITHM ENGINE & JAVASCRIPT LOGIC                                       -->
+    <!-- ========================================================================= -->
+    <script>
+        // ==========================================
+        // 1. SOUND SYNTHESIZER
+        // ==========================================
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = document.getElementById('audio-icon');
+            const label = document.getElementById('audio-label');
+            if (isAudioMuted) {
+                if (icon) icon.textContent = '🔇';
+                if (label) label.textContent = 'Muted';
+            } else {
+                if (icon) icon.textContent = '🔊';
+                if (label) label.textContent = 'Sound';
+                playBeep(640, 0.08, 'sine');
+            }
+        }
+
+        function playBeep(freq = 440, duration = 0.1, type = 'sine') {
+            if (isAudioMuted) return;
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + duration);
+        }
+
+        function playBadgeSnap() {
+            if (isAudioMuted) return;
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(350, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(950, ctx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.15);
+        }
+
+        function playVictoryChord() {
+            if (isAudioMuted) return;
+            [440, 554, 659, 880].forEach((freq, idx) => {
+                setTimeout(() => playBeep(freq, 0.2, 'sine'), idx * 70);
+            });
+        }
+
+        // ==========================================
+        // 2. STATE DATA & PRESETS
+        // ==========================================
+        let alphabet = ['0', '1'];
+
+        // Moore Machine: Each state has an output badge
+        let mooreNodes = [
+            { id: 'q0', label: 'q0', output: '0', x: 120, y: 190, isStart: true },
+            { id: 'q1', label: 'q1', output: '1', x: 280, y: 190, isStart: false },
+            { id: 'q2', label: 'q2', output: '0', x: 440, y: 190, isStart: false }
+        ];
+
+        // Moore Transitions: { from, to, symbol }
+        let mooreTransitions = [
+            { from: 'q0', to: 'q0', symbol: '0' },
+            { from: 'q0', to: 'q1', symbol: '1' },
+            { from: 'q1', to: 'q2', symbol: '0' },
+            { from: 'q1', to: 'q0', symbol: '1' },
+            { from: 'q2', to: 'q1', symbol: '0' },
+            { from: 'q2', to: 'q2', symbol: '1' }
+        ];
+
+        let selectedNodeId = 'q0';
+        let isConnecting = false;
+        let connectSourceId = null;
+        let pendingConnect = { from: null, to: null };
+
+        // Step-by-Step Conversion Data
+        let heistSteps = [];
+        let currentHeistIdx = 0;
+        let autoHeistTimer = null;
+
+        // Challenge Quiz State
+        let quizScore = 0;
+        let currentQuizIdx = 0;
+        let quizQuestions = [];
+
+        // Transducer Race Simulator State
+        let raceString = "01101";
+        let raceStepIdx = 0;
+        let raceMooreState = 'q0';
+        let raceMealyState = 'q0';
+        let raceMooreTape = [];
+        let raceMealyTape = [];
+        let raceTimer = null;
+
+        const PRESETS = {
+            gate_smashers_27: {
+                alphabet: ['0', '1'],
+                nodes: [
+                    { id: 'q0', label: 'q0', output: '0', x: 120, y: 190, isStart: true },
+                    { id: 'q1', label: 'q1', output: '1', x: 280, y: 190, isStart: false },
+                    { id: 'q2', label: 'q2', output: '0', x: 440, y: 190, isStart: false }
+                ],
+                transitions: [
+                    { from: 'q0', to: 'q0', symbol: '0' },
+                    { from: 'q0', to: 'q1', symbol: '1' },
+                    { from: 'q1', to: 'q2', symbol: '0' },
+                    { from: 'q1', to: 'q0', symbol: '1' },
+                    { from: 'q2', to: 'q1', symbol: '0' },
+                    { from: 'q2', to: 'q2', symbol: '1' }
+                ]
+            },
+            traffic_signal: {
+                alphabet: ['timer', 'override'],
+                nodes: [
+                    { id: 'Red', label: 'Red', output: 'Stop', x: 120, y: 190, isStart: true },
+                    { id: 'Green', label: 'Green', output: 'Go', x: 280, y: 190, isStart: false },
+                    { id: 'Yellow', label: 'Yellow', output: 'Wait', x: 440, y: 190, isStart: false }
+                ],
+                transitions: [
+                    { from: 'Red', to: 'Green', symbol: 'timer' },
+                    { from: 'Red', to: 'Red', symbol: 'override' },
+                    { from: 'Green', to: 'Yellow', symbol: 'timer' },
+                    { from: 'Green', to: 'Red', symbol: 'override' },
+                    { from: 'Yellow', to: 'Red', symbol: 'timer' },
+                    { from: 'Yellow', to: 'Red', symbol: 'override' }
+                ]
+            },
+            blank: {
+                alphabet: ['0', '1'],
+                nodes: [
+                    { id: 'q0', label: 'q0', output: '0', x: 180, y: 190, isStart: true },
+                    { id: 'q1', label: 'q1', output: '1', x: 380, y: 190, isStart: false }
+                ],
+                transitions: [
+                    { from: 'q0', to: 'q1', symbol: '1' },
+                    { from: 'q1', to: 'q0', symbol: '0' }
+                ]
+            }
+        };
+
+        // ==========================================
+        // 3. CORE CONVERSION ENGINE (GATE SMASHERS LEC-27)
+        // ==========================================
+        /**
+         * Converts Moore to Mealy transitions:
+         * For every edge q_i --(a)--> q_j, Mealy edge has label: a / output(q_j)
+         */
+        function computeMealyTransitions() {
+            const nodeMap = {};
+            mooreNodes.forEach(n => nodeMap[n.id] = n);
+
+            return mooreTransitions.map(tr => {
+                const targetNode = nodeMap[tr.to];
+                const destOutput = targetNode ? targetNode.output : '0';
+                return {
+                    from: tr.from,
+                    to: tr.to,
+                    symbol: tr.symbol,
+                    output: destOutput,
+                    label: `${tr.symbol} / ${destOutput}`
+                };
+            });
+        }
+
+        function buildHeistSteps() {
+            heistSteps = [];
+            const nodeMap = {};
+            mooreNodes.forEach(n => nodeMap[n.id] = n);
+
+            mooreTransitions.forEach((tr, idx) => {
+                const targetNode = nodeMap[tr.to];
+                const destOutput = targetNode ? targetNode.output : '0';
+                heistSteps.push({
+                    stepIdx: idx + 1,
+                    from: tr.from,
+                    to: tr.to,
+                    symbol: tr.symbol,
+                    destOutput: destOutput,
+                    description: `Transition from ${tr.from} on input '${tr.symbol}' lands on destination state ${tr.to}. State ${tr.to}'s Moore output is '${destOutput}'. Attach '${tr.symbol} / ${destOutput}' onto the Mealy arrow!`,
+                    formula: `\\lambda_{\\text{Mealy}}(${tr.from}, '${tr.symbol}') = \\lambda_{\\text{Moore}}(${tr.to}) = ${destOutput}`
+                });
+            });
+        }
+
+        // ==========================================
+        // 4. STEP-BY-STEP HEIST CONTROLLER
+        // ==========================================
+        function resetHeistSteps() {
+            stopAutoHeist();
+            currentHeistIdx = 0;
+            renderMealyCanvasUpToStep(0);
+            updateHeistNarration(heistSteps[0]);
+            playBeep(420, 0.08);
+        }
+
+        function stepNextHeist() {
+            if (currentHeistIdx < heistSteps.length) {
+                currentHeistIdx++;
+                renderMealyCanvasUpToStep(currentHeistIdx);
+                updateHeistNarration(heistSteps[currentHeistIdx - 1]);
+                playBadgeSnap();
+            } else {
+                stopAutoHeist();
+                playVictoryChord();
+                showToast("🎉 Heist Complete! All transition arrow badges converted.");
+            }
+        }
+
+        function stepPrevHeist() {
+            if (currentHeistIdx > 0) {
+                currentHeistIdx--;
+                renderMealyCanvasUpToStep(currentHeistIdx);
+                updateHeistNarration(heistSteps[currentHeistIdx - 1]);
+                playBeep(380, 0.08);
+            }
+        }
+
+        function convertAllInstantly() {
+            stopAutoHeist();
+            currentHeistIdx = heistSteps.length;
+            renderMealyCanvasUpToStep(currentHeistIdx);
+            updateHeistNarration(heistSteps[heistSteps.length - 1]);
+            playVictoryChord();
+            showToast("⚡ All Mealy transitions wired instantly!");
+        }
+
+        function toggleAutoHeist() {
+            if (autoHeistTimer) {
+                stopAutoHeist();
+            } else {
+                startAutoHeist();
+            }
+        }
+
+        function startAutoHeist() {
+            if (currentHeistIdx >= heistSteps.length) {
+                currentHeistIdx = 0;
+            }
+            const icon = document.getElementById('auto-heist-icon');
+            const label = document.getElementById('auto-heist-label');
+            if (icon) icon.textContent = '⏸';
+            if (label) label.textContent = 'Pause';
+
+            autoHeistTimer = setInterval(() => {
+                if (currentHeistIdx < heistSteps.length) {
+                    stepNextHeist();
+                } else {
+                    stopAutoHeist();
+                }
+            }, 1100);
+        }
+
+        function stopAutoHeist() {
+            if (autoHeistTimer) {
+                clearInterval(autoHeistTimer);
+                autoHeistTimer = null;
+            }
+            const icon = document.getElementById('auto-heist-icon');
+            const label = document.getElementById('auto-heist-label');
+            if (icon) icon.textContent = '▶▶';
+            if (label) label.textContent = 'Auto Heist';
+        }
+
+        function updateHeistNarration(step) {
+            const badge = document.getElementById('heist-step-badge');
+            const tag = document.getElementById('heist-step-tag');
+            const headline = document.getElementById('heist-narration-headline');
+            const formula = document.getElementById('heist-narration-formula');
+
+            if (badge) badge.textContent = `Arrow ${currentHeistIdx} / ${heistSteps.length}`;
+            if (!step) {
+                if (tag) tag.textContent = 'Step 0: Start';
+                if (headline) headline.textContent = 'Click "Steal Next Badge ▶" to wire the Mealy arrows!';
+                return;
+            }
+
+            if (tag) tag.textContent = `Arrow ${step.stepIdx}: ${step.from} → ${step.to}`;
+            if (headline) headline.textContent = `Arrow from ${step.from} on '${step.symbol}' lands on destination ${step.to} (Output: ${step.destOutput})`;
+            if (formula) formula.innerHTML = `<strong>Heist Formula: λ_Mealy(${step.from}, '${step.symbol}') = λ_Moore(${step.to}) = '${step.destOutput}'</strong><br><span class="text-xs text-amber-300">Wired arrow label: ${step.symbol} / ${step.destOutput}</span>`;
+        }
+
+        // ==========================================
+        // 5. SVG CANVAS GRAPH RENDERING
+        // ==========================================
+        function renderMooreCanvas() {
+            const edgesLayer = document.getElementById('moore-edges-layer');
+            const nodesLayer = document.getElementById('moore-nodes-layer');
+            if (!edgesLayer || !nodesLayer) return;
+
+            edgesLayer.innerHTML = '';
+            nodesLayer.innerHTML = '';
+
+            const nodeMap = {};
+            mooreNodes.forEach(n => nodeMap[n.id] = n);
+
+            // Group multiple inputs on same transition (e.g. 0, 1)
+            const groupedEdges = {};
+            mooreTransitions.forEach(tr => {
+                const key = `${tr.from}->${tr.to}`;
+                if (!groupedEdges[key]) groupedEdges[key] = { from: tr.from, to: tr.to, symbols: new Set() };
+                groupedEdges[key].symbols.add(tr.symbol);
+            });
+
+            // 1. Render Moore Edges
+            Object.values(groupedEdges).forEach(edge => {
+                const u = nodeMap[edge.from];
+                const v = nodeMap[edge.to];
+                if (!u || !v) return;
+
+                const symbolText = Array.from(edge.symbols).sort().join(', ');
+                const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                if (edge.from === edge.to) {
+                    const cx = u.x;
+                    const cy = u.y;
+                    const loopPath = `M ${cx - 15} ${cy - 28} C ${cx - 45} ${cy - 85}, ${cx + 45} ${cy - 85}, ${cx + 15} ${cy - 28}`;
+                    edgeGroup.innerHTML = `
+                        <path d="${loopPath}" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow-slate)" />
+                        <rect x="${cx - 15}" y="${cy - 78}" width="30" height="20" rx="5" fill="#060913" stroke="#38bdf8" stroke-width="1.5" />
+                        <text x="${cx}" y="${cy - 64}" fill="#38bdf8" font-family="'Fira Code', monospace" font-size="11" font-weight="bold" text-anchor="middle">${symbolText}</text>
+                    `;
+                } else {
+                    const hasReverse = Object.values(groupedEdges).some(e => e.from === edge.to && e.to === edge.from);
+                    let dPath = '';
+                    let midX = (u.x + v.x) / 2;
+                    let midY = (u.y + v.y) / 2;
+
+                    if (hasReverse) {
+                        const dx = v.x - u.x;
+                        const dy = v.y - u.y;
+                        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                        midX += -dy / len * 34;
+                        midY += dx / len * 34;
+                        dPath = `M ${u.x} ${u.y} Q ${midX} ${midY} ${v.x} ${v.y}`;
+                    } else {
+                        dPath = `M ${u.x} ${u.y} L ${v.x} ${v.y}`;
+                    }
+
+                    edgeGroup.innerHTML = `
+                        <path d="${dPath}" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow-slate)" />
+                        <rect x="${midX - 16}" y="${midY - 11}" width="32" height="22" rx="6" fill="#060913" stroke="#22d3ee" stroke-width="1.5" />
+                        <text x="${midX}" y="${midY + 5}" fill="#22d3ee" font-family="'Fira Code', monospace" font-size="12" font-weight="bold" text-anchor="middle">${symbolText}</text>
+                    `;
+                }
+
+                edgeGroup.style.cursor = 'pointer';
+                edgeGroup.onclick = (e) => {
+                    e.stopPropagation();
+                    openSymbolModal(edge.from, edge.to);
+                };
+                edgesLayer.appendChild(edgeGroup);
+            });
+
+            // 2. Render Moore State Nodes (with Internal Output Badge)
+            mooreNodes.forEach(n => {
+                const isSel = selectedNodeId === n.id;
+                const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                nodeGroup.className = `state-node-group ${isSel ? 'selected' : ''}`;
+                nodeGroup.id = `moore-node-${n.id}`;
+
+                nodeGroup.innerHTML = `
+                    ${isSel ? `
+                        <circle cx="${n.x}" cy="${n.y}" r="42" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5 4" opacity="0.95" />
+                    ` : ''}
+
+                    ${n.isStart ? `
+                        <line x1="${n.x - 65}" y1="${n.y}" x2="${n.x - 36}" y2="${n.y}" stroke="#22d3ee" stroke-width="3" marker-end="url(#arrow-cyan)" />
+                        <text x="${n.x - 65}" y="${n.y - 8}" fill="#22d3ee" font-family="'Fira Code', monospace" font-size="10" font-weight="bold">START</text>
+                    ` : ''}
+
+                    <circle class="outer-circle" cx="${n.x}" cy="${n.y}" r="34" fill="#0c1733" stroke="${isSel ? '#f59e0b' : '#38bdf8'}" stroke-width="3" />
+                    
+                    <!-- State Label -->
+                    <text x="${n.x}" y="${n.y - 4}" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="15" font-weight="900" text-anchor="middle">${n.label}</text>
+                    
+                    <!-- Internal Output Badge (Moore Characteristic) -->
+                    <line x1="${n.x - 22}" y1="${n.y + 2}" x2="${n.x + 22}" y2="${n.y + 2}" stroke="#1e293b" stroke-width="1.5" />
+                    <text x="${n.x}" y="${n.y + 17}" fill="#22d3ee" font-family="'Fira Code', monospace" font-size="12" font-weight="bold" text-anchor="middle" class="heist-badge-glow">/${n.output}</text>
+                `;
+
+                setupMooreDrag(nodeGroup, n);
+                nodesLayer.appendChild(nodeGroup);
+            });
+
+            renderMoorePills();
+            renderTables();
+        }
+
+        function renderMealyCanvasUpToStep(stepIdx) {
+            const edgesLayer = document.getElementById('mealy-edges-layer');
+            const nodesLayer = document.getElementById('mealy-nodes-layer');
+            if (!edgesLayer || !nodesLayer) return;
+
+            edgesLayer.innerHTML = '';
+            nodesLayer.innerHTML = '';
+
+            const nodeMap = {};
+            mooreNodes.forEach(n => nodeMap[n.id] = n);
+
+            // Group revealed Mealy edges up to stepIdx
+            const revealedEdges = [];
+            for (let i = 0; i < stepIdx && i < heistSteps.length; i++) {
+                revealedEdges.push(heistSteps[i]);
+            }
+
+            const groupedEdges = {};
+            revealedEdges.forEach(tr => {
+                const key = `${tr.from}->${tr.to}`;
+                if (!groupedEdges[key]) groupedEdges[key] = { from: tr.from, to: tr.to, labels: [] };
+                groupedEdges[key].labels.push(`${tr.symbol} / ${tr.destOutput}`);
+            });
+
+            // 1. Render Mealy Edges
+            Object.values(groupedEdges).forEach(edge => {
+                const u = nodeMap[edge.from];
+                const v = nodeMap[edge.to];
+                if (!u || !v) return;
+
+                const labelText = edge.labels.join(', ');
+                const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                if (edge.from === edge.to) {
+                    const cx = u.x;
+                    const cy = u.y;
+                    const loopPath = `M ${cx - 15} ${cy - 28} C ${cx - 45} ${cy - 85}, ${cx + 45} ${cy - 85}, ${cx + 15} ${cy - 28}`;
+                    edgeGroup.innerHTML = `
+                        <path d="${loopPath}" fill="none" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#mealy-arrow-amber)" />
+                        <rect x="${cx - 24}" y="${cy - 78}" width="48" height="20" rx="5" fill="#060913" stroke="#f59e0b" stroke-width="1.5" />
+                        <text x="${cx}" y="${cy - 64}" fill="#fbbf24" font-family="'Fira Code', monospace" font-size="11" font-weight="bold" text-anchor="middle">${labelText}</text>
+                    `;
+                } else {
+                    const hasReverse = Object.values(groupedEdges).some(e => e.from === edge.to && e.to === edge.from);
+                    let dPath = '';
+                    let midX = (u.x + v.x) / 2;
+                    let midY = (u.y + v.y) / 2;
+
+                    if (hasReverse) {
+                        const dx = v.x - u.x;
+                        const dy = v.y - u.y;
+                        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                        midX += -dy / len * 36;
+                        midY += dx / len * 36;
+                        dPath = `M ${u.x} ${u.y} Q ${midX} ${midY} ${v.x} ${v.y}`;
+                    } else {
+                        dPath = `M ${u.x} ${u.y} L ${v.x} ${v.y}`;
+                    }
+
+                    edgeGroup.innerHTML = `
+                        <path d="${dPath}" fill="none" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#mealy-arrow-amber)" />
+                        <rect x="${midX - 26}" y="${midY - 11}" width="52" height="22" rx="6" fill="#060913" stroke="#f59e0b" stroke-width="1.5" />
+                        <text x="${midX}" y="${midY + 5}" fill="#fbbf24" font-family="'Fira Code', monospace" font-size="11" font-weight="bold" text-anchor="middle">${labelText}</text>
+                    `;
+                }
+
+                edgesLayer.appendChild(edgeGroup);
+            });
+
+            // 2. Render Mealy Nodes (Without Internal Output Badge - Pure States)
+            mooreNodes.forEach(n => {
+                const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                nodeGroup.className = 'state-node-group';
+                nodeGroup.id = `mealy-node-${n.id}`;
+
+                nodeGroup.innerHTML = `
+                    ${n.isStart ? `
+                        <line x1="${n.x - 65}" y1="${n.y}" x2="${n.x - 36}" y2="${n.y}" stroke="#22d3ee" stroke-width="3" marker-end="url(#mealy-arrow-cyan)" />
+                        <text x="${n.x - 65}" y="${n.y - 8}" fill="#22d3ee" font-family="'Fira Code', monospace" font-size="10" font-weight="bold">START</text>
+                    ` : ''}
+
+                    <circle class="outer-circle" cx="${n.x}" cy="${n.y}" r="32" fill="#0f172a" stroke="#f59e0b" stroke-width="2.5" />
+                    
+                    <!-- Only Pure State Name (Badge Stolen!) -->
+                    <text x="${n.x}" y="${n.y + 6}" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="16" font-weight="900" text-anchor="middle">${n.label}</text>
+                `;
+
+                nodesLayer.appendChild(nodeGroup);
+            });
+        }
+
+        // ==========================================
+        // 6. DRAGGING & INTERACTIONS
+        // ==========================================
+        let draggedNode = null;
+        let dragOffset = { x: 0, y: 0 };
+        const mooreSvg = document.getElementById('moore-canvas');
+
+        function setupMooreDrag(el, nodeData) {
+            el.onclick = (e) => {
+                e.stopPropagation();
+                getAudioContext();
+                if (isConnecting) {
+                    handleConnectClick(nodeData.id);
+                    return;
+                }
+                selectedNodeId = nodeData.id;
+                renderMooreCanvas();
+                playBeep(450, 0.05, 'sine');
+            };
+
+            el.ondblclick = (e) => {
+                e.stopPropagation();
+                promptEditOutput(nodeData.id);
+            };
+
+            el.onmousedown = (e) => {
+                e.stopPropagation();
+                getAudioContext();
+                if (isConnecting) return;
+
+                selectedNodeId = nodeData.id;
+                draggedNode = nodeData;
+                const pt = getSvgPoint(e);
+                dragOffset.x = pt.x - nodeData.x;
+                dragOffset.y = pt.y - nodeData.y;
+            };
+
+            el.ontouchstart = (e) => {
+                e.stopPropagation();
+                if (isConnecting) {
+                    handleConnectClick(nodeData.id);
+                    return;
+                }
+                selectedNodeId = nodeData.id;
+                draggedNode = nodeData;
+                const touch = e.touches[0];
+                const pt = getSvgPoint(touch);
+                dragOffset.x = pt.x - nodeData.x;
+                dragOffset.y = pt.y - nodeData.y;
+            };
+        }
+
+        function getSvgPoint(e) {
+            const rect = mooreSvg.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (!draggedNode) return;
+            const pt = getSvgPoint(e);
+            draggedNode.x = Math.max(35, Math.min(650, pt.x - dragOffset.x));
+            draggedNode.y = Math.max(35, Math.min(340, pt.y - dragOffset.y));
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(currentHeistIdx);
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (draggedNode) draggedNode = null;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!draggedNode) return;
+            const pt = getSvgPoint(e.touches[0]);
+            draggedNode.x = Math.max(35, Math.min(650, pt.x - dragOffset.x));
+            draggedNode.y = Math.max(35, Math.min(340, pt.y - dragOffset.y));
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(currentHeistIdx);
+        });
+
+        window.addEventListener('touchend', () => {
+            draggedNode = null;
+        });
+
+        mooreSvg.addEventListener('click', (e) => {
+            if ((e.target === mooreSvg || e.target.id === 'moore-canvas' || e.target.tagName === 'svg') && !isConnecting) {
+                selectedNodeId = null;
+                renderMooreCanvas();
+            }
+        });
+
+        // ==========================================
+        // 7. CONNECT MODE & SYMBOL CHOOSER
+        // ==========================================
+        function toggleConnectMode() {
+            getAudioContext();
+            isConnecting = !isConnecting;
+            connectSourceId = null;
+            const btn = document.getElementById('btn-connect-mode');
+            const banner = document.getElementById('connect-banner');
+            const hint = document.getElementById('connect-hint-text');
+
+            if (isConnecting) {
+                btn.className = 'px-2.5 py-1.5 rounded-xl font-bold bg-cyan-600 text-white shadow-lg shadow-cyan-500/30 transition-all flex items-center gap-1 animate-pulse';
+                banner.classList.remove('hidden');
+                if (hint) hint.innerHTML = "Click the <strong>SOURCE</strong> state to begin.";
+                playBeep(600, 0.08);
+            } else {
+                btn.className = 'px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-950/40 transition-all flex items-center gap-1';
+                banner.classList.add('hidden');
+            }
+        }
+
+        function cancelConnectMode() {
+            isConnecting = false;
+            connectSourceId = null;
+            const btn = document.getElementById('btn-connect-mode');
+            const banner = document.getElementById('connect-banner');
+            if (btn) btn.className = 'px-2.5 py-1.5 rounded-xl font-bold bg-slate-900 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-950/40 transition-all flex items-center gap-1';
+            if (banner) banner.classList.add('hidden');
+        }
+
+        function handleConnectClick(nodeId) {
+            const hint = document.getElementById('connect-hint-text');
+            if (!connectSourceId) {
+                connectSourceId = nodeId;
+                playBeep(520, 0.08);
+                if (hint) hint.innerHTML = `Source: <strong>${nodeId}</strong>. Now click the <strong>TARGET</strong> state.`;
+            } else {
+                const from = connectSourceId;
+                const to = nodeId;
+                cancelConnectMode();
+                openSymbolModal(from, to);
+            }
+        }
+
+        function openSymbolModal(from, to) {
+            pendingConnect = { from, to };
+            const modal = document.getElementById('modal-symbol-chooser');
+            const desc = document.getElementById('symbol-modal-desc');
+            const container = document.getElementById('symbol-buttons-container');
+
+            if (modal) modal.classList.remove('hidden');
+            if (desc) desc.textContent = from === to ? `Self-Loop on [ ${from} ]` : `Transition from [ ${from} ] → [ ${to} ]`;
+
+            if (container) {
+                container.innerHTML = '';
+                alphabet.forEach(sym => {
+                    const btn = document.createElement('button');
+                    btn.className = 'py-2.5 px-3 rounded-xl font-mono font-bold text-xs bg-slate-900 hover:bg-cyan-950 text-cyan-300 border border-cyan-500/40 transition-colors';
+                    btn.textContent = `Input '${sym}'`;
+                    btn.onclick = () => confirmTransitionSymbol(sym);
+                    container.appendChild(btn);
+                });
+            }
+        }
+
+        function closeSymbolModal() {
+            const modal = document.getElementById('modal-symbol-chooser');
+            if (modal) modal.classList.add('hidden');
+            pendingConnect = { from: null, to: null };
+        }
+
+        function confirmTransitionSymbol(symbol) {
+            if (!pendingConnect.from || !pendingConnect.to) return;
+            const { from, to } = pendingConnect;
+
+            mooreTransitions = mooreTransitions.filter(e => !(e.from === from && e.to === to && e.symbol === symbol));
+            mooreTransitions.push({ from, to, symbol });
+
+            closeSymbolModal();
+            buildHeistSteps();
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(currentHeistIdx);
+            playBadgeSnap();
+            showToast(`Added transition: δ(${from}, '${symbol}') = ${to}`);
+        }
+
+        function removePendingTransition() {
+            if (!pendingConnect.from || !pendingConnect.to) return;
+            mooreTransitions = mooreTransitions.filter(e => !(e.from === pendingConnect.from && e.to === pendingConnect.to));
+            closeSymbolModal();
+            buildHeistSteps();
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(currentHeistIdx);
+            playBeep(320, 0.08);
+            showToast(`Removed transition between ${pendingConnect.from} and ${pendingConnect.to}`);
+        }
+
+        // ==========================================
+        // 8. MOORE STATE CRUD & OUTPUT BADGE EDITING
+        // ==========================================
+        function addNewMooreState() {
+            getAudioContext();
+            let newId = `q${mooreNodes.length}`;
+            let counter = mooreNodes.length;
+            const existingIds = new Set(mooreNodes.map(n => n.id));
+            while (existingIds.has(newId)) {
+                counter++;
+                newId = `q${counter}`;
+            }
+
+            const isStart = mooreNodes.length === 0;
+            const newNode = {
+                id: newId,
+                label: newId,
+                output: '0',
+                x: 100 + (mooreNodes.length * 85) % 520,
+                y: 190,
+                isStart: isStart
+            };
+
+            mooreNodes.push(newNode);
+            selectedNodeId = newId;
+
+            buildHeistSteps();
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(currentHeistIdx);
+            playBeep(680, 0.1);
+            showToast(`Added State ${newId} with default output /0`);
+        }
+
+        function promptEditOutput(targetId = null) {
+            const id = targetId || selectedNodeId;
+            if (!id) {
+                alert("Please select a state first!");
+                return;
+            }
+            const n = mooreNodes.find(node => node.id === id);
+            if (!n) return;
+
+            const newOut = prompt(`Enter output symbol/string for state ${n.label} (currently '${n.output}'):`, n.output);
+            if (newOut !== null && newOut.trim() !== '') {
+                n.output = newOut.trim();
+                buildHeistSteps();
+                renderMooreCanvas();
+                renderMealyCanvasUpToStep(currentHeistIdx);
+                playBadgeSnap();
+                showToast(`Updated State ${n.id}'s Moore output to /${n.output}`);
+            }
+        }
+
+        function setSelectedAsStart() {
+            if (!selectedNodeId) {
+                alert("Please click a state node on the canvas first to select it!");
+                return;
+            }
+            getAudioContext();
+            mooreNodes.forEach(n => n.isStart = (n.id === selectedNodeId));
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(currentHeistIdx);
+            playBeep(580, 0.1);
+            showToast(`State ${selectedNodeId} is now Start State!`);
+        }
+
+        function deleteSelectedNode() {
+            if (!selectedNodeId) {
+                alert("Please click a state node to select it for deletion.");
+                return;
+            }
+            getAudioContext();
+            const delId = selectedNodeId;
+            mooreNodes = mooreNodes.filter(n => n.id !== delId);
+            mooreTransitions = mooreTransitions.filter(e => e.from !== delId && e.to !== delId);
+
+            if (mooreNodes.length > 0 && !mooreNodes.some(n => n.isStart)) {
+                mooreNodes[0].isStart = true;
+            }
+
+            selectedNodeId = mooreNodes[0] ? mooreNodes[0].id : null;
+            buildHeistSteps();
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(currentHeistIdx);
+            playBeep(280, 0.1);
+            showToast(`State ${delId} deleted.`);
+        }
+
+        function renderMoorePills() {
+            const container = document.getElementById('moore-state-pills');
+            const selLabel = document.getElementById('moore-selected-label');
+
+            if (selLabel) selLabel.textContent = selectedNodeId || 'None';
+            if (!container) return;
+
+            container.innerHTML = '';
+            mooreNodes.forEach(n => {
+                const isSel = selectedNodeId === n.id;
+                const pill = document.createElement('div');
+                pill.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs cursor-pointer transition-all ${
+                    isSel
+                        ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-bold shadow-sm shadow-amber-500/30 ring-1 ring-amber-400'
+                        : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500'
+                }`;
+
+                pill.innerHTML = `
+                    <span>${n.isStart ? '▶ ' : ''}${n.label}</span>
+                    <button onclick="event.stopPropagation(); promptEditOutput('${n.id}')" title="Click to edit Output" class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-900">
+                        /${n.output}
+                    </button>
+                `;
+
+                pill.onclick = () => {
+                    selectedNodeId = n.id;
+                    renderMooreCanvas();
+                    playBeep(450, 0.05, 'sine');
+                };
+
+                container.appendChild(pill);
+            });
+        }
+
+        // ==========================================
+        // 9. METHOD 2: DIRECT TABLE-TO-TABLE ENGINE
+        // ==========================================
+        function renderTables() {
+            const mooreTbody = document.getElementById('moore-table-tbody');
+            const mealyTbody = document.getElementById('mealy-table-tbody');
+            if (!mooreTbody || !mealyTbody) return;
+
+            mooreTbody.innerHTML = '';
+            mealyTbody.innerHTML = '';
+
+            const nodeMap = {};
+            mooreNodes.forEach(n => nodeMap[n.id] = n);
+
+            // Populate Moore Table (Editable)
+            mooreNodes.forEach(n => {
+                const tr = document.createElement('tr');
+                const next0 = mooreTransitions.find(e => e.from === n.id && e.symbol === '0')?.to || '∅';
+                const next1 = mooreTransitions.find(e => e.from === n.id && e.symbol === '1')?.to || '∅';
+
+                tr.innerHTML = `
+                    <td class="p-2 font-bold flex items-center gap-1">
+                        ${n.isStart ? '<span class="text-cyan-400">▶</span>' : ''}
+                        <span>${n.label}</span>
+                    </td>
+                    <td class="p-1">
+                        <input type="text" value="${next0 !== '∅' ? next0 : ''}" onchange="updateMooreTableCell('${n.id}', '0', this.value)" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-cyan-300" placeholder="∅">
+                    </td>
+                    <td class="p-1">
+                        <input type="text" value="${next1 !== '∅' ? next1 : ''}" onchange="updateMooreTableCell('${n.id}', '1', this.value)" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-cyan-300" placeholder="∅">
+                    </td>
+                    <td class="p-1">
+                        <input type="text" value="${n.output}" onchange="updateMooreOutputCell('${n.id}', this.value)" class="w-16 bg-slate-900 border border-amber-500/40 rounded px-2 py-1 text-xs font-mono font-bold text-amber-300">
+                    </td>
+                `;
+                mooreTbody.appendChild(tr);
+
+                // Populate Mealy Table (Direct Derivation Method 2)
+                const mealyTr = document.createElement('tr');
+                const dest0Node = nodeMap[next0];
+                const dest1Node = nodeMap[next1];
+                const out0 = dest0Node ? dest0Node.output : '—';
+                const out1 = dest1Node ? dest1Node.output : '—';
+
+                mealyTr.innerHTML = `
+                    <td class="p-2 font-bold border-r border-slate-800">
+                        ${n.isStart ? '<span class="text-cyan-400">▶</span>' : ''}
+                        <span>${n.label}</span>
+                    </td>
+                    <td class="p-2 text-cyan-300 font-bold border-r border-slate-800/60">${next0}</td>
+                    <td class="p-2 text-amber-400 font-bold border-r border-slate-800">${out0}</td>
+                    <td class="p-2 text-cyan-300 font-bold border-r border-slate-800/60">${next1}</td>
+                    <td class="p-2 text-amber-400 font-bold">${out1}</td>
+                `;
+                mealyTbody.appendChild(mealyTr);
+            });
+        }
+
+        function updateMooreTableCell(fromId, symbol, targetId) {
+            const tgt = targetId.trim();
+            mooreTransitions = mooreTransitions.filter(e => !(e.from === fromId && e.symbol === symbol));
+            if (tgt && tgt !== '∅') {
+                mooreTransitions.push({ from: fromId, to: tgt, symbol });
+            }
+            buildHeistSteps();
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(currentHeistIdx);
+            showToast(`Updated transition: δ(${fromId}, '${symbol}') = ${tgt || '∅'}`);
+        }
+
+        function updateMooreOutputCell(nodeId, newOut) {
+            const n = mooreNodes.find(node => node.id === nodeId);
+            if (n && newOut.trim() !== '') {
+                n.output = newOut.trim();
+                buildHeistSteps();
+                renderMooreCanvas();
+                renderMealyCanvasUpToStep(currentHeistIdx);
+                showToast(`Updated output of ${nodeId} to /${n.output}`);
+            }
+        }
+
+        // ==========================================
+        // 10. MODE 2: PLAY THE HEIST CHALLENGE QUIZ
+        // ==========================================
+        function initChallengeQuiz() {
+            quizScore = 0;
+            currentQuizIdx = 0;
+            quizQuestions = [];
+
+            const nodeMap = {};
+            mooreNodes.forEach(n => nodeMap[n.id] = n);
+
+            // Generate questions from transitions
+            mooreTransitions.forEach(tr => {
+                const s1 = tr.from;
+                const s2 = tr.to;
+                const destOutput = nodeMap[s2]?.output || '0';
+                const srcOutput = nodeMap[s1]?.output || '0';
+
+                quizQuestions.push({
+                    from: s1,
+                    to: s2,
+                    symbol: tr.symbol,
+                    destOutput: destOutput,
+                    srcOutput: srcOutput,
+                    isSame: destOutput === srcOutput
+                });
+            });
+
+            // Shuffle
+            quizQuestions.sort(() => Math.random() - 0.5);
+            loadQuizQuestion(0);
+        }
+
+        function loadQuizQuestion(idx) {
+            const q = quizQuestions[idx];
+            if (!q) {
+                renderQuizComplete();
+                return;
+            }
+
+            const counter = document.getElementById('quiz-counter');
+            const scoreEl = document.getElementById('quiz-score');
+            const badge = document.getElementById('challenge-step-badge');
+            const questionText = document.getElementById('challenge-question-text');
+            const grid = document.getElementById('challenge-options-grid');
+            const feedback = document.getElementById('challenge-feedback');
+
+            if (counter) counter.textContent = `${idx + 1} / ${quizQuestions.length}`;
+            if (scoreEl) scoreEl.textContent = `${quizScore} XP`;
+            if (badge) badge.textContent = `Wire Challenge #${idx + 1}:`;
+            if (feedback) feedback.className = 'hidden';
+
+            if (questionText) {
+                questionText.innerHTML = `Arrow leaves <strong class="text-cyan-300 font-bold">${q.from}</strong> (output: ${q.srcOutput}) on input '<strong class="text-white">${q.symbol}</strong>' and lands on destination <strong class="text-amber-300 font-bold">${q.to}</strong> (output: ${q.destOutput}). What output badge belongs on this Mealy arrow?`;
+            }
+
+            if (grid) {
+                grid.innerHTML = '';
+
+                // Option 1: Destination output (Correct)
+                // Option 2: Source output (Common Trap)
+                const options = [
+                    { label: `Output '${q.destOutput}' (from Destination ${q.to})`, correct: true, trap: false },
+                    { label: `Output '${q.srcOutput}' (from Source ${q.from})`, correct: q.isSame, trap: !q.isSame },
+                    { label: `Output '${q.destOutput === '0' ? '1' : '0'}' (Inverted)`, correct: false, trap: false }
+                ];
+
+                // Remove duplicate text
+                const uniqueOptions = [];
+                const seen = new Set();
+                options.forEach(o => {
+                    if (!seen.has(o.label)) {
+                        seen.add(o.label);
+                        uniqueOptions.push(o);
+                    }
+                });
+
+                uniqueOptions.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'p-3 rounded-xl text-xs font-mono font-bold bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-400 text-left transition-all';
+                    btn.innerHTML = `<span>👉 ${opt.label}</span>`;
+                    btn.onclick = () => submitChallengeAnswer(opt);
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function submitChallengeAnswer(opt) {
+            const feedback = document.getElementById('challenge-feedback');
+            const scoreEl = document.getElementById('quiz-score');
+            if (!feedback) return;
+
+            if (opt.correct) {
+                quizScore += 100;
+                playVictoryChord();
+                if (scoreEl) scoreEl.textContent = `${quizScore} XP`;
+                feedback.className = 'p-3.5 rounded-xl text-xs bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 space-y-1';
+                feedback.innerHTML = `<strong>🎉 Correct! (+100 XP)</strong><br>In a Mealy machine, output is attached to the transition based on the <strong>Destination State</strong> it lands on!`;
+            } else if (opt.trap) {
+                playBeep(260, 0.2, 'sawtooth');
+                feedback.className = 'p-3.5 rounded-xl text-xs bg-amber-950/60 border border-amber-500/50 text-amber-200 space-y-1';
+                feedback.innerHTML = `<strong>⚠️ Source vs. Destination Trap Detected!</strong><br>You picked the source state's output! In Moore-to-Mealy conversion, the arrow steals the badge of the <strong>DESTINATION</strong> state (${quizQuestions[currentQuizIdx].to}), never the source!`;
+            } else {
+                playBeep(220, 0.2, 'sawtooth');
+                feedback.className = 'p-3.5 rounded-xl text-xs bg-rose-950/60 border border-rose-500/50 text-rose-300 space-y-1';
+                feedback.innerHTML = `<strong>❌ Incorrect.</strong> Remember: λ_Mealy(qᵢ, a) = λ_Moore( δ(qᵢ, a) ).`;
+            }
+        }
+
+        function nextChallengeQuestion() {
+            if (currentQuizIdx < quizQuestions.length - 1) {
+                currentQuizIdx++;
+                loadQuizQuestion(currentQuizIdx);
+            } else {
+                renderQuizComplete();
+            }
+        }
+
+        function renderQuizComplete() {
+            const qText = document.getElementById('challenge-question-text');
+            const grid = document.getElementById('challenge-options-grid');
+            const feedback = document.getElementById('challenge-feedback');
+            if (qText) qText.innerHTML = `🏆 Challenge Complete! Total Score: <strong class="text-amber-400 font-bold">${quizScore} XP</strong>.`;
+            if (grid) grid.innerHTML = `<button onclick="initChallengeQuiz()" class="p-3 rounded-xl text-xs font-mono font-bold bg-amber-500 text-slate-950">🔁 Play Again</button>`;
+            if (feedback) feedback.className = 'hidden';
+            playVictoryChord();
+        }
+
+        // ==========================================
+        // 11. MODE 3: TRANSDUCER STRING RACE (DUAL TAPE)
+        // ==========================================
+        function applyRaceInput(str) {
+            const inp = document.getElementById('race-string-input');
+            if (inp) inp.value = str;
+            resetTransducerRace();
+        }
+
+        function resetTransducerRace() {
+            if (raceTimer) {
+                clearInterval(raceTimer);
+                raceTimer = null;
+            }
+
+            raceString = (document.getElementById('race-string-input')?.value || '01101').trim();
+            raceStepIdx = 0;
+
+            const startNode = mooreNodes.find(n => n.isStart) || mooreNodes[0];
+            raceMooreState = startNode ? startNode.id : 'q0';
+            raceMealyState = startNode ? startNode.id : 'q0';
+
+            // Moore Machine prints initial start state output immediately at step 0!
+            raceMooreTape = startNode ? [startNode.output] : [];
+            raceMealyTape = []; // Mealy has printed 0 symbols before reading input
+
+            renderRaceTapes();
+            updateRaceStatus(`Step 0: Moore prints Start State initial output '${startNode?.output}' before reading input!`);
+        }
+
+        function stepTransducerRace() {
+            if (raceStepIdx >= raceString.length) {
+                checkRaceCompletion();
+                return;
+            }
+
+            const char = raceString[raceStepIdx];
+
+            // 1. Moore Transition
+            const nextMooreTr = mooreTransitions.find(e => e.from === raceMooreState && e.symbol === char);
+            if (nextMooreTr) {
+                raceMooreState = nextMooreTr.to;
+                const destNode = mooreNodes.find(n => n.id === raceMooreState);
+                raceMooreTape.push(destNode ? destNode.output : '0');
+            }
+
+            // 2. Mealy Transition
+            const mealyTransitions = computeMealyTransitions();
+            const nextMealyTr = mealyTransitions.find(e => e.from === raceMealyState && e.symbol === char);
+            if (nextMealyTr) {
+                raceMealyState = nextMealyTr.to;
+                raceMealyTape.push(nextMealyTr.output);
+            }
+
+            raceStepIdx++;
+            renderRaceTapes();
+            playBadgeSnap();
+            updateRaceStatus(`Read '${char}': Moore in ${raceMooreState} | Mealy in ${raceMealyState}`);
+
+            if (raceStepIdx >= raceString.length) {
+                setTimeout(checkRaceCompletion, 300);
+            }
+        }
+
+        function startTransducerRace() {
+            resetTransducerRace();
+            raceTimer = setInterval(() => {
+                if (raceStepIdx < raceString.length) {
+                    stepTransducerRace();
+                } else {
+                    clearInterval(raceTimer);
+                    raceTimer = null;
+                }
+            }, 800);
+        }
+
+        function renderRaceTapes() {
+            const mooreContainer = document.getElementById('moore-tape-cells');
+            const mealyContainer = document.getElementById('mealy-tape-cells');
+            const mooreLen = document.getElementById('moore-tape-len');
+            const mealyLen = document.getElementById('mealy-tape-len');
+
+            if (mooreLen) mooreLen.textContent = `Length: ${raceMooreTape.length} (n + 1)`;
+            if (mealyLen) mealyLen.textContent = `Length: ${raceMealyTape.length} (n)`;
+
+            if (mooreContainer) {
+                mooreContainer.innerHTML = '';
+                raceMooreTape.forEach((val, i) => {
+                    const cell = document.createElement('div');
+                    cell.className = `w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-xs border ${
+                        i === 0 ? 'bg-cyan-950 text-cyan-300 border-cyan-400' : 'bg-slate-800 text-slate-200 border-slate-700'
+                    }`;
+                    cell.textContent = val;
+                    cell.title = i === 0 ? "Initial output (Step 0)" : `Step ${i} output`;
+                    mooreContainer.appendChild(cell);
+                });
+            }
+
+            if (mealyContainer) {
+                mealyContainer.innerHTML = '';
+                raceMealyTape.forEach((val, i) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-xs bg-amber-950/80 text-amber-300 border border-amber-500/50';
+                    cell.textContent = val;
+                    cell.title = `Transition ${i + 1} output`;
+                    mealyContainer.appendChild(cell);
+                });
+            }
+        }
+
+        function checkRaceCompletion() {
+            const matchStatus = document.getElementById('race-match-status');
+            // Moore's outputs from index 1..end must match Mealy's outputs 0..end
+            const mooreTail = raceMooreTape.slice(1);
+            const isMatch = mooreTail.every((val, idx) => val === raceMealyTape[idx]);
+
+            if (isMatch && mooreTail.length === raceMealyTape.length) {
+                playVictoryChord();
+                if (matchStatus) {
+                    matchStatus.textContent = '🎉 PERFECT TRANSDUCTION MATCH!';
+                    matchStatus.className = 'text-emerald-400 font-bold';
+                }
+                showToast("🎉 Equivalence Confirmed! Mealy outputs match Moore transition outputs perfectly.");
+            }
+        }
+
+        function updateRaceStatus(msg) {
+            const log = document.getElementById('race-step-log');
+            if (log) log.textContent = msg;
+        }
+
+        // ==========================================
+        // 12. MODE SWITCHER & EXPORT HUBS
+        // ==========================================
+        function setAppMode(mode) {
+            getAudioContext();
+            const secConvert = document.getElementById('section-convert');
+            const secChallenge = document.getElementById('section-challenge');
+            const secRace = document.getElementById('section-race');
+
+            const tabConvert = document.getElementById('tab-convert');
+            const tabChallenge = document.getElementById('tab-challenge');
+            const tabRace = document.getElementById('tab-race');
+
+            [secConvert, secChallenge, secRace].forEach(s => s && s.classList.add('hidden'));
+            [tabConvert, tabChallenge, tabRace].forEach(t => {
+                if (t) t.className = 'px-3 py-1.5 rounded-xl font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-all';
+            });
+
+            if (mode === 'convert') {
+                secConvert.classList.remove('hidden');
+                tabConvert.className = 'px-3 py-1.5 rounded-xl font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 transition-all';
+            } else if (mode === 'challenge') {
+                secChallenge.classList.remove('hidden');
+                tabChallenge.className = 'px-3 py-1.5 rounded-xl font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 transition-all';
+                initChallengeQuiz();
+            } else if (mode === 'race') {
+                secRace.classList.remove('hidden');
+                tabRace.className = 'px-3 py-1.5 rounded-xl font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 transition-all';
+                resetTransducerRace();
+            }
+        }
+
+        function exportToJson() {
+            const data = {
+                title: "Moore to Mealy Machine Conversion (Lecture 27)",
+                alphabet: alphabet,
+                mooreMachine: {
+                    states: mooreNodes.map(n => ({ id: n.id, output: n.output, isStart: n.isStart })),
+                    transitions: mooreTransitions
+                },
+                mealyMachine: {
+                    states: mooreNodes.map(n => n.id),
+                    transitions: computeMealyTransitions()
+                }
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'moore_to_mealy_solution.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Downloaded moore_to_mealy_solution.json");
+        }
+
+        function exportToMarkdown() {
+            let md = `# Moore Machine to Mealy Machine Conversion\n\n`;
+            md += `### Input Alphabet: { ${alphabet.join(', ')} }\n\n`;
+            md += `### 1. Moore Machine Specification:\n`;
+            mooreNodes.forEach(n => {
+                md += `- State **${n.id}**: Output Badge = '${n.output}' ${n.isStart ? '(Start State)' : ''}\n`;
+            });
+
+            md += `\n### 2. Converted Mealy Machine Transitions:\n`;
+            const mealy = computeMealyTransitions();
+            mealy.forEach(tr => {
+                md += `- ${tr.from} --(${tr.symbol} / ${tr.output})--> ${tr.to}\n`;
+            });
+
+            md += `\n### 3. Exam State-Count Theorem:\n`;
+            md += `If a Moore machine has $m$ states, the converted Mealy machine has **at most $m$ states** (exactly ${mooreNodes.length} states).\n`;
+
+            navigator.clipboard.writeText(md).then(() => {
+                showToast("📋 Markdown notes copied to clipboard!");
+            });
+        }
+
+        // ==========================================
+        // 13. PRESETS & INITIALIZATION
+        // ==========================================
+        function loadPreset(key) {
+            getAudioContext();
+            const p = PRESETS[key];
+            if (!p) return;
+
+            alphabet = [...p.alphabet];
+            mooreNodes = JSON.parse(JSON.stringify(p.nodes));
+            mooreTransitions = JSON.parse(JSON.stringify(p.transitions));
+            selectedNodeId = mooreNodes[0] ? mooreNodes[0].id : null;
+
+            buildHeistSteps();
+            renderMooreCanvas();
+            renderMealyCanvasUpToStep(0);
+            updateHeistNarration(heistSteps[0]);
+            resetTransducerRace();
+            playVictoryChord();
+            showToast(`Loaded preset: ${key}`);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            const txt = document.getElementById('toast-text');
+            if (t && txt) {
+                txt.textContent = msg;
+                t.classList.remove('hidden');
+                setTimeout(() => t.classList.add('hidden'), 3000);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPreset('gate_smashers_27');
+        });
+    </script>
+</body>
+
+</html>

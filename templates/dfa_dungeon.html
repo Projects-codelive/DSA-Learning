@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFA Dungeon: Interactive Flow Studio & Automaton Runner</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                    colors: {
+                        cyber: {
+                            cyan: '#06b6d4',
+                            glow: '#22d3ee',
+                            purple: '#a855f7',
+                            emerald: '#10b981',
+                            crimson: '#ef4444',
+                            amber: '#f59e0b',
+                            dark: '#070b14',
+                            surface: '#0d1527',
+                            card: '#111d35',
+                            border: '#1e2d4d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e2d4d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(17, 29, 53, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #22d3ee 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .state-node-group {
+            cursor: grab;
+            user-select: none;
+            transition: filter 0.2s;
+        }
+        .state-node-group:active {
+            cursor: grabbing;
+        }
+        .state-node-group.selected circle.outer-circle {
+            stroke: #ec4899 !important;
+            stroke-width: 4px !important;
+            filter: drop-shadow(0 0 14px #ec4899) !important;
+        }
+
+        .edge-path {
+            stroke-dasharray: 6;
+            animation: dashMove 30s linear infinite;
+            transition: stroke 0.3s, stroke-width 0.3s, filter 0.3s;
+        }
+        @keyframes dashMove {
+            to { stroke-dashoffset: -1000; }
+        }
+
+        .edge-active {
+            stroke: #22d3ee !important;
+            stroke-width: 4.5px !important;
+            filter: drop-shadow(0 0 10px #22d3ee) !important;
+            stroke-dasharray: none !important;
+        }
+
+        #bitbot-marker {
+            transition: transform 0.45s cubic-bezier(0.34, 1.3, 0.64, 1);
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased min-h-screen selection:bg-purple-500 selection:text-white">
+
+    <!-- Top Navigation -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                
+                <!-- Logo & Back to Hub -->
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <a href="/" class="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold">
+                        <span>← Hub</span>
+                    </a>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-500 p-[2px] shadow-lg shadow-purple-500/20 flex items-center justify-center">
+                            <span class="text-lg">🤖</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-outfit font-extrabold text-lg sm:text-xl text-white">DFA Flow Studio</span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold uppercase">Drag & Drop</span>
+                            </div>
+                            <span class="text-[11px] text-slate-400 font-mono hidden sm:inline">Visual DFA Designer • Dynamic Transition Table δ(Q, Σ)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Action Links -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <button id="audio-toggle-btn" onclick="toggleAudio()" class="px-3 py-1.5 rounded-xl text-xs font-mono font-medium bg-slate-900 border border-slate-800 hover:border-purple-500/40 text-slate-300 transition-all flex items-center gap-1.5">
+                        <span id="audio-icon">🔊</span>
+                        <span id="audio-label" class="hidden md:inline">Sound: ON</span>
+                    </button>
+                    <a href="/nfa" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/40 text-pink-300 transition-all flex items-center gap-1.5">
+                        <span>🌌 NFA Quantum Lab</span>
+                    </a>
+                    <a href="/quiz" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20 hover:opacity-95 transition-all flex items-center gap-1.5">
+                        <span>🎯 MCQ Quiz</span>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Studio Workspace -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Top Designer Toolbar & Presets -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            
+            <!-- Tool Actions: Add State, Connect, Toggle Final, Delete -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mr-1">🛠️ Studio Tools:</span>
+                
+                <button onclick="addNewState()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-95 shadow-md shadow-cyan-500/20 transition-all flex items-center gap-1.5 active:scale-95">
+                    <span>+ Add State</span>
+                </button>
+
+                <button id="btn-connect-mode" onclick="toggleConnectMode()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-purple-500 hover:text-purple-300 transition-all flex items-center gap-1.5">
+                    <span id="connect-mode-icon">🔗</span>
+                    <span id="connect-mode-label">Connect / Loop</span>
+                </button>
+
+                <button onclick="toggleSelectedAsFinal()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-950/40 transition-all flex items-center gap-1.5">
+                    <span>🏆 Toggle Final (Double Ring)</span>
+                </button>
+
+                <button onclick="setSelectedAsStart()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-950/40 transition-all flex items-center gap-1.5">
+                    <span>▶ Set as Start</span>
+                </button>
+
+                <button onclick="deleteSelectedElement()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-rose-400 border border-rose-500/40 hover:bg-rose-950/40 transition-all flex items-center gap-1.5">
+                    <span>🗑️ Delete</span>
+                </button>
+            </div>
+
+            <!-- Instant Classic Presets -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[11px] font-mono text-slate-400">Presets:</span>
+                <button onclick="loadPreset('neso_example')" class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-500/30 transition-colors">
+                    Neso: 01 | 1⁺0
+                </button>
+                <button onclick="loadPreset('ends_with_1')" class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+                    Ends with '1'
+                </button>
+                <button onclick="loadPreset('starts_with_0')" class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+                    Starts with '0'
+                </button>
+                <button onclick="clearAllElements()" class="px-2.5 py-1 rounded-lg text-xs font-mono bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition-colors">
+                    Clear Canvas
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Connection Helper Banner (visible when Connect mode is active) -->
+        <div id="connect-instructions" class="hidden glass-panel rounded-2xl p-3 border border-purple-500/50 bg-purple-950/30 flex items-center justify-between text-xs font-mono text-purple-200">
+            <div class="flex items-center gap-2">
+                <span class="animate-bounce">🔗</span>
+                <span id="connect-step-text">Click the <strong>SOURCE</strong> state to begin connection. (Click the same state to make a self-loop!)</span>
+            </div>
+            <button onclick="cancelConnectMode()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 text-xs">
+                Cancel
+            </button>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- CORE CANVAS & LIVE TRANSITION TABLE WORKSPACE                             -->
+        <!-- ========================================================================= -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: Interactive Drag-and-Drop SVG Canvas (8 Cols) -->
+            <div class="lg:col-span-8 glass-card rounded-3xl p-4 sm:p-5 border border-slate-800 shadow-2xl space-y-4">
+                
+                <!-- Canvas Top Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                    <div class="flex items-center gap-3 text-xs font-mono">
+                        <span class="flex items-center gap-1.5 text-slate-300">
+                            <span class="w-3 h-3 rounded-full bg-cyan-400"></span> Start
+                        </span>
+                        <span class="flex items-center gap-1.5 text-emerald-400">
+                            <span class="w-3 h-3 rounded-full border-2 border-emerald-400 bg-emerald-500/40"></span> Final (Double)
+                        </span>
+                        <span class="text-slate-400 hidden sm:inline">• Drag states to reposition • Click to select</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono text-slate-400">Current Room:</span>
+                        <span id="current-state-badge" class="font-mono text-xs font-bold text-cyan-400 px-2.5 py-0.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
+                            A (Start)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- SVG Area -->
+                <div class="relative w-full overflow-hidden bg-slate-950/70 rounded-2xl border border-slate-800/80" style="height: 440px;">
+                    <svg id="dfa-canvas" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="arrow-cyan" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#22d3ee" />
+                            </marker>
+                            <marker id="arrow-purple" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7" />
+                            </marker>
+                            <marker id="arrow-emerald" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+                            </marker>
+                            <marker id="arrow-slate" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+                            </marker>
+
+                            <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="5" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                            <filter id="glow-emerald" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="6" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                        </defs>
+
+                        <!-- Background Dot Grid -->
+                        <g opacity="0.08" stroke="#38bdf8" stroke-width="1">
+                            <line x1="0" y1="110" x2="1200" y2="110" stroke-dasharray="6 6" />
+                            <line x1="0" y1="220" x2="1200" y2="220" stroke-dasharray="6 6" />
+                            <line x1="0" y1="330" x2="1200" y2="330" stroke-dasharray="6 6" />
+                            <line x1="200" y1="0" x2="200" y2="500" stroke-dasharray="6 6" />
+                            <line x1="400" y1="0" x2="400" y2="500" stroke-dasharray="6 6" />
+                            <line x1="600" y1="0" x2="600" y2="500" stroke-dasharray="6 6" />
+                        </g>
+
+                        <!-- Layer for Dynamic Transitions (Edges & Self-Loops) -->
+                        <g id="svg-edges-layer"></g>
+
+                        <!-- Layer for Dynamic State Nodes (Double circles & labels) -->
+                        <g id="svg-nodes-layer"></g>
+
+                        <!-- BitBot Avatar Marker -->
+                        <g id="bitbot-marker" transform="translate(140, 220)">
+                            <circle cx="0" cy="0" r="22" fill="rgba(6, 182, 212, 0.28)" class="animate-ping" />
+                            <rect x="-14" y="-14" width="28" height="28" rx="7" fill="#0d1527" stroke="#38bdf8" stroke-width="2.5" />
+                            <circle cx="-5" cy="-3" r="2.5" fill="#22d3ee" />
+                            <circle cx="5" cy="-3" r="2.5" fill="#22d3ee" />
+                            <line x1="-4" y1="5" x2="4" y2="5" stroke="#38bdf8" stroke-width="1.8" />
+                            <circle cx="0" cy="-19" r="2.5" fill="#ec4899" />
+                            <line x1="0" y1="-14" x2="0" y2="-19" stroke="#38bdf8" stroke-width="1.5" />
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Live Narrator Box -->
+                <div class="bg-slate-900/90 rounded-2xl p-3.5 border border-slate-800/90 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-sm flex-shrink-0 mt-0.5">
+                        📢
+                    </div>
+                    <div class="flex-1 space-y-0.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-bold text-purple-400">Automaton Live Transition Readout</span>
+                            <span id="math-delta-readout" class="text-xs font-mono text-cyan-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">δ(q, a) = -</span>
+                        </div>
+                        <p id="narrator-text" class="text-xs text-slate-200 leading-relaxed">
+                            Welcome! Drag states anywhere, use "Connect / Loop" to draw arrows, or press keys [0] and [1] to navigate BitBot.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Dynamic Transition Table & Studio Controls (4 Cols) -->
+            <div class="lg:col-span-4 space-y-5">
+                
+                <!-- Live Dynamic Transition Table Widget δ(Q, Σ) -->
+                <div class="glass-card rounded-3xl p-5 border border-cyan-500/30 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">📊</span>
+                            <h3 class="font-outfit font-bold text-sm text-white">Transition Function δ(Q, Σ)</h3>
+                        </div>
+                        <span class="text-[10px] font-mono text-cyan-400 px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30">
+                            Auto-Syncs
+                        </span>
+                    </div>
+
+                    <p class="text-[11px] text-slate-400">
+                        This matrix updates in real time based on your custom flow diagram!
+                    </p>
+
+                    <!-- Table Container -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-800">
+                        <table class="w-full text-left text-xs font-mono" id="transition-table">
+                            <thead class="bg-slate-900/90 text-slate-300 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-2.5 font-bold">State (q)</th>
+                                    <th class="p-2.5 font-bold text-cyan-300">Input '0'</th>
+                                    <th class="p-2.5 font-bold text-purple-300">Input '1'</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transition-table-body" class="divide-y divide-slate-800/60 bg-slate-950/70 text-slate-200">
+                                <!-- Injected dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 5-Tuple Formal Summary -->
+                    <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 text-[11px] font-mono space-y-1 text-slate-300">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Q (States):</span>
+                            <span id="formal-q-set" class="text-cyan-300 font-bold">{ A, B }</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">q₀ (Start State):</span>
+                            <span id="formal-start-state" class="text-cyan-400 font-bold">A</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">F (Final States):</span>
+                            <span id="formal-final-set" class="text-emerald-400 font-bold">{ B }</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keyboard Play & Controls Bar -->
+                <div class="glass-card rounded-3xl p-5 border border-slate-800 space-y-4">
+                    <div class="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider flex items-center justify-between">
+                        <span>⌨️ Direct Keyboard Play</span>
+                        <span class="text-[10px] text-slate-400">Active</span>
+                    </div>
+
+                    <div class="text-xs text-slate-300">
+                        Press <kbd class="px-2 py-0.5 rounded-lg bg-slate-800 border border-cyan-400/50 text-cyan-300 font-mono text-xs">0</kbd> or <kbd class="px-2 py-0.5 rounded-lg bg-slate-800 border border-purple-400/50 text-purple-300 font-mono text-xs">1</kbd> to step BitBot through your custom flow!
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="key-badge-0" onclick="handleStepInput('0')" class="py-3 px-4 rounded-xl font-mono font-black text-sm text-cyan-300 bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 hover:border-cyan-400 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                            <span>Key [ 0 ]</span>
+                        </button>
+                        <button id="key-badge-1" onclick="handleStepInput('1')" class="py-3 px-4 rounded-xl font-mono font-black text-sm text-purple-300 bg-slate-800 hover:bg-slate-700 border border-purple-500/40 hover:border-purple-400 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                            <span>Key [ 1 ]</span>
+                        </button>
+                    </div>
+
+                    <button onclick="resetBitBot()" class="w-full py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all flex items-center justify-center gap-1.5">
+                        <span>↺ Reset BitBot to Start</span>
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- STRING TAPE RUNNER (Automatic & Step Testing)                              -->
+        <!-- ========================================================================= -->
+        <div class="glass-card rounded-3xl p-5 border border-slate-800 space-y-4">
+            
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">📼</span>
+                    <span class="font-outfit font-bold text-sm text-white">Automaton String Tape Runner</span>
+                    <span class="text-xs text-slate-400 font-mono hidden sm:inline">— Test any binary string against your custom diagram</span>
+                </div>
+                <div id="tape-status-text" class="text-xs font-mono text-slate-400">
+                    Tape Head: 0 / 0
+                </div>
+            </div>
+
+            <!-- Tape Controls & Input -->
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <input type="text" id="tape-string-input" placeholder="Enter binary string, e.g. 1110 or 01" value="1110"
+                    class="w-full sm:flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-cyan-300 placeholder-slate-500 focus:outline-none focus:border-cyan-400">
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="loadTapeString()" class="flex-1 sm:flex-none px-4 py-3 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors">
+                        Load Tape
+                    </button>
+                    <button id="btn-play-pause" onclick="toggleAutoPlay()" class="flex-1 sm:flex-none px-5 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-95 shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-1.5">
+                        <span id="play-pause-icon">▶</span>
+                        <span id="play-pause-label">Auto-Play</span>
+                    </button>
+                    <button onclick="stepTapeNext()" class="flex-1 sm:flex-none px-4 py-3 rounded-xl text-xs font-bold text-purple-300 bg-purple-950/60 hover:bg-purple-900/60 border border-purple-500/40 transition-colors">
+                        Step ⏭
+                    </button>
+                    <button onclick="resetBitBot()" class="px-3.5 py-3 rounded-xl text-xs font-bold text-slate-400 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors">
+                        ↺
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tape Cells Ribbon -->
+            <div class="bg-slate-950/80 rounded-2xl p-3 border border-slate-800 flex items-center gap-2 overflow-x-auto min-h-[58px]" id="tape-cells-container">
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- Speed Slider & Quick Presets -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs font-mono">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-slate-400">Test Presets:</span>
+                    <button onclick="applyTapePreset('01')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800">"01"</button>
+                    <button onclick="applyTapePreset('10')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800">"10"</button>
+                    <button onclick="applyTapePreset('1110')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800">"1110"</button>
+                    <button onclick="applyTapePreset('001')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-purple-300 border border-slate-800">"001"</button>
+                </div>
+
+                <div class="flex items-center gap-2 text-slate-400">
+                    <span>Speed:</span>
+                    <input type="range" id="tape-speed-slider" min="200" max="1600" step="100" value="700" class="w-28 sm:w-36 accent-cyan-400 cursor-pointer">
+                    <span id="tape-speed-label">700ms</span>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal: Transition Symbol Chooser -->
+    <div id="modal-symbol-chooser" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="max-w-sm w-full glass-panel rounded-3xl p-6 border border-cyan-500/40 shadow-2xl space-y-4">
+            <div class="space-y-1 text-center">
+                <div class="text-xl">🔀</div>
+                <h3 class="font-outfit text-base font-bold text-white">Set Transition Symbol</h3>
+                <p id="symbol-modal-desc" class="text-xs text-slate-300 font-mono">From A to B</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-2">
+                <button onclick="confirmTransitionSymbol('0')" class="py-2.5 px-3 rounded-xl font-mono font-bold text-xs bg-slate-900 hover:bg-cyan-950 text-cyan-300 border border-cyan-500/40 transition-colors">
+                    '0'
+                </button>
+                <button onclick="confirmTransitionSymbol('1')" class="py-2.5 px-3 rounded-xl font-mono font-bold text-xs bg-slate-900 hover:bg-purple-950 text-purple-300 border border-purple-500/40 transition-colors">
+                    '1'
+                </button>
+                <button onclick="confirmTransitionSymbol('0, 1')" class="py-2.5 px-3 rounded-xl font-mono font-bold text-xs bg-slate-900 hover:bg-indigo-950 text-indigo-300 border border-indigo-500/40 transition-colors">
+                    '0, 1'
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <button onclick="removeTransitionBetweenPending()" class="flex-1 py-2 rounded-xl text-xs font-bold text-rose-400 bg-rose-950/40 hover:bg-rose-900/40 border border-rose-500/30 transition-colors">
+                    Delete Link
+                </button>
+                <button onclick="closeSymbolModal()" class="flex-1 py-2 rounded-xl text-xs font-bold text-slate-400 bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- DYNAMIC JAVASCRIPT AUTOMATON & FLOW ENGINE                                -->
+    <!-- ========================================================================= -->
+    <script>
+        // ==========================================
+        // 1. AUDIO SYNTHESIZER
+        // ==========================================
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = document.getElementById('audio-icon');
+            const label = document.getElementById('audio-label');
+            if (isAudioMuted) {
+                if (icon) icon.textContent = '🔇';
+                if (label) label.textContent = 'Sound: OFF';
+            } else {
+                if (icon) icon.textContent = '🔊';
+                if (label) label.textContent = 'Sound: ON';
+                playBeep(600, 0.08, 'sine');
+            }
+        }
+
+        function playBeep(freq = 440, duration = 0.1, type = 'sine') {
+            if (isAudioMuted) return;
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + duration);
+        }
+
+        function playVictorySound() {
+            if (isAudioMuted) return;
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                setTimeout(() => playBeep(freq, 0.22, 'triangle'), idx * 80);
+            });
+        }
+
+        function playRejectSound() {
+            if (isAudioMuted) return;
+            playBeep(220, 0.25, 'sawtooth');
+            setTimeout(() => playBeep(160, 0.3, 'sawtooth'), 120);
+        }
+
+        // ==========================================
+        // 2. DYNAMIC DFA STATE MODEL
+        // ==========================================
+        // Nodes: { id, label, x, y, isFinal, isStart }
+        let nodes = [];
+        // Transitions: { from, to, symbol } (where symbol can be '0', '1', or '0, 1')
+        let transitions = [];
+
+        let selectedNodeId = null;
+        let selectedEdge = null;
+        let isConnecting = false;
+        let connectSourceNodeId = null;
+
+        // Simulation state
+        let currentStateId = null;
+        let loadedTape = '1110';
+        let tapeHead = 0;
+        let autoPlayTimer = null;
+        let autoPlayDelay = 700;
+
+        // Pending symbol modal state
+        let pendingConnect = { from: null, to: null };
+
+        // Presets
+        const PRESETS = {
+            neso_example: {
+                nodes: [
+                    { id: 'A', label: 'A', x: 100, y: 220, isStart: true, isFinal: false },
+                    { id: 'B', label: 'B', x: 260, y: 120, isStart: false, isFinal: false },
+                    { id: 'C', label: 'C', x: 260, y: 320, isStart: false, isFinal: false },
+                    { id: 'D', label: 'D', x: 440, y: 120, isStart: false, isFinal: true },
+                    { id: 'E', label: 'E', x: 440, y: 320, isStart: false, isFinal: true },
+                    { id: 'X', label: 'X', x: 580, y: 220, isStart: false, isFinal: false }
+                ],
+                transitions: [
+                    { from: 'A', to: 'B', symbol: '1' },
+                    { from: 'A', to: 'C', symbol: '0' },
+                    { from: 'B', to: 'B', symbol: '1' },
+                    { from: 'B', to: 'D', symbol: '0' },
+                    { from: 'C', to: 'E', symbol: '1' },
+                    { from: 'C', to: 'X', symbol: '0' },
+                    { from: 'D', to: 'X', symbol: '0, 1' },
+                    { from: 'E', to: 'X', symbol: '0, 1' },
+                    { from: 'X', to: 'X', symbol: '0, 1' }
+                ]
+            },
+            ends_with_1: {
+                nodes: [
+                    { id: 'A', label: 'q₀', x: 180, y: 220, isStart: true, isFinal: false },
+                    { id: 'B', label: 'q₁', x: 440, y: 220, isStart: false, isFinal: true }
+                ],
+                transitions: [
+                    { from: 'A', to: 'A', symbol: '0' },
+                    { from: 'A', to: 'B', symbol: '1' },
+                    { from: 'B', to: 'B', symbol: '1' },
+                    { from: 'B', to: 'A', symbol: '0' }
+                ]
+            },
+            starts_with_0: {
+                nodes: [
+                    { id: 'A', label: 'q₀', x: 140, y: 220, isStart: true, isFinal: false },
+                    { id: 'B', label: 'q₁', x: 380, y: 140, isStart: false, isFinal: true },
+                    { id: 'X', label: 'Trap', x: 380, y: 300, isStart: false, isFinal: false }
+                ],
+                transitions: [
+                    { from: 'A', to: 'B', symbol: '0' },
+                    { from: 'A', to: 'X', symbol: '1' },
+                    { from: 'B', to: 'B', symbol: '0, 1' },
+                    { from: 'X', to: 'X', symbol: '0, 1' }
+                ]
+            }
+        };
+
+        // ==========================================
+        // 3. CANVAS RENDERING & INTERACTION
+        // ==========================================
+        function renderCanvas() {
+            const edgesLayer = document.getElementById('svg-edges-layer');
+            const nodesLayer = document.getElementById('svg-nodes-layer');
+            if (!edgesLayer || !nodesLayer) return;
+
+            edgesLayer.innerHTML = '';
+            nodesLayer.innerHTML = '';
+
+            const nodeMap = {};
+            nodes.forEach(n => nodeMap[n.id] = n);
+
+            // 1. Render Transitions
+            transitions.forEach((edge, idx) => {
+                const u = nodeMap[edge.from];
+                const v = nodeMap[edge.to];
+                if (!u || !v) return;
+
+                const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                edgeGroup.id = `edge-group-${edge.from}-${edge.to}`;
+
+                if (edge.from === edge.to) {
+                    // SELF-LOOP
+                    const cx = u.x;
+                    const cy = u.y;
+                    const loopPath = `M ${cx - 15} ${cy - 28} C ${cx - 45} ${cy - 85}, ${cx + 45} ${cy - 85}, ${cx + 15} ${cy - 28}`;
+                    
+                    edgeGroup.innerHTML = `
+                        <path id="path-${edge.from}-${edge.to}" d="${loopPath}" fill="none" stroke="#64748b" stroke-width="2.5" class="edge-path" marker-end="url(#arrow-slate)" />
+                        <rect x="${cx - 15}" y="${cy - 78}" width="30" height="20" rx="5" fill="#0d1527" stroke="#a855f7" stroke-width="1.5" />
+                        <text x="${cx}" y="${cy - 64}" fill="#a855f7" font-family="'Fira Code', monospace" font-size="11" font-weight="bold" text-anchor="middle">${edge.symbol}</text>
+                    `;
+                } else {
+                    // DIRECT / CURVED ARROW
+                    // Check if reverse transition exists to curve gracefully
+                    const hasReverse = transitions.some(e => e.from === edge.to && e.to === edge.from);
+                    let dPath = '';
+                    let midX = (u.x + v.x) / 2;
+                    let midY = (u.y + v.y) / 2;
+
+                    if (hasReverse) {
+                        const dx = v.x - u.x;
+                        const dy = v.y - u.y;
+                        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                        const offsetX = -dy / len * 36;
+                        const offsetY = dx / len * 36;
+                        midX += offsetX;
+                        midY += offsetY;
+                        dPath = `M ${u.x} ${u.y} Q ${midX} ${midY} ${v.x} ${v.y}`;
+                    } else {
+                        dPath = `M ${u.x} ${u.y} L ${v.x} ${v.y}`;
+                    }
+
+                    edgeGroup.innerHTML = `
+                        <path id="path-${edge.from}-${edge.to}" d="${dPath}" fill="none" stroke="#64748b" stroke-width="2.5" class="edge-path" marker-end="url(#arrow-slate)" />
+                        <rect x="${midX - 16}" y="${midY - 11}" width="32" height="22" rx="6" fill="#0d1527" stroke="#06b6d4" stroke-width="1.5" />
+                        <text x="${midX}" y="${midY + 5}" fill="#06b6d4" font-family="'Fira Code', monospace" font-size="12" font-weight="bold" text-anchor="middle">${edge.symbol}</text>
+                    `;
+                }
+
+                // Click edge to edit
+                edgeGroup.style.cursor = 'pointer';
+                edgeGroup.onclick = (e) => {
+                    e.stopPropagation();
+                    openSymbolModal(edge.from, edge.to);
+                };
+
+                edgesLayer.appendChild(edgeGroup);
+            });
+
+            // 2. Render State Nodes
+            nodes.forEach(n => {
+                const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                nodeGroup.className = `state-node-group ${selectedNodeId === n.id ? 'selected' : ''}`;
+                nodeGroup.id = `node-${n.id}`;
+
+                nodeGroup.innerHTML = `
+                    ${n.isStart ? `
+                        <!-- START Indicator Arrow -->
+                        <line x1="${n.x - 65}" y1="${n.y}" x2="${n.x - 38}" y2="${n.y}" stroke="#22d3ee" stroke-width="3" marker-end="url(#arrow-cyan)" />
+                        <text x="${n.x - 65}" y="${n.y - 8}" fill="#22d3ee" font-family="'Fira Code', monospace" font-size="10" font-weight="bold">START</text>
+                    ` : ''}
+
+                    <!-- Outer Circle -->
+                    <circle class="outer-circle" cx="${n.x}" cy="${n.y}" r="34" fill="${n.isFinal ? '#072418' : '#0e1c38'}" stroke="${n.isFinal ? '#10b981' : '#06b6d4'}" stroke-width="3" filter="${n.isFinal ? 'url(#glow-emerald)' : 'url(#glow-cyan)'}" />
+                    
+                    <!-- Inner Circle for Final State Double-Ring -->
+                    ${n.isFinal ? `<circle cx="${n.x}" cy="${n.y}" r="27" fill="none" stroke="#34d399" stroke-width="2.5" />` : ''}
+
+                    <!-- State Label -->
+                    <text x="${n.x}" y="${n.y + 7}" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="19" font-weight="900" text-anchor="middle">${n.label}</text>
+                    
+                    <!-- Sublabel -->
+                    <text x="${n.x}" y="${n.y + 52}" fill="${n.isFinal ? '#34d399' : '#94a3b8'}" font-family="'Fira Code', monospace" font-size="10" font-weight="bold" text-anchor="middle">
+                        ${n.isStart ? 'Start' : ''} ${n.isFinal ? '🏆 Final' : ''}
+                    </text>
+                `;
+
+                // Setup Drag & Click Handlers
+                setupNodeInteractions(nodeGroup, n);
+                nodesLayer.appendChild(nodeGroup);
+            });
+
+            // Update BitBot Position
+            syncBitBotPosition();
+            // Update Dynamic Transition Table & Formal Specs
+            updateDynamicTransitionTable();
+        }
+
+        // ==========================================
+        // 4. DRAG-AND-DROP & CONNECTOR INTERACTION
+        // ==========================================
+        let draggedNode = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        function setupNodeInteractions(el, nodeData) {
+            el.onclick = (e) => {
+                e.stopPropagation();
+                getAudioContext();
+                if (isConnecting) {
+                    handleConnectClick(nodeData.id);
+                    return;
+                }
+                selectedNodeId = nodeData.id;
+                renderCanvas();
+                playBeep(450, 0.05, 'sine');
+            };
+
+            el.ondblclick = (e) => {
+                e.stopPropagation();
+                toggleNodeFinalById(nodeData.id);
+            };
+
+            el.onmousedown = (e) => {
+                e.stopPropagation();
+                getAudioContext();
+
+                if (isConnecting) {
+                    handleConnectClick(nodeData.id);
+                    return;
+                }
+
+                selectedNodeId = nodeData.id;
+                draggedNode = nodeData;
+                const pt = getSvgPoint(e);
+                dragOffset.x = pt.x - nodeData.x;
+                dragOffset.y = pt.y - nodeData.y;
+            };
+
+            // Touch support
+            el.ontouchstart = (e) => {
+                e.stopPropagation();
+                getAudioContext();
+                if (isConnecting) {
+                    handleConnectClick(nodeData.id);
+                    return;
+                }
+                selectedNodeId = nodeData.id;
+                draggedNode = nodeData;
+                const touch = e.touches[0];
+                const pt = getSvgPoint(touch);
+                dragOffset.x = pt.x - nodeData.x;
+                dragOffset.y = pt.y - nodeData.y;
+            };
+        }
+
+        const svgEl = document.getElementById('dfa-canvas');
+
+        function getSvgPoint(e) {
+            const rect = svgEl.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (!draggedNode) return;
+            const pt = getSvgPoint(e);
+            draggedNode.x = Math.max(40, Math.min(740, pt.x - dragOffset.x));
+            draggedNode.y = Math.max(40, Math.min(400, pt.y - dragOffset.y));
+            renderCanvas();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (draggedNode) {
+                draggedNode = null;
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!draggedNode) return;
+            const touch = e.touches[0];
+            const pt = getSvgPoint(touch);
+            draggedNode.x = Math.max(40, Math.min(740, pt.x - dragOffset.x));
+            draggedNode.y = Math.max(40, Math.min(400, pt.y - dragOffset.y));
+            renderCanvas();
+        });
+
+        window.addEventListener('touchend', () => {
+            draggedNode = null;
+        });
+
+        // Click outside node to deselect
+        svgEl.addEventListener('click', (e) => {
+            if ((e.target === svgEl || e.target.id === 'dfa-canvas' || e.target.tagName === 'svg') && !isConnecting) {
+                selectedNodeId = null;
+                renderCanvas();
+            }
+        });
+
+        // ==========================================
+        // 5. CONNECT MODE (LINK & LOOP MAKER)
+        // ==========================================
+        function toggleConnectMode() {
+            getAudioContext();
+            isConnecting = !isConnecting;
+            connectSourceNodeId = null;
+            const btn = document.getElementById('btn-connect-mode');
+            const instructions = document.getElementById('connect-instructions');
+            const stepText = document.getElementById('connect-step-text');
+
+            if (isConnecting) {
+                btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-lg shadow-purple-500/30 transition-all flex items-center gap-1.5 animate-pulse';
+                instructions.classList.remove('hidden');
+                if (stepText) stepText.innerHTML = "Click the <strong>SOURCE</strong> state to begin. (Or click the same state to loop!)";
+                playBeep(600, 0.08);
+            } else {
+                btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-purple-500 hover:text-purple-300 transition-all flex items-center gap-1.5';
+                instructions.classList.add('hidden');
+            }
+        }
+
+        function cancelConnectMode() {
+            isConnecting = false;
+            connectSourceNodeId = null;
+            const btn = document.getElementById('btn-connect-mode');
+            const instructions = document.getElementById('connect-instructions');
+            if (btn) btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-purple-500 hover:text-purple-300 transition-all flex items-center gap-1.5';
+            if (instructions) instructions.classList.add('hidden');
+        }
+
+        function handleConnectClick(nodeId) {
+            const stepText = document.getElementById('connect-step-text');
+            if (!connectSourceNodeId) {
+                // First click: Pick source
+                connectSourceNodeId = nodeId;
+                playBeep(520, 0.08);
+                if (stepText) stepText.innerHTML = `Source selected: <strong>${nodeId}</strong>. Now click the <strong>TARGET</strong> state (or click <strong>${nodeId}</strong> again to loop!).`;
+            } else {
+                // Second click: Target chosen!
+                const from = connectSourceNodeId;
+                const to = nodeId;
+                cancelConnectMode();
+                openSymbolModal(from, to);
+            }
+        }
+
+        function openSymbolModal(from, to) {
+            pendingConnect = { from, to };
+            const modal = document.getElementById('modal-symbol-chooser');
+            const desc = document.getElementById('symbol-modal-desc');
+            if (modal) modal.classList.remove('hidden');
+            if (desc) {
+                desc.textContent = from === to ? `Self-Loop on State [ ${from} ]` : `Transition from State [ ${from} ] → State [ ${to} ]`;
+            }
+        }
+
+        function closeSymbolModal() {
+            const modal = document.getElementById('modal-symbol-chooser');
+            if (modal) modal.classList.add('hidden');
+            pendingConnect = { from: null, to: null };
+        }
+
+        function confirmTransitionSymbol(symbol) {
+            if (!pendingConnect.from || !pendingConnect.to) return;
+            const from = pendingConnect.from;
+            const to = pendingConnect.to;
+
+            // Remove existing transition between these two states if any
+            transitions = transitions.filter(e => !(e.from === from && e.to === to));
+
+            // Also check for DFA determinism: if 'from' already has an arrow on this symbol, remove the old one
+            if (symbol === '0, 1') {
+                transitions = transitions.filter(e => e.from !== from);
+            } else {
+                transitions = transitions.filter(e => !(e.from === from && (e.symbol === symbol || e.symbol === '0, 1')));
+            }
+
+            transitions.push({ from, to, symbol });
+            closeSymbolModal();
+            renderCanvas();
+            playVictorySound();
+            setNarratorMessage(`Added transition δ(${from}, '${symbol}') = ${to}. Transition table updated!`, `δ(${from}, '${symbol}') = ${to}`);
+        }
+
+        function removeTransitionBetweenPending() {
+            if (!pendingConnect.from || !pendingConnect.to) return;
+            transitions = transitions.filter(e => !(e.from === pendingConnect.from && e.to === pendingConnect.to));
+            closeSymbolModal();
+            renderCanvas();
+            playBeep(320, 0.08);
+            setNarratorMessage(`Removed transition between ${pendingConnect.from} and ${pendingConnect.to}.`, "Transition removed");
+        }
+
+        // ==========================================
+        // 6. NODE MANAGEMENT (ADD, FINAL, START, DELETE)
+        // ==========================================
+        function addNewState() {
+            getAudioContext();
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const existingIds = new Set(nodes.map(n => n.id));
+            let newId = 'A';
+            for (let ch of alphabet) {
+                if (!existingIds.has(ch)) {
+                    newId = ch;
+                    break;
+                }
+            }
+
+            const isStart = nodes.length === 0;
+            const newNode = {
+                id: newId,
+                label: newId,
+                x: 120 + (nodes.length * 90) % 550,
+                y: 180 + (nodes.length % 2 === 0 ? 30 : -30),
+                isStart: isStart,
+                isFinal: false
+            };
+
+            nodes.push(newNode);
+            selectedNodeId = newId;
+            if (isStart) currentStateId = newId;
+
+            renderCanvas();
+            playBeep(650, 0.1);
+            setNarratorMessage(`Created new State ${newId}. Drag it anywhere or connect it with other states!`, `New State: ${newId}`);
+        }
+
+        function toggleNodeFinalById(id) {
+            getAudioContext();
+            const n = nodes.find(node => node.id === id);
+            if (!n) return;
+            n.isFinal = !n.isFinal;
+            selectedNodeId = n.id;
+            renderCanvas();
+            playVictorySound();
+            setNarratorMessage(`State ${n.id} is now ${n.isFinal ? 'a 🏆 Final (Accepting) State (Double Ring)!' : 'a non-accepting state.'}`, `Final: ${n.isFinal}`);
+        }
+
+        function toggleSelectedAsFinal(targetId = null) {
+            const idToToggle = targetId || selectedNodeId || (nodes.length > 0 ? nodes[nodes.length - 1].id : null);
+            if (!idToToggle) {
+                alert("Please click a state node on the canvas first to select it!");
+                return;
+            }
+            toggleNodeFinalById(idToToggle);
+        }
+
+        function setSelectedAsStart() {
+            if (!selectedNodeId) {
+                alert("Please click a state node on the canvas first to select it!");
+                return;
+            }
+            getAudioContext();
+            nodes.forEach(n => n.isStart = (n.id === selectedNodeId));
+            currentStateId = selectedNodeId;
+            renderCanvas();
+            playBeep(580, 0.1);
+            setNarratorMessage(`State ${selectedNodeId} is now the initial Start State (q₀)!`, `Start: ${selectedNodeId}`);
+        }
+
+        function deleteSelectedElement() {
+            if (!selectedNodeId) {
+                alert("Please click a state node to select it for deletion.");
+                return;
+            }
+            getAudioContext();
+            const delId = selectedNodeId;
+            nodes = nodes.filter(n => n.id !== delId);
+            transitions = transitions.filter(e => e.from !== delId && e.to !== delId);
+
+            // If we deleted start state, make first remaining state start
+            if (nodes.length > 0 && !nodes.some(n => n.isStart)) {
+                nodes[0].isStart = true;
+                currentStateId = nodes[0].id;
+            } else if (nodes.length === 0) {
+                currentStateId = null;
+            }
+
+            selectedNodeId = null;
+            renderCanvas();
+            playBeep(280, 0.1);
+            setNarratorMessage(`State ${delId} and its associated transitions have been deleted.`, "State Deleted");
+        }
+
+        function loadPreset(key) {
+            getAudioContext();
+            const p = PRESETS[key];
+            if (!p) return;
+            nodes = JSON.parse(JSON.stringify(p.nodes));
+            transitions = JSON.parse(JSON.stringify(p.transitions));
+            selectedNodeId = null;
+            const startNode = nodes.find(n => n.isStart) || nodes[0];
+            currentStateId = startNode ? startNode.id : null;
+            renderCanvas();
+            resetBitBot();
+            playVictorySound();
+            setNarratorMessage(`Loaded preset: "${key}". Transition function δ and diagram synchronized!`, `Preset: ${key}`);
+        }
+
+        function clearAllElements() {
+            getAudioContext();
+            nodes = [];
+            transitions = [];
+            selectedNodeId = null;
+            currentStateId = null;
+            renderCanvas();
+            resetBitBot();
+            playBeep(300, 0.1);
+            setNarratorMessage("Canvas cleared. Click '+ Add State' to build your own custom DFA!", "Canvas Cleared");
+        }
+
+        // ==========================================
+        // 7. DYNAMIC TRANSITION FUNCTION δ(Q, Σ)
+        // ==========================================
+        function getDfaNextState(fromStateId, bit) {
+            // Find transition matching (from, bit)
+            const match = transitions.find(e => e.from === fromStateId && (e.symbol === bit || e.symbol === '0, 1'));
+            return match ? match.to : null;
+        }
+
+        function updateDynamicTransitionTable() {
+            const tbody = document.getElementById('transition-table-body');
+            const formalQ = document.getElementById('formal-q-set');
+            const formalStart = document.getElementById('formal-start-state');
+            const formalFinal = document.getElementById('formal-final-set');
+
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const startNode = nodes.find(n => n.isStart);
+            const finalNodes = nodes.filter(n => n.isFinal);
+
+            if (formalQ) formalQ.textContent = nodes.length > 0 ? `{ ${nodes.map(n => n.label).join(', ')} }` : '∅';
+            if (formalStart) formalStart.textContent = startNode ? startNode.label : 'None';
+            if (formalFinal) formalFinal.textContent = finalNodes.length > 0 ? `{ ${finalNodes.map(n => n.label).join(', ')} }` : '∅';
+
+            if (nodes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-slate-500 italic">No states defined yet. Click "+ Add State".</td></tr>';
+                return;
+            }
+
+            nodes.forEach(n => {
+                const next0 = getDfaNextState(n.id, '0');
+                const next1 = getDfaNextState(n.id, '1');
+
+                const tr = document.createElement('tr');
+                tr.className = `hover:bg-slate-900/80 transition-colors ${currentStateId === n.id ? 'bg-cyan-950/40' : ''}`;
+
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold flex items-center gap-1.5">
+                        ${n.isStart ? '<span class="text-cyan-400">▶</span>' : ''}
+                        <span>${n.label}</span>
+                        ${n.isFinal ? '<span class="text-emerald-400">🏆</span>' : ''}
+                    </td>
+                    <td class="p-2.5 font-mono ${next0 ? 'text-cyan-300 font-bold' : 'text-slate-600'}">
+                        ${next0 ? `→ ${next0}` : '— (Trap)'}
+                    </td>
+                    <td class="p-2.5 font-mono ${next1 ? 'text-purple-300 font-bold' : 'text-slate-600'}">
+                        ${next1 ? `→ ${next1}` : '— (Trap)'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // 8. BITBOT MOVEMENT & EXECUTION ENGINE
+        // ==========================================
+        function syncBitBotPosition() {
+            const marker = document.getElementById('bitbot-marker');
+            const badge = document.getElementById('current-state-badge');
+            if (!marker) return;
+
+            const currNode = nodes.find(n => n.id === currentStateId);
+            if (currNode) {
+                marker.style.display = 'block';
+                marker.setAttribute('transform', `translate(${currNode.x}, ${currNode.y})`);
+                if (badge) {
+                    badge.textContent = `${currNode.label} ${currNode.isStart ? '(Start)' : ''} ${currNode.isFinal ? '🏆 Final' : ''}`;
+                    badge.className = currNode.isFinal
+                        ? 'font-mono text-xs font-bold text-emerald-400 px-2.5 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40'
+                        : 'font-mono text-xs font-bold text-cyan-400 px-2.5 py-0.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30';
+                }
+            } else {
+                marker.style.display = 'none';
+                if (badge) badge.textContent = 'None';
+            }
+        }
+
+        function highlightActiveEdge(fromId, toId) {
+            const pathEl = document.getElementById(`path-${fromId}-${toId}`);
+            if (pathEl) {
+                pathEl.classList.add('edge-active');
+                setTimeout(() => pathEl.classList.remove('edge-active'), 600);
+            }
+        }
+
+        function setNarratorMessage(text, deltaText = '') {
+            const narrEl = document.getElementById('narrator-text');
+            const deltaEl = document.getElementById('math-delta-readout');
+            if (narrEl) narrEl.textContent = text;
+            if (deltaEl && deltaText) deltaEl.textContent = deltaText;
+        }
+
+        function handleStepInput(bit) {
+            getAudioContext();
+            flashKeyBadge(bit);
+
+            if (!currentStateId) {
+                const startNode = nodes.find(n => n.isStart) || nodes[0];
+                if (!startNode) return;
+                currentStateId = startNode.id;
+            }
+
+            const fromId = currentStateId;
+            const nextId = getDfaNextState(fromId, bit);
+
+            if (nextId) {
+                highlightActiveEdge(fromId, nextId);
+                currentStateId = nextId;
+                syncBitBotPosition();
+                updateDynamicTransitionTable();
+
+                const targetNode = nodes.find(n => n.id === nextId);
+                const isAccept = targetNode && targetNode.isFinal;
+
+                if (isAccept) {
+                    playVictorySound();
+                } else {
+                    playBeep(520, 0.08, 'triangle');
+                }
+
+                setNarratorMessage(`BitBot read '${bit}' from State ${fromId} → transitioned to State ${nextId}!${isAccept ? ' [🏆 In Final State]' : ''}`, `δ(${fromId}, '${bit}') = ${nextId}`);
+            } else {
+                playRejectSound();
+                setNarratorMessage(`No transition defined for δ(${fromId}, '${bit}')! BitBot is trapped (Machine Rejects)!`, `δ(${fromId}, '${bit}') = Undefined`);
+            }
+        }
+
+        function flashKeyBadge(bit) {
+            const badge = document.getElementById(`key-badge-${bit}`);
+            if (badge) {
+                badge.classList.add('scale-110', 'ring-2', bit === '0' ? 'ring-cyan-400' : 'ring-purple-400');
+                setTimeout(() => badge.classList.remove('scale-110', 'ring-2', 'ring-cyan-400', 'ring-purple-400'), 150);
+            }
+        }
+
+        function resetBitBot() {
+            stopAutoPlay();
+            const startNode = nodes.find(n => n.isStart) || nodes[0];
+            currentStateId = startNode ? startNode.id : null;
+            tapeHead = 0;
+            renderTapeCells();
+            syncBitBotPosition();
+            updateDynamicTransitionTable();
+            setNarratorMessage("BitBot reset to Start State. Ready for input!", "δ(q₀, -) = Start");
+        }
+
+        // ==========================================
+        // 9. STRING TAPE RUNNER (AUTO & STEP)
+        // ==========================================
+        function loadTapeString() {
+            stopAutoPlay();
+            const input = document.getElementById('tape-string-input');
+            const raw = (input ? input.value : '1110').trim();
+            if (!/^[01]*$/.test(raw)) {
+                alert("Please enter only binary symbols ('0' and '1').");
+                return;
+            }
+            loadedTape = raw;
+            tapeHead = 0;
+            resetBitBot();
+            renderTapeCells();
+            setNarratorMessage(`Tape loaded with "${raw}". Click "Auto-Play ▶" or "Step ⏭" to run!`, `Length: ${raw.length}`);
+        }
+
+        function renderTapeCells() {
+            const container = document.getElementById('tape-cells-container');
+            const statusText = document.getElementById('tape-status-text');
+            if (statusText) statusText.textContent = `Tape Head: ${tapeHead} / ${loadedTape.length}`;
+            if (!container) return;
+
+            container.innerHTML = '';
+            if (loadedTape.length === 0) {
+                container.innerHTML = '<div class="text-xs font-mono text-slate-500 italic px-2">Tape is empty (ε)</div>';
+                return;
+            }
+
+            for (let i = 0; i < loadedTape.length; i++) {
+                const cell = document.createElement('div');
+                cell.className = `w-9 h-9 rounded-xl flex items-center justify-center font-mono font-bold text-sm border transition-all ${
+                    i === tapeHead
+                        ? 'bg-gradient-to-tr from-cyan-500 to-blue-600 text-white border-cyan-300 shadow-md shadow-cyan-500/40 scale-110 -translate-y-1'
+                        : i < tapeHead
+                        ? 'bg-slate-950/60 border-slate-800 text-slate-500'
+                        : 'bg-slate-900 border-slate-700 text-slate-200'
+                }`;
+                cell.textContent = loadedTape[i];
+                container.appendChild(cell);
+            }
+        }
+
+        function stepTapeNext() {
+            if (tapeHead >= loadedTape.length) {
+                checkTapeAcceptance();
+                return;
+            }
+            const bit = loadedTape[tapeHead];
+            handleStepInput(bit);
+            tapeHead++;
+            renderTapeCells();
+
+            if (tapeHead >= loadedTape.length) {
+                setTimeout(checkTapeAcceptance, 350);
+            }
+        }
+
+        function checkTapeAcceptance() {
+            stopAutoPlay();
+            const curr = nodes.find(n => n.id === currentStateId);
+            if (curr && curr.isFinal) {
+                playVictorySound();
+                setNarratorMessage(`🎉 STRING ACCEPTED! BitBot stopped in Final State ${curr.label}!`, `ACCEPTED in ${curr.label}`);
+            } else {
+                playRejectSound();
+                setNarratorMessage(`❌ STRING REJECTED! Ended in non-accepting State ${curr ? curr.label : 'None'}.`, `REJECTED`);
+            }
+        }
+
+        function toggleAutoPlay() {
+            if (autoPlayTimer) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+
+        function startAutoPlay() {
+            if (tapeHead >= loadedTape.length) {
+                resetBitBot();
+            }
+            const icon = document.getElementById('play-pause-icon');
+            const label = document.getElementById('play-pause-label');
+            if (icon) icon.textContent = '⏸';
+            if (label) label.textContent = 'Pause';
+
+            autoPlayTimer = setInterval(() => {
+                stepTapeNext();
+            }, autoPlayDelay);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+            }
+            const icon = document.getElementById('play-pause-icon');
+            const label = document.getElementById('play-pause-label');
+            if (icon) icon.textContent = '▶';
+            if (label) label.textContent = 'Auto-Play';
+        }
+
+        function applyTapePreset(str) {
+            const input = document.getElementById('tape-string-input');
+            if (input) input.value = str;
+            loadTapeString();
+        }
+
+        // Speed slider
+        document.getElementById('tape-speed-slider')?.addEventListener('input', (e) => {
+            autoPlayDelay = parseInt(e.target.value);
+            const label = document.getElementById('tape-speed-label');
+            if (label) label.textContent = `${autoPlayDelay}ms`;
+            if (autoPlayTimer) {
+                startAutoPlay();
+            }
+        });
+
+        // Keyboard listener for 0, 1, and R
+        window.addEventListener('keydown', (e) => {
+            const activeTag = document.activeElement ? document.activeElement.tagName : '';
+            if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') {
+                return;
+            }
+
+            if (e.key === '0' || e.code === 'Numpad0' || e.code === 'Digit0') {
+                e.preventDefault();
+                handleStepInput('0');
+            } else if (e.key === '1' || e.code === 'Numpad1' || e.code === 'Digit1') {
+                e.preventDefault();
+                handleStepInput('1');
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetBitBot();
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPreset('neso_example');
+            loadTapeString();
+        });
+    </script>
+</body>
+</html>

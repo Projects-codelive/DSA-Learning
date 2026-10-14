@@ -170,22 +170,41 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white group-hover:text-cyan-400 transition-colors">DSA Studio</span>
-                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">v2.0</span>
+                            <span class="font-outfit font-extrabold text-2xl tracking-tight text-white group-hover:text-cyan-400 transition-colors">CS Studio</span>
+                            <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Dual Lab</span>
                         </div>
-                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">Visual Lab Assistant</span>
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-medium">DSA & Automata Theory</span>
                     </div>
                 </a>
 
                 <!-- Desktop Nav Links -->
-                <div class="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-full border border-slate-800/80 backdrop-blur-md">
-                    <button onclick="showPage('home-page')" id="nav-btn-home" class="nav-item px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 text-white bg-gradient-to-r from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/20">
+                <div class="hidden lg:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-full border border-slate-800/80 backdrop-blur-md">
+                    <button onclick="showPage('home-page')" id="nav-btn-home" class="nav-item px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 text-white bg-gradient-to-r from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/20">
                         Home
                     </button>
-                    <button onclick="showPage('explore-page')" id="nav-btn-explore" class="nav-item px-5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300">
-                        Explore Algorithms
+                    <button onclick="filterSubjectAndShow('dsa')" class="nav-item px-4 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300 flex items-center gap-1.5">
+                        <span>📦 DSA Lab</span>
                     </button>
-                    <a href="/quiz" class="nav-item px-5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300 flex items-center gap-1.5">
+                    <a href="/dfa" class="nav-item px-3.5 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300 flex items-center gap-1.5">
+                        <span>🤖 DFA Dungeon</span>
+                    </a>
+                    <a href="/nfa" class="nav-item px-2.5 py-2 rounded-full text-xs sm:text-sm font-medium text-pink-300 hover:text-white hover:bg-pink-950/40 transition-all duration-300 flex items-center gap-1">
+                        <span>🌌 NFA</span>
+                    </a>
+                    <a href="/enfa" class="nav-item px-2.5 py-2 rounded-full text-xs sm:text-sm font-medium text-purple-300 hover:text-white hover:bg-purple-950/40 transition-all duration-300 flex items-center gap-1">
+                        <span>🔮 ε-NFA→DFA</span>
+                    </a>
+                    <a href="/enfa-eliminate" class="nav-item px-2.5 py-2 rounded-full text-xs sm:text-sm font-medium text-purple-300 hover:text-white hover:bg-purple-950/40 transition-all duration-300 flex items-center gap-1">
+                        <span>⚡ ε-Eliminator</span>
+                    </a>
+                    <a href="/moore-mealy" class="nav-item px-2.5 py-2 rounded-full text-xs sm:text-sm font-medium text-amber-300 hover:text-white hover:bg-amber-950/40 transition-all duration-300 flex items-center gap-1">
+                        <span>🦹 Moore→Mealy</span>
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                        </span>
+                    </a>
+                    <a href="/quiz" class="nav-item px-4 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all duration-300 flex items-center gap-1.5">
                         <span>Quiz Arena</span>
                         <span class="flex h-2 w-2 relative">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -196,12 +215,12 @@
 
                 <!-- Right Action Button -->
                 <div class="hidden md:flex items-center gap-3">
-                    <button onclick="showPage('explore-page')" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
-                        <span>🚀 Launch Lab</span>
+                    <a href="/dfa" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 hover:opacity-95 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
+                        <span>🎮 Play DFA Dungeon</span>
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>
-                    </button>
+                    </a>
                 </div>
 
                 <!-- Mobile Menu Button -->
@@ -219,9 +238,13 @@
         <!-- Mobile Drawer -->
         <div id="mobile-menu" class="hidden md:hidden glass-panel border-b border-slate-800 px-6 py-5 space-y-3">
             <button onclick="showPage('home-page'); toggleMenu();" class="w-full text-left py-2.5 px-4 rounded-xl font-medium text-slate-200 hover:bg-slate-800/80 transition-colors">🏠 Home</button>
-            <button onclick="showPage('explore-page'); toggleMenu();" class="w-full text-left py-2.5 px-4 rounded-xl font-medium text-slate-200 hover:bg-slate-800/80 transition-colors">✨ Explore Algorithms</button>
-            <a href="/quiz" class="block py-2.5 px-4 rounded-xl font-medium text-slate-200 hover:bg-slate-800/80 transition-colors">🎯 Quiz Arena (100+ MCQs)</a>
-            <button onclick="showPage('explore-page'); toggleMenu();" class="w-full py-3 text-center rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-purple-600 shadow-md">Start Visualizing</button>
+            <button onclick="filterSubjectAndShow('dsa'); toggleMenu();" class="w-full text-left py-2.5 px-4 rounded-xl font-medium text-slate-200 hover:bg-slate-800/80 transition-colors">📦 DSA Visualizers</button>
+            <a href="/dfa" class="block py-2.5 px-4 rounded-xl font-medium text-cyan-300 hover:bg-slate-800/80 transition-colors">🤖 Automata: DFA Dungeon Game 🎮</a>
+            <a href="/nfa" class="block py-2.5 px-4 rounded-xl font-medium text-pink-300 hover:bg-slate-800/80 transition-colors">🌌 Automata: NFA Quantum Lab 🧬</a>
+            <a href="/enfa" class="block py-2.5 px-4 rounded-xl font-medium text-purple-300 hover:bg-slate-800/80 transition-colors">🔮 Automata: ε-NFA to DFA Alchemist</a>
+            <a href="/enfa-eliminate" class="block py-2.5 px-4 rounded-xl font-medium text-pink-300 hover:bg-slate-800/80 transition-colors">⚡ Automata: BridgeBusters ε-Eliminator</a>
+            <a href="/moore-mealy" class="block py-2.5 px-4 rounded-xl font-medium text-amber-300 hover:bg-slate-800/80 transition-colors">🦹 Automata: Moore to Mealy Heist 💎</a>
+            <a href="/quiz" class="block py-2.5 px-4 rounded-xl font-medium text-slate-200 hover:bg-slate-800/80 transition-colors">🎯 Quiz Arena (DSA & Automata)</a>
         </div>
     </nav>
 
@@ -234,55 +257,178 @@
         <div id="home-page" class="transition-opacity duration-300">
             
             <!-- Hero Section -->
-            <section class="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden">
+            <section class="relative pt-8 pb-16 md:pt-14 md:pb-24 overflow-hidden">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    <!-- Top Announcement Bar -->
+                    <div class="flex justify-center mb-6">
+                        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-slate-900/90 border border-slate-700/80 backdrop-blur-md shadow-lg shadow-cyan-500/10">
+                            <span class="flex h-2.5 w-2.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400"></span>
+                            </span>
+                            <span class="text-xs font-semibold text-slate-300">New Module Available:</span>
+                            <span class="text-xs font-mono font-bold text-cyan-400">Automata Theory & DFA Dead States Game</span>
+                            <a href="/dfa" class="text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 px-2.5 py-0.5 rounded-full transition-colors">Play →</a>
+                        </div>
+                    </div>
+
+                    <!-- Main Headline -->
+                    <div class="text-center max-w-4xl mx-auto space-y-5">
+                        <h1 class="font-outfit text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+                            Master Computer Science Through <br class="hidden sm:inline">
+                            <span class="text-gradient animate-gradient-x">Live Visuals & Gamification</span>
+                        </h1>
+                        <p class="text-base sm:text-lg text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
+                            Two core disciplines, one interactive studio: Watch data structures and algorithms execute step-by-step, and master Automata Theory through gamified state-machine dungeon puzzles based on Neso Academy's DFA lectures.
+                        </p>
+                    </div>
+
+                    <!-- TWO SUBJECT FLAGSHIP PORTAL CARDS -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 max-w-5xl mx-auto">
                         
-                        <!-- Left Hero Content -->
-                        <div class="lg:col-span-7 text-center lg:text-left space-y-6">
+                        <!-- SUBJECT 1: DATA STRUCTURES & ALGORITHMS -->
+                        <div class="glass-card rounded-3xl p-8 border border-cyan-500/30 relative overflow-hidden group hover:border-cyan-400 transition-all duration-300 flex flex-col justify-between">
+                            <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-colors pointer-events-none"></div>
                             
-                            <!-- Glowing Top Badge -->
-                            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-md">
-                                <span class="flex h-2 w-2 relative">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
-                                </span>
-                                <span class="text-xs font-semibold text-cyan-300 uppercase tracking-wider">Next-Gen DSA Interactive Lab</span>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+                                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">10 Topics</span>
+                                </div>
+
+                                <div>
+                                    <div class="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold">Subject 1</div>
+                                    <h2 class="font-outfit text-2xl sm:text-3xl font-extrabold text-white mt-1 group-hover:text-cyan-300 transition-colors">
+                                        Data Structures & Algorithms
+                                    </h2>
+                                    <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+                                        Interactive step-by-step visualizers with custom input, speed control, and live memory animations for sorting, searching, stacks, queues, and graph traversals.
+                                    </p>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2 pt-2">
+                                    <span class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">Bubble / Merge / Quick / Heap</span>
+                                    <span class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">Binary Search</span>
+                                    <span class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">BFS & DFS Graphs</span>
+                                </div>
                             </div>
 
-                            <!-- Main Headline -->
-                            <h1 class="font-outfit text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
-                                Master DSA Through <br class="hidden sm:inline">
-                                <span class="text-gradient animate-gradient-x">Live Visualizations</span>
-                            </h1>
-
-                            <!-- Subtitle -->
-                            <p class="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto lg:mx-0 font-normal leading-relaxed">
-                                Don't just memorize algorithms from static pseudocode. Watch every comparison, swap, recursion split, and node visit happen in real-time with step-by-step playback.
-                            </p>
-
-                            <!-- CTAs -->
-                            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
-                                <button onclick="showPage('explore-page')" class="px-7 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-3">
-                                    <span>🚀 Start Visualizing</span>
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                    </svg>
+                            <div class="pt-6">
+                                <button onclick="filterSubjectAndShow('dsa')" class="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 group/btn">
+                                    <span>Explore DSA Visualizers</span>
+                                    <span class="group-hover/btn:translate-x-1 transition-transform">→</span>
                                 </button>
-                                <a href="/quiz" class="px-7 py-3.5 rounded-xl font-bold text-slate-200 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/50 hover:text-white transition-all duration-300 flex items-center gap-2 backdrop-blur-md">
-                                    <span>🎯 Take Practice Quiz</span>
+                            </div>
+                        </div>
+
+                        <!-- SUBJECT 2: AUTOMATA THEORY & FORMAL LANGUAGES -->
+                        <div class="glass-card rounded-3xl p-8 border border-purple-500/40 relative overflow-hidden group hover:border-purple-400 transition-all duration-300 flex flex-col justify-between bg-gradient-to-br from-purple-950/20 via-slate-900/60 to-slate-950/90 shadow-2xl shadow-purple-500/10">
+                            <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-purple-500/15 rounded-full blur-2xl group-hover:bg-purple-500/25 transition-colors pointer-events-none"></div>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-14 h-14 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 animate-pulse">5 Interactive Labs</span>
+                                </div>
+
+                                <div>
+                                    <div class="text-xs font-mono uppercase tracking-wider text-purple-400 font-semibold">Subject 2 — Theory of Computation</div>
+                                    <h2 class="font-outfit text-2xl sm:text-3xl font-extrabold text-white mt-1 group-hover:text-purple-300 transition-colors">
+                                        Automata Theory & Games (DFA & NFA)
+                                    </h2>
+                                    <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+                                        Experience finite automata interactively! Master <strong>DFA Dungeon</strong>, <strong>Quantum Clones (NFA)</strong>, <strong>ε-Elimination</strong>, and the <strong>Moore-to-Mealy Heist</strong>!
+                                    </p>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2 pt-2">
+                                    <span class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">DFA & Dead States</span>
+                                    <span class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">NFA Quantum Clones</span>
+                                    <span class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">ε-Transitions</span>
+                                    <span class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">Moore & Mealy</span>
+                                </div>
+                            </div>
+
+                            <div class="pt-6 space-y-2.5">
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    <a href="/dfa" class="py-2.5 px-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 transition-all shadow-md shadow-purple-500/20 flex items-center justify-between group/btn">
+                                        <span class="flex items-center gap-1.5 truncate">
+                                            <span>🤖</span>
+                                            <span class="truncate">DFA Dungeon</span>
+                                        </span>
+                                        <span class="group-hover/btn:translate-x-1 transition-transform text-purple-300 flex-shrink-0">→</span>
+                                    </a>
+                                    <a href="/nfa" class="py-2.5 px-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-95 transition-all shadow-md shadow-pink-500/20 flex items-center justify-between group/btn">
+                                        <span class="flex items-center gap-1.5 truncate">
+                                            <span>🌌</span>
+                                            <span class="truncate">NFA Quantum</span>
+                                        </span>
+                                        <span class="group-hover/btn:translate-x-1 transition-transform text-pink-300 flex-shrink-0">→</span>
+                                    </a>
+                                    <a href="/enfa" class="py-2.5 px-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 hover:opacity-95 transition-all shadow-md shadow-cyan-500/20 flex items-center justify-between group/btn">
+                                        <span class="flex items-center gap-1.5 truncate">
+                                            <span>🔮</span>
+                                            <span class="truncate">ε-NFA to DFA</span>
+                                        </span>
+                                        <span class="group-hover/btn:translate-x-1 transition-transform text-cyan-300 flex-shrink-0">→</span>
+                                    </a>
+                                    <a href="/enfa-eliminate" class="py-2.5 px-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:opacity-95 transition-all shadow-md shadow-pink-500/20 flex items-center justify-between group/btn">
+                                        <span class="flex items-center gap-1.5 truncate">
+                                            <span>⚡</span>
+                                            <span class="truncate">ε-Eliminator</span>
+                                        </span>
+                                        <span class="group-hover/btn:translate-x-1 transition-transform text-rose-300 flex-shrink-0">→</span>
+                                    </a>
+                                </div>
+
+                                <a href="/moore-mealy" class="py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-amber-500 via-orange-600 to-rose-600 hover:opacity-95 transition-all shadow-md shadow-amber-500/25 flex items-center justify-between group/btn w-full">
+                                    <span class="flex items-center gap-2">
+                                        <span class="text-base">🦹</span>
+                                        <span>Moore to Mealy Heist Lab</span>
+                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/40 text-amber-200 border border-amber-400/40">Lec-27</span>
+                                    </span>
+                                    <span class="group-hover/btn:translate-x-1 transition-transform text-amber-100 flex items-center gap-1 font-semibold">
+                                        <span>Play Heist</span>
+                                        <span>→</span>
+                                    </span>
                                 </a>
                             </div>
+                        </div>
 
-                            <!-- Quick Stats Banner -->
-                            <div class="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/80 max-w-lg mx-auto lg:mx-0">
-                                <div>
-                                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-cyan-400">10+</div>
-                                    <div class="text-xs text-slate-400 font-medium">Core Algorithms</div>
-                                </div>
-                                <div>
-                                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-purple-400">100+</div>
+                    </div>
+
+                    <!-- Quick Stats Banner -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12 max-w-4xl mx-auto pt-8 border-t border-slate-800/80">
+                        <div class="text-center">
+                            <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-cyan-400">2 Subjects</div>
+                            <div class="text-xs text-slate-400 font-medium">DSA & Automata Theory</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-purple-400">11+ Visualizers</div>
+                            <div class="text-xs text-slate-400 font-medium">Step-by-Step Simulations</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-emerald-400">4 Game Modes</div>
+                            <div class="text-xs text-slate-400 font-medium">DFA Dungeon Quest</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-pink-400">110+ Questions</div>
+                            <div class="text-xs text-slate-400 font-medium">Interactive Concept Quizzes</div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
                                     <div class="text-xs text-slate-400 font-medium">Quiz Questions</div>
                                 </div>
                                 <div>
@@ -489,32 +635,47 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 <!-- Explore Header -->
-                <div class="text-center max-w-3xl mx-auto pt-6 pb-10 space-y-4">
+                <div class="text-center max-w-3xl mx-auto pt-6 pb-8 space-y-4">
                     <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-semibold uppercase tracking-wider">
-                        ✨ Interactive Visualizations
+                        ✨ Interactive Visualizations & Labs
                     </div>
                     <h1 class="font-outfit text-4xl sm:text-5xl font-extrabold text-white">
-                        Explore <span class="text-gradient">Algorithms & Structures</span>
+                        Explore <span class="text-gradient">DSA & Automata Labs</span>
                     </h1>
                     <p class="text-slate-300 text-sm sm:text-base">
-                        Select an algorithm to open its dedicated live laboratory. Customize input data and control step execution at your own pace.
+                        Select a laboratory module below to start experimenting. Choose between Data Structures & Algorithms visualizers and our gamified Automata Theory state-machine arena.
                     </p>
 
+                    <!-- Subject Category Filter Pills -->
+                    <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
+                        <button onclick="setExploreFilter('all')" id="filter-btn-all" class="explore-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-white shadow-md shadow-cyan-500/20 transition-all">
+                            All Subjects & Labs (7 Categories)
+                        </button>
+                        <button onclick="setExploreFilter('dsa')" id="filter-btn-dsa" class="explore-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 transition-all flex items-center gap-1.5">
+                            <span>📦 DSA Visualizers (10 Topics)</span>
+                        </button>
+                        <button onclick="setExploreFilter('automata')" id="filter-btn-automata" class="explore-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-purple-300 bg-purple-950/40 hover:bg-purple-900/40 border border-purple-500/40 transition-all flex items-center gap-1.5">
+                            <span>⚙️ Automata Theory (DFA & NFA Games)</span>
+                            <span class="w-2 h-2 rounded-full bg-pink-400 animate-ping"></span>
+                        </button>
+                    </div>
+
                     <!-- Search Filter Bar -->
-                    <div class="pt-4 max-w-md mx-auto relative">
-                        <input type="text" id="algo-search" placeholder="Search algorithms (e.g. Merge, BFS, Queue)..." oninput="filterAlgorithms()"
+                    <div class="pt-2 max-w-md mx-auto relative">
+                        <input type="text" id="algo-search" placeholder="Search (e.g. DFA, Merge, Dead State, BFS, Queue)..." oninput="filterAlgorithms()"
                             class="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all backdrop-blur-md">
-                        <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
                 </div>
 
+
                 <!-- Category Cards Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="explore-cards-grid">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="explore-cards-grid">
 
                     <!-- CATEGORY 1: SEARCHING -->
-                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-cyan-400 group relative overflow-hidden algo-card" data-tags="searching linear binary search">
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-cyan-400 group relative overflow-hidden algo-card" data-subject="dsa" data-tags="dsa searching linear binary search">
                         <div class="space-y-4">
                             <!-- Category Header -->
                             <div class="flex items-center justify-between">
@@ -553,7 +714,7 @@
                     </div>
 
                     <!-- CATEGORY 2: SORTING -->
-                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-purple-400 group relative overflow-hidden algo-card" data-tags="sorting bubble merge quick heap sort">
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-purple-400 group relative overflow-hidden algo-card" data-subject="dsa" data-tags="dsa sorting bubble merge quick heap sort">
                         <div class="space-y-4">
                             <!-- Category Header -->
                             <div class="flex items-center justify-between">
@@ -566,7 +727,7 @@
                             </div>
 
                             <div>
-                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-purple-400 transition-colors">Sorting</h3>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-purple-400 transition-colors">Sorting (DSA)</h3>
                                 <p class="text-xs text-slate-400 mt-1">Reorder arrays efficiently with comparisons, divides, and heap trees.</p>
                             </div>
 
@@ -608,7 +769,7 @@
                     </div>
 
                     <!-- CATEGORY 3: STACK & QUEUE -->
-                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-amber-400 group relative overflow-hidden algo-card" data-tags="stack queue push pop enqueue dequeue">
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-amber-400 group relative overflow-hidden algo-card" data-subject="dsa" data-tags="dsa stack queue push pop enqueue dequeue">
                         <div class="space-y-4">
                             <!-- Category Header -->
                             <div class="flex items-center justify-between">
@@ -647,7 +808,7 @@
                     </div>
 
                     <!-- CATEGORY 4: GRAPHS -->
-                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-emerald-400 group relative overflow-hidden algo-card" data-tags="graphs bfs dfs breadth depth first search traversal">
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-emerald-400 group relative overflow-hidden algo-card" data-subject="dsa" data-tags="dsa graphs bfs dfs breadth depth first search traversal">
                         <div class="space-y-4">
                             <!-- Category Header -->
                             <div class="flex items-center justify-between">
@@ -660,7 +821,7 @@
                             </div>
 
                             <div>
-                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">Graphs</h3>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">Graphs (DSA)</h3>
                                 <p class="text-xs text-slate-400 mt-1">Explore interconnected networks with layer-wise and recursive traversals.</p>
                             </div>
 
@@ -685,7 +846,272 @@
                         </div>
                     </div>
 
+                    <!-- CATEGORY 5: AUTOMATA THEORY - DFA & DEAD STATES (GAME) -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-purple-400 group relative overflow-hidden algo-card bg-gradient-to-b from-purple-950/20 to-slate-900/60" data-subject="automata" data-tags="automata theory dfa dead state trap game neso academy bitbot 01 1+0 finite automata">
+                        <div class="absolute -right-8 -top-8 w-28 h-28 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                                    <span class="text-xl">🤖</span>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 animate-pulse">4 Game Modes</span>
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-mono text-purple-400 font-semibold uppercase">Automata Theory • Flagship Game</div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-purple-300 transition-colors">The Binary Dungeon (DFA)</h3>
+                                <p class="text-xs text-slate-400 mt-1">Guide BitBot with 0 & 1 cards. Reach Treasure Rooms D/E or fall into Dead State X trap!</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2 pt-1">
+                                <a href="/dfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🎮 Level 1: Explorer Sandbox & BitBot</span>
+                                    <span class="text-purple-400">→</span>
+                                </a>
+                                <a href="/dfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🕵️ Level 2: Missing Path & Dead State</span>
+                                    <span class="text-purple-400">→</span>
+                                </a>
+                                <a href="/dfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>⚡ Level 3: Gatekeeper Arcade (Timed)</span>
+                                    <span class="text-purple-400">→</span>
+                                </a>
+                                <a href="/dfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>👾 Level 4: Regex Boss Battle (01 | 1⁺0)</span>
+                                    <span class="text-purple-400">→</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <a href="/dfa" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 shadow-md shadow-purple-500/20 flex items-center justify-center gap-2 transition-all">
+                                <span>🚀 Launch DFA Dungeon Game</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY: AUTOMATA THEORY - NFA QUANTUM CLONE LAB (GAME) -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-pink-500 group relative overflow-hidden algo-card bg-gradient-to-b from-pink-950/20 to-slate-900/60" data-subject="automata" data-tags="automata theory nfa non deterministic quantum clone lab parallel tree branch neso solved example 3">
+                        <div class="absolute -right-8 -top-8 w-28 h-28 bg-pink-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform">
+                                    <span class="text-xl">🌌</span>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40 animate-pulse">5 NFA Levels</span>
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-mono text-pink-400 font-semibold uppercase">Non-Deterministic Automata • Flagship Game</div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-pink-300 transition-colors">Quantum Clone Lab (NFA)</h3>
+                                <p class="text-xs text-slate-400 mt-1">Watch QuantumBot split into parallel clones! Build NFAs for L1–L5, inspect live branching trees, and conquer the DFA state count challenge!</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2 pt-1">
+                                <a href="/nfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/30 text-pink-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🛠️ Mode 1: Blueprint Builder (L1–L5)</span>
+                                    <span class="text-pink-400">→</span>
+                                </a>
+                                <a href="/nfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/30 text-pink-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🌌 Mode 2: Quantum Clone Tree Visualizer</span>
+                                    <span class="text-pink-400">→</span>
+                                </a>
+                                <a href="/nfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/30 text-pink-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>⚔️ Mode 3: NFA vs. DFA State Count Boss</span>
+                                    <span class="text-pink-400">→</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <a href="/nfa" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:opacity-95 shadow-md shadow-pink-500/20 flex items-center justify-center gap-2 transition-all">
+                                <span>🚀 Launch Quantum Clone Lab</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY: AUTOMATA THEORY - EPSILON-NFA TO DFA CONVERTER (GATE SMASHERS LEC 23) -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-purple-400 group relative overflow-hidden algo-card bg-gradient-to-b from-purple-950/20 to-slate-900/60" data-subject="automata" data-tags="automata theory epsilon enfa nfa to dfa gate smashers lecture 23 closure subset power set">
+                        <div class="absolute -right-8 -top-8 w-28 h-28 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                                    <span class="text-xl">🔮</span>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 animate-pulse">Gate Smashers Lec-23</span>
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-mono text-purple-400 font-semibold uppercase">ε-NFA to DFA Conversion</div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-purple-300 transition-colors">Portal Crafter (ε-NFA → DFA)</h3>
+                                <p class="text-xs text-slate-400 mt-1">Direct conversion with ε-closure, subset state expansion, 2ⁿ power set meter, and dual-machine string race!</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2 pt-1">
+                                <a href="/enfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>⭐ Preset 1: Gate Smashers Lec-23 Default</span>
+                                    <span class="text-purple-400">→</span>
+                                </a>
+                                <a href="/enfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🌀 Preset 2: Chained Epsilon Portal</span>
+                                    <span class="text-purple-400">→</span>
+                                </a>
+                                <a href="/enfa" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🏁 Dual-Machine String Race Simulator</span>
+                                    <span class="text-purple-400">→</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <a href="/enfa" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 hover:opacity-95 shadow-md shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all">
+                                <span>🚀 Launch ε-NFA to DFA Alchemist</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY: AUTOMATA THEORY - ELIMINATE EPSILON MOVES (GATE SMASHERS LEC 22) -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-pink-500 group relative overflow-hidden algo-card bg-gradient-to-b from-pink-950/20 to-slate-900/60" data-subject="automata" data-tags="automata theory eliminate epsilon enfa to nfa gate smashers lecture 22 bridges back to front">
+                        <div class="absolute -right-8 -top-8 w-28 h-28 bg-pink-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform">
+                                    <span class="text-xl">⚡</span>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40 animate-pulse">Gate Smashers Lec-22</span>
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-mono text-pink-400 font-semibold uppercase">ε-NFA to Standard NFA</div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-pink-300 transition-colors">BridgeBusters: ε-Eliminator</h3>
+                                <p class="text-xs text-slate-400 mt-1">Dismantle glitch bridges in-place with the 4-step protocol, Smart Advisor (Back-to-Front), and ghost state vacuum!</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2 pt-1">
+                                <a href="/enfa-eliminate" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/30 text-pink-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>⭐ Preset 1: Gate Smashers Lec-22 Default</span>
+                                    <span class="text-pink-400">→</span>
+                                </a>
+                                <a href="/enfa-eliminate" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/30 text-pink-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🏆 Preset 2: Final State Crown Propagation</span>
+                                    <span class="text-pink-400">→</span>
+                                </a>
+                                <a href="/enfa-eliminate" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/30 text-pink-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🔬 Step-by-Step Visual Surgeon Mode</span>
+                                    <span class="text-pink-400">→</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <a href="/enfa-eliminate" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 hover:opacity-95 shadow-md shadow-pink-500/20 flex items-center justify-center gap-2 transition-all">
+                                <span>🚀 Launch BridgeBusters ε-Eliminator</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY: AUTOMATA THEORY - MOORE TO MEALY CONVERSION (GATE SMASHERS LEC 27) -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-amber-400 group relative overflow-hidden algo-card bg-gradient-to-b from-amber-950/20 via-slate-900/60 to-slate-950/90" data-subject="automata" data-tags="automata theory moore mealy conversion gate smashers lecture 27 badge thief heist transducer output">
+                        <div class="absolute -right-8 -top-8 w-28 h-28 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                                    <span class="text-xl">🦹</span>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse">Gate Smashers Lec-27</span>
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-mono text-amber-400 font-semibold uppercase">Finite State Transducers</div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-amber-300 transition-colors">Badge Thief: Moore to Mealy</h3>
+                                <p class="text-xs text-slate-400 mt-1">Steal destination state badges onto transition arrows! Dual-method converter (Diagram & Table), dual-string race (n+1 vs n), and m-state exam rule!</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2 pt-1">
+                                <a href="/moore-mealy" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-amber-950/40 hover:bg-amber-900/50 border border-amber-500/30 text-amber-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>⭐ Preset 1: Gate Smashers Lec-27 (q0, q1, q2)</span>
+                                    <span class="text-amber-400">→</span>
+                                </a>
+                                <a href="/moore-mealy" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-amber-950/40 hover:bg-amber-900/50 border border-amber-500/30 text-amber-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🚦 Preset 2: Traffic Light (Stop/Go/Wait)</span>
+                                    <span class="text-amber-400">→</span>
+                                </a>
+                                <a href="/moore-mealy" class="algo-btn block w-full py-2 px-3.5 rounded-xl bg-amber-950/40 hover:bg-amber-900/50 border border-amber-500/30 text-amber-200 text-xs font-medium transition-all flex items-center justify-between">
+                                    <span>🏁 Mode 3: Live Transducer Race (Moore vs Mealy)</span>
+                                    <span class="text-amber-400">→</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <a href="/moore-mealy" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 via-orange-600 to-rose-600 hover:opacity-95 shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 transition-all">
+                                <span>🚀 Launch Moore to Mealy Heist Lab</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY 6: AUTOMATA FORMAL ANALYSIS & QUIZ -->
+                    <div class="glass-card rounded-3xl p-6 flex flex-col justify-between border-t-2 border-t-purple-400 group relative overflow-hidden algo-card" data-subject="automata" data-tags="automata theory transition table matrix delta formal languages nesos academy proofs quiz">
+                        <div class="space-y-4">
+                            <!-- Category Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform">
+                                    <span class="text-xl">📐</span>
+                                </div>
+                                <span class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/30">Formal TOC</span>
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-mono text-pink-400 font-semibold uppercase">Mathematical Rigor</div>
+                                <h3 class="font-outfit text-xl font-bold text-white group-hover:text-pink-300 transition-colors">DFA 5-Tuple & Matrix Lab</h3>
+                                <p class="text-xs text-slate-400 mt-1">Study formal machine specifications M = (Q, Σ, δ, q₀, F), completeness proofs, and compiler lexers.</p>
+                            </div>
+
+                            <!-- Buttons List -->
+                            <div class="space-y-2.5 pt-2">
+                                <a href="/dfa#theory" class="algo-btn block w-full py-3 px-4 rounded-xl bg-slate-900/80 hover:bg-pink-950/40 border border-slate-800 hover:border-pink-500/40 text-slate-200 hover:text-pink-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-pink-400"></span>
+                                        <span>Transition Matrix δ(Q, Σ)</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-pink-400 transition-colors">Inspect →</span>
+                                </a>
+
+                                <a href="/quiz" class="algo-btn block w-full py-3 px-4 rounded-xl bg-slate-900/80 hover:bg-pink-950/40 border border-slate-800 hover:border-pink-500/40 text-slate-200 hover:text-pink-300 text-sm font-semibold transition-all flex items-center justify-between group/btn">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                                        <span>Automata MCQ Quiz</span>
+                                    </div>
+                                    <span class="text-[11px] font-mono text-slate-400 group-hover/btn:text-cyan-400 transition-colors">10 MCQs →</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <a href="/dfa#theory" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-pink-500/50 flex items-center justify-center gap-2 transition-all">
+                                <span>📖 Read Neso Academy Notes</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
+
 
                 <!-- Callout Banner to Quiz -->
                 <div class="mt-14 rounded-3xl p-8 glass-panel border border-cyan-500/30 relative overflow-hidden">
@@ -782,21 +1208,56 @@
             closeIcon.classList.toggle('hidden');
         }
 
-        // Filter Algorithm Cards by Search
+        let currentSubjectFilter = 'all';
+
+        function setExploreFilter(filter) {
+            currentSubjectFilter = filter;
+            
+            const btnAll = document.getElementById('filter-btn-all');
+            const btnDsa = document.getElementById('filter-btn-dsa');
+            const btnAutomata = document.getElementById('filter-btn-automata');
+            
+            if (btnAll) btnAll.className = 'explore-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 transition-all';
+            if (btnDsa) btnDsa.className = 'explore-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 transition-all flex items-center gap-1.5';
+            if (btnAutomata) btnAutomata.className = 'explore-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-purple-300 bg-purple-950/40 hover:bg-purple-900/40 border border-purple-500/40 transition-all flex items-center gap-1.5';
+            
+            if (filter === 'all' && btnAll) {
+                btnAll.className = 'explore-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-white shadow-md shadow-cyan-500/20 transition-all';
+            } else if (filter === 'dsa' && btnDsa) {
+                btnDsa.className = 'explore-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-white shadow-md shadow-cyan-500/20 transition-all flex items-center gap-1.5';
+            } else if (filter === 'automata' && btnAutomata) {
+                btnAutomata.className = 'explore-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-500/25 transition-all flex items-center gap-1.5';
+            }
+            
+            filterAlgorithms();
+        }
+
+        function filterSubjectAndShow(subject) {
+            showPage('explore-page');
+            setExploreFilter(subject);
+        }
+
+        // Filter Algorithm Cards by Search & Subject
         function filterAlgorithms() {
-            const query = document.getElementById('algo-search').value.toLowerCase().trim();
+            const query = (document.getElementById('algo-search')?.value || '').toLowerCase().trim();
             const cards = document.querySelectorAll('.algo-card');
 
             cards.forEach(card => {
-                const tags = card.getAttribute('data-tags') || '';
+                const subject = card.getAttribute('data-subject') || 'dsa';
+                const tags = (card.getAttribute('data-tags') || '').toLowerCase();
                 const text = card.innerText.toLowerCase();
-                if (tags.includes(query) || text.includes(query)) {
+
+                const matchesSubject = (currentSubjectFilter === 'all' || subject === currentSubjectFilter);
+                const matchesQuery = (!query || tags.includes(query) || text.includes(query));
+
+                if (matchesSubject && matchesQuery) {
                     card.style.display = 'flex';
                 } else {
                     card.style.display = 'none';
                 }
             });
         }
+
 
         // ==========================================
         // HERO LIVE SORTING DEMO SCRIPT

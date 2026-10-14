@@ -71,6 +71,122 @@ def quiz():
     return render_template("quiz.html")
 
 
+# -------------------- AUTOMATA THEORY ROUTES ------------------
+
+@app.route("/automata")
+@app.route("/automata/dfa-dungeon")
+@app.route("/dfa")
+def dfa_page():
+    return render_template("dfa_dungeon.html")
+
+
+@app.route("/nfa")
+@app.route("/automata/nfa-quantum")
+def nfa_page():
+    return render_template("nfa_quantum.html")
+
+
+@app.route("/enfa")
+@app.route("/enfa-to-dfa")
+@app.route("/automata/enfa-to-dfa")
+def enfa_page():
+    return render_template("epsilon_nfa.html")
+
+
+@app.route("/enfa-eliminate")
+@app.route("/automata/eliminate-epsilon")
+@app.route("/bridgebusters")
+def enfa_eliminate_page():
+    return render_template("enfa_eliminate.html")
+
+
+@app.route("/moore-mealy")
+@app.route("/automata/moore-to-mealy")
+@app.route("/badge-thief")
+def moore_mealy_page():
+    return render_template("moore_mealy.html")
+
+
+
+@app.route("/api/dfa/validate", methods=["POST"])
+def validate_dfa_string():
+    """
+    Validates a binary string against the Neso Academy Example 4 DFA:
+    States: A, B, C, D, E, X
+    Alphabet: 0, 1
+    Start: A
+    Final: D, E
+    Dead: X
+    Language: 01 | 1+0
+    """
+    data = request.get_json(force=True) or {}
+    raw_str = str(data.get("string", "")).strip()
+
+    # DFA Transitions Delta: (current_state, symbol) -> next_state
+    transitions = {
+        ("A", "0"): "C", ("A", "1"): "B",
+        ("B", "0"): "D", ("B", "1"): "B",
+        ("C", "0"): "X", ("C", "1"): "E",
+        ("D", "0"): "X", ("D", "1"): "X",
+        ("E", "0"): "X", ("E", "1"): "X",
+        ("X", "0"): "X", ("X", "1"): "X",
+    }
+    final_states = {"D", "E"}
+
+    current = "A"
+    steps = [{
+        "step_idx": 0,
+        "symbol": None,
+        "from_state": None,
+        "to_state": "A",
+        "description": "BitBot starts at Initial State A (q0)",
+        "is_dead": False,
+        "is_accepting": False
+    }]
+
+    for idx, char in enumerate(raw_str):
+        if char not in ("0", "1"):
+            return jsonify({
+                "error": f"Invalid character '{char}'. The alphabet Σ is strictly {{'0', '1'}}."
+            }), 400
+
+        from_s = current
+        to_s = transitions.get((from_s, char), "X")
+        current = to_s
+
+        desc = f"Read '{char}' from state {from_s} -> transitioned to {to_s}"
+        if to_s == "X":
+            if from_s == "X":
+                desc = f"Read '{char}' in Dead State X -> looping in Trap forever"
+            else:
+                desc = f"Read '{char}' from {from_s} -> no valid path forward! Fell into Dead State X (Trap)"
+        elif to_s in ("D", "E"):
+            desc = f"Read '{char}' from {from_s} -> reached Treasure Room {to_s} (Accepting State)"
+
+        steps.append({
+            "step_idx": idx + 1,
+            "symbol": char,
+            "from_state": from_s,
+            "to_state": to_s,
+            "description": desc,
+            "is_dead": (to_s == "X"),
+            "is_accepting": (to_s in final_states)
+        })
+
+    is_accepted = (current in final_states)
+
+    return jsonify({
+        "string": raw_str,
+        "length": len(raw_str),
+        "final_state": current,
+        "is_accepted": is_accepted,
+        "is_dead": (current == "X"),
+        "steps": steps,
+        "rule": "01 | 1+0 (Either '01', or one/more '1's followed by a single '0')"
+    })
+
+
+
 @app.route("/quiz-data")
 def quiz_data():
     algorithm = request.args.get("algorithm", "").lower()
